@@ -22,9 +22,9 @@ export default function Home() {
           Build your perfect skincare routine, track your progress, and get personalized recommendations to fix your skin concerns.
         </p>
         <div className="flex gap-4 justify-center flex-wrap">
-          <button className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-8 py-3 rounded-full hover:opacity-90 transition shadow-lg shadow-pink-500/30">
+          <a href="/signup" className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-8 py-3 rounded-full hover:opacity-90 transition shadow-lg shadow-pink-500/30">
             Get Started — It's Free
-          </button>
+          </a>
           <button className="border border-white/20 text-white font-semibold px-8 py-3 rounded-full hover:bg-white/10 transition">
             See How It Works
           </button>
