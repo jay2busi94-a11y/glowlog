@@ -104,10 +104,15 @@ export default function ProfilePage() {
             </div>
 
             {/* Upgrade card (free tier only) */}
-            {!isPremium(profile) && (
+            {!isPremium(profile) ? (
               <UpgradeCard
                 profile={profile}
                 onUpgraded={(updatedProfile) => setProfile(updatedProfile)}
+              />
+            ) : (
+              <PremiumStatusCard
+                profile={profile}
+                onDowngraded={(updatedProfile) => setProfile(updatedProfile)}
               />
             )}
 
@@ -190,6 +195,48 @@ export default function ProfilePage() {
 
       </div>
     </main>
+  )
+}
+
+function PremiumStatusCard({ profile, onDowngraded }) {
+  const [downgrading, setDowngrading] = useState(false)
+
+  async function downgrade() {
+    if (!confirm('Downgrade to Free? Your AI cap and progress range limits will come back. (Testing only — you can re-enter the unlock code anytime.)')) return
+    setDowngrading(true)
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('profiles')
+      .update({ tier: 'free', updated_at: new Date().toISOString() })
+      .eq('user_id', profile.user_id)
+      .select()
+      .single()
+    setDowngrading(false)
+    if (data) onDowngraded(data)
+  }
+
+  return (
+    <div className="relative bg-gradient-to-br from-amber-400/10 via-pink-500/10 to-purple-500/10 border border-amber-300/30 rounded-2xl p-5 mb-6 overflow-hidden">
+      <div className="absolute -top-12 -right-12 w-40 h-40 bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">✦</span>
+          <div>
+            <p className="text-sm font-semibold bg-gradient-to-r from-amber-200 via-pink-200 to-purple-200 bg-clip-text text-transparent">
+              Premium active
+            </p>
+            <p className="text-xs text-gray-400">Unlimited AI, full progress history, early access.</p>
+          </div>
+        </div>
+        <button
+          onClick={downgrade}
+          disabled={downgrading}
+          className="text-xs text-gray-500 hover:text-rose-300 transition disabled:opacity-50"
+        >
+          {downgrading ? 'Downgrading...' : 'Downgrade to Free (testing)'}
+        </button>
+      </div>
+    </div>
   )
 }
 
