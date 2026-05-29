@@ -27,6 +27,12 @@ export default function AppNavbar() {
           Dashboard
         </a>
         <a
+          href="/routine"
+          className={`transition ${pathname === '/routine' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+        >
+          Routine
+        </a>
+        <a
           href="/progress"
           className={`transition ${pathname === '/progress' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
         >

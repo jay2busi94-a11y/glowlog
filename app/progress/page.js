@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AppNavbar from '../components/AppNavbar'
 import { createClient } from '../../lib/supabase'
+import { toLocalDateString } from '../../lib/dates'
 
 const RATINGS = {
   1: { emoji: '😣', label: 'Bad', color: 'bg-rose-500' },
@@ -19,8 +20,8 @@ function computeStreak(dates) {
   const set = new Set(dates)
   let streak = 0
   const d = new Date()
-  if (!set.has(d.toISOString().split('T')[0])) d.setDate(d.getDate() - 1)
-  while (set.has(d.toISOString().split('T')[0])) {
+  if (!set.has(toLocalDateString(d))) d.setDate(d.getDate() - 1)
+  while (set.has(toLocalDateString(d))) {
     streak++
     d.setDate(d.getDate() - 1)
   }
@@ -136,7 +137,9 @@ export default function Progress() {
               <h2 className="text-lg font-semibold mb-4">History</h2>
               <ul className="flex flex-col divide-y divide-white/5">
                 {recent.map(l => {
-                  const done = (l.morning_completed?.length || 0) + (l.night_completed?.length || 0)
+                  const done = l.completed && Object.keys(l.completed).length
+                    ? Object.values(l.completed).reduce((s, arr) => s + (Array.isArray(arr) ? arr.length : 0), 0)
+                    : (l.morning_completed?.length || 0) + (l.night_completed?.length || 0)
                   const r = RATINGS[l.skin_rating]
                   return (
                     <li key={l.id} className="flex items-start gap-4 py-3">

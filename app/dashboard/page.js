@@ -4,9 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AppNavbar from "../components/AppNavbar"
 import { createClient } from '../../lib/supabase'
-
-const MORNING_STEPS = ['Cleanser', 'Vitamin C Serum', 'Moisturizer + SPF']
-const NIGHT_STEPS = ['Oil Cleanser', 'Foaming Cleanser', 'Retinol Serum', 'Night Moisturizer']
+import { routinesFromRow, accentFor } from '../../lib/routine'
+import { toLocalDateString } from '../../lib/dates'
 
 const SKIN_RATINGS = [
   { value: 1, emoji: '😣', label: 'Bad' },
@@ -51,11 +50,54 @@ const CONCERN_FIXES = {
   },
 }
 
+function RoutineCard({ routine, accent, done, onToggle, onCompleteAll, onClearAll }) {
+  return (
+    <div className={`bg-white/5 border ${accent.ring} rounded-2xl p-6`}>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className={`text-lg font-semibold ${accent.head}`}>{routine.emoji || '🧴'} {routine.name}</h2>
+        <span className="text-xs text-gray-500">{done.length}/{routine.steps.length} done</span>
+      </div>
+
+      {routine.steps.length === 0 ? (
+        <p className="text-sm text-gray-500">No steps yet — add some on the Routine page.</p>
+      ) : (
+        <>
+          <ul className="flex flex-col gap-3">
+            {routine.steps.map((step, i) => {
+              const isDone = done.includes(step)
+              return (
+                <li
+                  key={step + i}
+                  onClick={() => onToggle(routine.id, step)}
+                  className={`flex items-center gap-3 text-sm cursor-pointer select-none transition ${isDone ? 'text-gray-500' : 'text-gray-300'}`}
+                >
+                  <span className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs flex-shrink-0 transition ${isDone ? accent.dotDone : accent.dot}`}>
+                    {isDone ? '✓' : i + 1}
+                  </span>
+                  <span className={isDone ? 'line-through' : ''}>{step}</span>
+                </li>
+              )
+            })}
+          </ul>
+          <div className="flex gap-4 mt-4 pt-3 border-t border-white/5 text-xs">
+            <button onClick={() => onCompleteAll(routine.id, routine.steps)} className={`${accent.link} transition`}>
+              Complete all
+            </button>
+            <button onClick={() => onClearAll(routine.id)} className="text-gray-500 hover:text-gray-300 transition">
+              Clear all
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const router = useRouter()
   const [user, setUser] = useState(null)
-  const [morningDone, setMorningDone] = useState([])
-  const [nightDone, setNightDone] = useState([])
+  const [routines, setRoutines] = useState([])
+  const [completed, setCompleted] = useState({})   // { [routineId]: [completed step names] }
   const [skinRating, setSkinRating] = useState(null)
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
@@ -67,7 +109,7 @@ export default function Dashboard() {
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState('')
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = toLocalDateString()
 
   useEffect(() => {
     const supabase = createClient()
@@ -78,8 +120,18 @@ export default function Dashboard() {
       }
       setUser(user)
       loadTodayLog(supabase, user.id)
+      loadRoutines(supabase, user.id)
     })
   }, [])
+
+  async function loadRoutines(supabase, userId) {
+    const { data } = await supabase
+      .from('routines')
+      .select('data, morning_steps, night_steps')
+      .eq('user_id', userId)
+      .maybeSingle()
+    setRoutines(routinesFromRow(data))
+  }
 
   async function loadTodayLog(supabase, userId) {
     const { data } = await supabase
@@ -87,19 +139,35 @@ export default function Dashboard() {
       .select('*')
       .eq('user_id', userId)
       .eq('date', today)
-      .single()
+      .maybeSingle()
 
     if (data) {
-      setMorningDone(data.morning_completed || [])
-      setNightDone(data.night_completed || [])
+      // Prefer the new `completed` map; fall back to the legacy morning/night columns.
+      const hasCompleted = data.completed && Object.keys(data.completed).length
+      setCompleted(hasCompleted ? data.completed : {
+        morning: data.morning_completed || [],
+        night: data.night_completed || [],
+      })
       setSkinRating(data.skin_rating)
       setNote(data.note || '')
       setTodayLogged(true)
     }
   }
 
-  function toggleStep(step, list, setList) {
-    setList(list.includes(step) ? list.filter(s => s !== step) : [...list, step])
+  function toggleStep(routineId, step) {
+    setCompleted(prev => {
+      const list = prev[routineId] || []
+      const next = list.includes(step) ? list.filter(s => s !== step) : [...list, step]
+      return { ...prev, [routineId]: next }
+    })
+  }
+
+  function completeAllSteps(routineId, steps) {
+    setCompleted(prev => ({ ...prev, [routineId]: [...steps] }))
+  }
+
+  function clearAllSteps(routineId) {
+    setCompleted(prev => ({ ...prev, [routineId]: [] }))
   }
 
   async function handleSave() {
@@ -109,8 +177,7 @@ export default function Dashboard() {
     const { error } = await supabase.from('skin_logs').upsert({
       user_id: user.id,
       date: today,
-      morning_completed: morningDone,
-      night_completed: nightDone,
+      completed,
       skin_rating: skinRating,
       note,
     }, { onConflict: 'user_id,date' })
@@ -134,16 +201,18 @@ export default function Dashboard() {
   function buildContextMessage() {
     const ratingLabel = SKIN_RATINGS.find(r => r.value === skinRating)?.label
     const ratingText = ratingLabel ? `${skinRating}/5 (${ratingLabel})` : 'not logged today'
-    const morning = morningDone.length ? morningDone.join(', ') : 'none yet'
-    const night = nightDone.length ? nightDone.join(', ') : 'none yet'
     const userNote = note.trim() ? note.trim() : 'none'
+    const routineLines = routines.map(r => {
+      const d = completed[r.id] || []
+      return `- ${r.name}: ${d.length ? d.join(', ') : 'none yet'}`
+    }).join('\n')
     return `My main skin concern right now: ${activeConcern}
 
 Today's context:
 - Skin rating: ${ratingText}
 - My note: ${userNote}
-- Morning routine steps I completed: ${morning}
-- Night routine steps I completed: ${night}
+Routine steps I completed today:
+${routineLines || '- none'}
 
 Give me personalized advice for this concern.`
   }
@@ -208,57 +277,17 @@ Give me personalized advice for this concern.`
 
         {/* Routine Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-
-          {/* Morning Routine */}
-          <div className="bg-white/5 border border-pink-500/20 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-pink-300">☀️ Morning Routine</h2>
-              <span className="text-xs text-gray-500">{morningDone.length}/{MORNING_STEPS.length} done</span>
-            </div>
-            <ul className="flex flex-col gap-3">
-              {MORNING_STEPS.map((step, i) => {
-                const done = morningDone.includes(step)
-                return (
-                  <li
-                    key={step}
-                    onClick={() => toggleStep(step, morningDone, setMorningDone)}
-                    className={`flex items-center gap-3 text-sm cursor-pointer select-none transition ${done ? 'text-gray-500' : 'text-gray-300'}`}
-                  >
-                    <span className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs flex-shrink-0 transition ${done ? 'bg-pink-500/40 border-pink-400 text-pink-200' : 'bg-pink-500/20 border-pink-500/30 text-pink-400'}`}>
-                      {done ? '✓' : i + 1}
-                    </span>
-                    <span className={done ? 'line-through' : ''}>{step}</span>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-
-          {/* Night Routine */}
-          <div className="bg-white/5 border border-purple-500/20 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-purple-300">🌙 Night Routine</h2>
-              <span className="text-xs text-gray-500">{nightDone.length}/{NIGHT_STEPS.length} done</span>
-            </div>
-            <ul className="flex flex-col gap-3">
-              {NIGHT_STEPS.map((step, i) => {
-                const done = nightDone.includes(step)
-                return (
-                  <li
-                    key={step}
-                    onClick={() => toggleStep(step, nightDone, setNightDone)}
-                    className={`flex items-center gap-3 text-sm cursor-pointer select-none transition ${done ? 'text-gray-500' : 'text-gray-300'}`}
-                  >
-                    <span className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs flex-shrink-0 transition ${done ? 'bg-purple-500/40 border-purple-400 text-purple-200' : 'bg-purple-500/20 border-purple-500/30 text-purple-400'}`}>
-                      {done ? '✓' : i + 1}
-                    </span>
-                    <span className={done ? 'line-through' : ''}>{step}</span>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-
+          {routines.map((routine, idx) => (
+            <RoutineCard
+              key={routine.id}
+              routine={routine}
+              accent={accentFor(idx)}
+              done={completed[routine.id] || []}
+              onToggle={toggleStep}
+              onCompleteAll={completeAllSteps}
+              onClearAll={clearAllSteps}
+            />
+          ))}
         </div>
 
         {/* Today's Log */}
