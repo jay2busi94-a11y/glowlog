@@ -6,12 +6,28 @@ import AppNavbar from '../components/AppNavbar'
 import { createClient } from '../../lib/supabase'
 import { AVATAR_EMOJIS, DEFAULT_AVATAR, PROFILE_CONCERNS, displayNameFor, isPremium, PREMIUM_PERKS, UNLOCK_CODE } from '../../lib/profile'
 
+// Upload a profile photo to the user's folder in the avatars bucket and
+// return the public URL. Throws on failure.
+async function uploadAvatarPhoto(file, userId) {
+  const supabase = createClient()
+  const ext = (file.name?.split('.').pop() || 'jpg').toLowerCase()
+  const path = `${userId}/${crypto.randomUUID()}.${ext}`
+  const { error } = await supabase.storage
+    .from('avatars')
+    .upload(path, file, { upsert: false, cacheControl: '31536000', contentType: file.type || 'image/jpeg' })
+  if (error) throw error
+  const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+  return publicUrl
+}
+
 export default function ProfilePage() {
   const router = useRouter()
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [displayName, setDisplayName] = useState('')
   const [avatar, setAvatar] = useState(DEFAULT_AVATAR)
+  const [avatarUrl, setAvatarUrl] = useState('')
+  const [avatarMode, setAvatarMode] = useState('emoji')   // 'emoji' | 'photo'
   const [concerns, setConcerns] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -34,6 +50,8 @@ export default function ProfilePage() {
         setProfile(data)
         setDisplayName(data.display_name || '')
         setAvatar(data.avatar || DEFAULT_AVATAR)
+        setAvatarUrl(data.avatar_url || '')
+        setAvatarMode(data.avatar_url ? 'photo' : 'emoji')
         setConcerns(data.concerns || [])
       }
       setLoading(false)
@@ -52,6 +70,7 @@ export default function ProfilePage() {
       user_id: user.id,
       display_name: displayName.trim() || null,
       avatar,
+      avatar_url: avatarMode === 'photo' && avatarUrl ? avatarUrl : null,
       concerns,
       updated_at: new Date().toISOString(),
     }
@@ -86,8 +105,12 @@ export default function ProfilePage() {
           <>
             {/* Identity card */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6 flex items-center gap-5">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-4xl shadow-lg shadow-pink-500/10">
-                {avatar}
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-4xl shadow-lg shadow-pink-500/10 overflow-hidden">
+                {avatarMode === 'photo' && avatarUrl ? (
+                  <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span>{avatar}</span>
+                )}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
@@ -133,24 +156,59 @@ export default function ProfilePage() {
 
             {/* Avatar */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
-              <p className="text-sm font-semibold text-pink-300">Avatar</p>
-              <p className="text-xs text-gray-500 mb-4">Pick an emoji.</p>
-              <div className="grid grid-cols-8 sm:grid-cols-11 gap-2">
-                {AVATAR_EMOJIS.map(e => (
+              <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+                <div>
+                  <p className="text-sm font-semibold text-pink-300">Avatar</p>
+                  <p className="text-xs text-gray-500">Upload your own photo or pick an emoji.</p>
+                </div>
+                <div className="flex gap-1 bg-white/5 border border-white/10 rounded-full p-1">
                   <button
-                    key={e}
-                    onClick={() => setAvatar(e)}
-                    className={`aspect-square rounded-xl text-2xl flex items-center justify-center border transition ${
-                      avatar === e
-                        ? 'bg-pink-500/15 border-pink-500/50 shadow-md shadow-pink-500/20 scale-105'
-                        : 'bg-white/5 border-white/10 hover:border-white/30 hover:scale-105'
+                    onClick={() => setAvatarMode('photo')}
+                    className={`text-xs px-3 py-1 rounded-full transition ${
+                      avatarMode === 'photo'
+                        ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md shadow-pink-500/20'
+                        : 'text-gray-400 hover:text-white'
                     }`}
-                    aria-label={`Pick ${e}`}
                   >
-                    {e}
+                    📷 Photo
                   </button>
-                ))}
+                  <button
+                    onClick={() => setAvatarMode('emoji')}
+                    className={`text-xs px-3 py-1 rounded-full transition ${
+                      avatarMode === 'emoji'
+                        ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md shadow-pink-500/20'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    ✨ Emoji
+                  </button>
+                </div>
               </div>
+
+              {avatarMode === 'photo' ? (
+                <AvatarPhotoPicker
+                  photoUrl={avatarUrl}
+                  onChange={setAvatarUrl}
+                  userId={user?.id}
+                />
+              ) : (
+                <div className="grid grid-cols-8 sm:grid-cols-11 gap-2">
+                  {AVATAR_EMOJIS.map(e => (
+                    <button
+                      key={e}
+                      onClick={() => setAvatar(e)}
+                      className={`aspect-square rounded-xl text-2xl flex items-center justify-center border transition ${
+                        avatar === e
+                          ? 'bg-pink-500/15 border-pink-500/50 shadow-md shadow-pink-500/20 scale-105'
+                          : 'bg-white/5 border-white/10 hover:border-white/30 hover:scale-105'
+                      }`}
+                      aria-label={`Pick ${e}`}
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Concerns */}
@@ -322,6 +380,84 @@ function UpgradeCard({ profile, onUpgraded }) {
         </form>
         {error && <p className="text-xs text-rose-300 mt-2">{error}</p>}
       </div>
+    </div>
+  )
+}
+
+function AvatarPhotoPicker({ photoUrl, onChange, userId }) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !userId) return
+    if (!file.type.startsWith('image/')) {
+      setError('Please pick an image file.')
+      return
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      setError('That image is over 4 MB — try a smaller one.')
+      return
+    }
+    setError('')
+    setUploading(true)
+    try {
+      const url = await uploadAvatarPhoto(file, userId)
+      onChange(url)
+    } catch (err) {
+      console.error(err)
+      setError('Upload failed. Try again.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return (
+    <div>
+      {photoUrl ? (
+        <div className="flex items-start gap-4">
+          <div className="w-28 h-28 rounded-2xl overflow-hidden border border-white/10 bg-white/5 flex-shrink-0">
+            <img src={photoUrl} alt="Your avatar" className="w-full h-full object-cover" />
+          </div>
+          <div className="flex flex-col gap-2 mt-1 min-w-0">
+            <label className="cursor-pointer text-xs text-pink-300 hover:text-pink-200 transition">
+              {uploading ? 'Uploading...' : 'Replace photo'}
+              <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
+            </label>
+            <label className="cursor-pointer text-xs text-pink-300 hover:text-pink-200 transition">
+              {uploading ? '...' : '📷 Take new photo'}
+              <input type="file" accept="image/*" capture="user" onChange={handleFile} className="hidden" disabled={uploading} />
+            </label>
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              className="text-xs text-gray-500 hover:text-rose-300 transition text-left"
+              disabled={uploading}
+            >
+              Remove photo
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-2xl py-6 text-sm transition ${
+            uploading ? 'border-white/10 text-gray-500' : 'border-white/20 text-gray-400 hover:border-pink-500/40 hover:text-white'
+          }`}>
+            <span className="text-lg">🖼️</span>
+            <span>{uploading ? 'Uploading...' : 'Choose photo'}</span>
+            <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
+          </label>
+          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-2xl py-6 text-sm transition ${
+            uploading ? 'border-white/10 text-gray-500' : 'border-white/20 text-gray-400 hover:border-pink-500/40 hover:text-white'
+          }`}>
+            <span className="text-lg">📷</span>
+            <span>{uploading ? 'Uploading...' : 'Take selfie'}</span>
+            <input type="file" accept="image/*" capture="user" onChange={handleFile} className="hidden" disabled={uploading} />
+          </label>
+        </div>
+      )}
+      {error && <p className="text-xs text-rose-300 mt-3">{error}</p>}
     </div>
   )
 }

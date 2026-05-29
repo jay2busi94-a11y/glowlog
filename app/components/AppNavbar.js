@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
-import { displayNameFor, avatarFor, isPremium } from '../../lib/profile'
+import { displayNameFor, avatarFor, avatarPhotoFor, isPremium } from '../../lib/profile'
 
 export default function AppNavbar() {
   const router = useRouter()
@@ -20,7 +20,7 @@ export default function AppNavbar() {
       setUser(user)
       const { data } = await supabase
         .from('profiles')
-        .select('display_name, avatar, tier')
+        .select('display_name, avatar, avatar_url, tier')
         .eq('user_id', user.id)
         .maybeSingle()
       if (data) setProfile(data)
@@ -45,6 +45,7 @@ export default function AppNavbar() {
 
   const name = displayNameFor(profile, user)
   const avatar = avatarFor(profile)
+  const avatarPhoto = avatarPhotoFor(profile)
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-8 py-4 bg-[#080808]/80 backdrop-blur-md border-b border-white/10">
@@ -95,8 +96,12 @@ export default function AppNavbar() {
           }`}
           aria-label="Open profile menu"
         >
-          <span className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-base">
-            {avatar}
+          <span className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-base overflow-hidden">
+            {avatarPhoto ? (
+              <img src={avatarPhoto} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <span>{avatar}</span>
+            )}
           </span>
           <span className="text-sm text-gray-200 max-w-[120px] truncate hidden sm:inline">{name}</span>
           <span className={`text-gray-500 text-xs transition ${menuOpen ? 'rotate-180' : ''}`}>▾</span>
@@ -105,8 +110,12 @@ export default function AppNavbar() {
         {menuOpen && (
           <div className="absolute right-0 mt-2 w-64 bg-[#0e0e0e] border border-white/10 rounded-2xl shadow-2xl shadow-pink-500/10 overflow-hidden">
             <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3">
-              <span className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-xl flex-shrink-0">
-                {avatar}
+              <span className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-xl flex-shrink-0 overflow-hidden">
+                {avatarPhoto ? (
+                  <img src={avatarPhoto} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span>{avatar}</span>
+                )}
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-white truncate">{name}</p>
