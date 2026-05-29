@@ -292,6 +292,7 @@ export default function Dashboard() {
   const [saved, setSaved] = useState(false)
   const [todayLogged, setTodayLogged] = useState(false)
   const [activeConcern, setActiveConcern] = useState(null)
+  const [customAsk, setCustomAsk] = useState('')
   const [chat, setChat] = useState([])        // full message thread sent to the API (index 0 = context)
   const [chatInput, setChatInput] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
@@ -442,7 +443,7 @@ export default function Dashboard() {
     setAiError('')
   }
 
-  function buildContextMessage() {
+  function buildContextMessage({ question } = {}) {
     const ratingLabel = SKIN_RATINGS.find(r => r.value === skinRating)?.label
     const ratingText = ratingLabel ? `${skinRating}/5 (${ratingLabel})` : 'not logged today'
     const userNote = note.trim() ? note.trim() : 'none'
@@ -453,7 +454,14 @@ export default function Dashboard() {
     const profileConcerns = profile?.concerns?.length
       ? `\nMy long-standing skin concerns (from profile): ${profile.concerns.join(', ')}`
       : ''
-    return `My main skin concern right now: ${activeConcern}${profileConcerns}
+    const skinType = profile?.skin_type ? `\nMy skin type: ${profile.skin_type}` : ''
+    const opener = question
+      ? `My question: ${question}${profileConcerns}${skinType}`
+      : `My main skin concern right now: ${activeConcern}${profileConcerns}${skinType}`
+    const closer = question
+      ? 'Answer my question. Keep it grounded in the context above.'
+      : 'Give me personalized advice for this concern.'
+    return `${opener}
 
 Today's context:
 - Skin rating: ${ratingText}
@@ -461,7 +469,7 @@ Today's context:
 Routine steps I completed today:
 ${routineLines || '- none'}
 
-Give me personalized advice for this concern.`
+${closer}`
   }
 
   // Sends the full thread to the API and appends Claude's reply. On failure,
@@ -493,6 +501,20 @@ Give me personalized advice for this concern.`
     if (atLimit) { setShowAiUpgrade(true); return }
     const messages = [{ role: 'user', content: buildContextMessage() }]
     setChat(messages)
+    askAI(messages, [], '')
+  }
+
+  function askCustom(e) {
+    e?.preventDefault()
+    const q = customAsk.trim()
+    if (!q || aiLoading) return
+    if (atLimit) { setShowAiUpgrade(true); return }
+    // Reset any concern-flow state so the chat panel renders cleanly.
+    setActiveConcern(null)
+    setAiError('')
+    const messages = [{ role: 'user', content: buildContextMessage({ question: q }) }]
+    setChat(messages)
+    setCustomAsk('')
     askAI(messages, [], '')
   }
 
@@ -611,6 +633,35 @@ Give me personalized advice for this concern.`
             })}
           </div>
 
+          {/* Custom question — alternative to picking a concern */}
+          <div className="mt-5">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="h-px flex-1 bg-white/10" />
+              <span className="text-[10px] uppercase tracking-wider text-gray-500">Or ask anything</span>
+              <span className="h-px flex-1 bg-white/10" />
+            </div>
+            <form onSubmit={askCustom} className="flex gap-2 flex-wrap sm:flex-nowrap">
+              <input
+                value={customAsk}
+                onChange={e => setCustomAsk(e.target.value)}
+                placeholder="e.g. Can I layer retinol with vitamin C?"
+                maxLength={400}
+                disabled={aiLoading}
+                className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition disabled:opacity-50"
+              />
+              <button
+                type="submit"
+                disabled={!customAsk.trim() || aiLoading}
+                className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-md shadow-pink-500/20 whitespace-nowrap"
+              >
+                {aiLoading ? '✨ Thinking...' : '✨ Ask AI'}
+              </button>
+            </form>
+            <p className="text-[10px] text-gray-600 mt-2">
+              Uses your profile + today's log for context, just like the concern flow.
+            </p>
+          </div>
+
           {activeConcern && (
             <div className="mt-6 border-t border-white/10 pt-6">
               <h3 className="text-base font-semibold text-pink-300 mb-1">{activeConcern}</h3>
@@ -639,7 +690,7 @@ Give me personalized advice for this concern.`
                 </div>
               </div>
 
-              {chat.length === 0 ? (
+              {chat.length === 0 && (
                 <button
                   onClick={startAdvice}
                   disabled={aiLoading}
@@ -647,54 +698,70 @@ Give me personalized advice for this concern.`
                 >
                   {aiLoading ? '✨ Thinking...' : '✨ Get personalized advice'}
                 </button>
-              ) : (
-                <div className="bg-white/5 border border-purple-500/20 rounded-xl p-4">
-                  {/* Conversation — skip index 0 (the hidden context message) */}
-                  <div className="flex flex-col gap-3">
-                    {chat.slice(1).map((m, i) => (
-                      <div
-                        key={i}
-                        className={
-                          m.role === 'user'
-                            ? 'self-end max-w-[85%] bg-pink-500/20 border border-pink-500/30 rounded-2xl rounded-br-sm px-3.5 py-2'
-                            : 'self-start max-w-[90%] bg-white/5 border border-white/10 rounded-2xl rounded-bl-sm px-3.5 py-2.5'
-                        }
-                      >
-                        <p className="text-sm text-gray-100 whitespace-pre-wrap leading-relaxed">{m.content}</p>
-                      </div>
-                    ))}
-                    {aiLoading && (
-                      <div className="self-start bg-white/5 border border-white/10 rounded-2xl rounded-bl-sm px-3.5 py-2.5">
-                        <p className="text-sm text-gray-400">✨ Thinking...</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <form onSubmit={sendChat} className="mt-4 flex gap-2">
-                    <input
-                      value={chatInput}
-                      onChange={e => setChatInput(e.target.value)}
-                      placeholder="Ask a follow-up..."
-                      disabled={aiLoading}
-                      className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition disabled:opacity-50"
-                    />
-                    <button
-                      type="submit"
-                      disabled={aiLoading || !chatInput.trim()}
-                      className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40"
-                    >
-                      Send
-                    </button>
-                  </form>
-
-                  <p className="mt-3 text-xs text-gray-500">✨ Personalized by Claude — general guidance, not medical advice.</p>
-                </div>
-              )}
-
-              {aiError && (
-                <p className="mt-4 text-sm text-rose-400">{aiError}</p>
               )}
             </div>
+          )}
+
+          {/* Chat panel — shows for both the concern flow and custom questions */}
+          {chat.length > 0 && (
+            <div className="mt-6 border-t border-white/10 pt-6">
+              {!activeConcern && (
+                <h3 className="text-base font-semibold text-pink-300 mb-3">Your question</h3>
+              )}
+              <div className="bg-white/5 border border-purple-500/20 rounded-xl p-4">
+                {/* Conversation — skip index 0 (the hidden context message) */}
+                <div className="flex flex-col gap-3">
+                  {chat.slice(1).map((m, i) => (
+                    <div
+                      key={i}
+                      className={
+                        m.role === 'user'
+                          ? 'self-end max-w-[85%] bg-pink-500/20 border border-pink-500/30 rounded-2xl rounded-br-sm px-3.5 py-2'
+                          : 'self-start max-w-[90%] bg-white/5 border border-white/10 rounded-2xl rounded-bl-sm px-3.5 py-2.5'
+                      }
+                    >
+                      <p className="text-sm text-gray-100 whitespace-pre-wrap leading-relaxed">{m.content}</p>
+                    </div>
+                  ))}
+                  {/* Show the user's original custom question (index 0 was sent as context — extract a clean version). */}
+                  {chat.length === 1 && !activeConcern && aiLoading && (
+                    <div className="self-end max-w-[85%] bg-pink-500/20 border border-pink-500/30 rounded-2xl rounded-br-sm px-3.5 py-2">
+                      <p className="text-sm text-gray-100 whitespace-pre-wrap leading-relaxed opacity-80">
+                        {(chat[0]?.content || '').split('\n')[0].replace(/^My question:\s*/, '')}
+                      </p>
+                    </div>
+                  )}
+                  {aiLoading && (
+                    <div className="self-start bg-white/5 border border-white/10 rounded-2xl rounded-bl-sm px-3.5 py-2.5">
+                      <p className="text-sm text-gray-400">✨ Thinking...</p>
+                    </div>
+                  )}
+                </div>
+
+                <form onSubmit={sendChat} className="mt-4 flex gap-2">
+                  <input
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    placeholder="Ask a follow-up..."
+                    disabled={aiLoading}
+                    className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition disabled:opacity-50"
+                  />
+                  <button
+                    type="submit"
+                    disabled={aiLoading || !chatInput.trim()}
+                    className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40"
+                  >
+                    Send
+                  </button>
+                </form>
+
+                <p className="mt-3 text-xs text-gray-500">✨ Personalized by Claude — general guidance, not medical advice.</p>
+              </div>
+            </div>
+          )}
+
+          {aiError && (
+            <p className="mt-4 text-sm text-rose-400">{aiError}</p>
           )}
         </div>
 
