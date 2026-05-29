@@ -6,7 +6,7 @@ import AppNavbar from '../components/AppNavbar'
 import { createClient } from '../../lib/supabase'
 import { PRODUCT_CATEGORIES } from '../../lib/catalog'
 import { toLocalDateString } from '../../lib/dates'
-import { isPremium, FREE_SUGGEST_LIMIT, getSuggestCountToday, incrementSuggestCountToday } from '../../lib/profile'
+import { isPremium, FREE_SUGGEST_LIMIT, getSuggestCountToday, incrementSuggestCountToday, FREE_VISION_LIMIT, getVisionCountToday, incrementVisionCountToday } from '../../lib/profile'
 
 const BLANK = { brand: '', name: '', category: '', notes: '', photo_url: '' }
 
@@ -36,14 +36,28 @@ export default function Catalog() {
   const [filter, setFilter] = useState('All')
   const [suggestOpen, setSuggestOpen] = useState(false)
   const [suggestCount, setSuggestCount] = useState(0)
+  const [shelfOpen, setShelfOpen] = useState(false)
+  const [ingredientsOpen, setIngredientsOpen] = useState(false)
+  const [visionCount, setVisionCount] = useState(0)
+  const [showUpgrade, setShowUpgrade] = useState(false)
 
   const today = toLocalDateString()
   const premium = isPremium(profile)
   const suggestAtLimit = !premium && suggestCount >= FREE_SUGGEST_LIMIT
+  const visionAtLimit = !premium && visionCount >= FREE_VISION_LIMIT
 
   useEffect(() => {
     setSuggestCount(getSuggestCountToday(today))
+    setVisionCount(getVisionCountToday(today))
   }, [today])
+
+  function bumpVisionCount() {
+    setVisionCount(incrementVisionCountToday(today))
+  }
+  function openUpgradeIfAtLimit() {
+    if (visionAtLimit) { setShowUpgrade(true); return true }
+    return false
+  }
 
   useEffect(() => {
     const supabase = createClient()
@@ -154,6 +168,28 @@ export default function Catalog() {
           {editing === null && (
             <div className="flex items-center gap-2 flex-wrap">
               <button
+                onClick={() => setShelfOpen(v => !v)}
+                className={`border text-sm px-4 py-2.5 rounded-full transition flex items-center gap-2 ${
+                  shelfOpen
+                    ? 'bg-white/10 border-white/20 text-white'
+                    : 'border-purple-500/30 text-purple-200 hover:bg-purple-500/10 hover:border-purple-500/50'
+                }`}
+              >
+                <span>📸</span>
+                <span>Scan my shelf</span>
+              </button>
+              <button
+                onClick={() => setIngredientsOpen(v => !v)}
+                className={`border text-sm px-4 py-2.5 rounded-full transition flex items-center gap-2 ${
+                  ingredientsOpen
+                    ? 'bg-white/10 border-white/20 text-white'
+                    : 'border-amber-400/30 text-amber-200 hover:bg-amber-400/10 hover:border-amber-400/50'
+                }`}
+              >
+                <span>🔍</span>
+                <span>Check ingredients</span>
+              </button>
+              <button
                 onClick={() => setSuggestOpen(v => !v)}
                 className={`border text-sm px-4 py-2.5 rounded-full transition flex items-center gap-2 ${
                   suggestOpen
@@ -187,6 +223,35 @@ export default function Catalog() {
           />
         )}
 
+        {editing === null && shelfOpen && (
+          <ShelfScanPanel
+            user={user}
+            premium={premium}
+            visionCount={visionCount}
+            atLimit={visionAtLimit}
+            existingProducts={products}
+            onClose={() => setShelfOpen(false)}
+            onAddToCatalog={addSuggestionToCatalog}
+            onAfterFetch={bumpVisionCount}
+            onAtLimit={() => setShowUpgrade(true)}
+          />
+        )}
+
+        {editing === null && ingredientsOpen && (
+          <IngredientCheckPanel
+            user={user}
+            profile={profile}
+            premium={premium}
+            visionCount={visionCount}
+            atLimit={visionAtLimit}
+            onClose={() => setIngredientsOpen(false)}
+            onAfterFetch={bumpVisionCount}
+            onAtLimit={() => setShowUpgrade(true)}
+          />
+        )}
+
+        {showUpgrade && <VisionUpgradeNudge onClose={() => setShowUpgrade(false)} />}
+
         {editing !== null && (
           <ProductForm
             draft={draft}
@@ -196,6 +261,11 @@ export default function Catalog() {
             onCancel={cancel}
             isNew={editing === 'new'}
             user={user}
+            premium={premium}
+            visionCount={visionCount}
+            visionAtLimit={visionAtLimit}
+            onAfterScan={bumpVisionCount}
+            onAtLimit={() => setShowUpgrade(true)}
           />
         )}
 
@@ -273,13 +343,37 @@ export default function Catalog() {
   )
 }
 
-function ProductForm({ draft, setDraft, saving, onSave, onCancel, isNew, user }) {
+function ProductForm({ draft, setDraft, saving, onSave, onCancel, isNew, user, visionAtLimit, premium, visionCount, onAfterScan, onAtLimit }) {
   const set = (key) => (e) => setDraft({ ...draft, [key]: e.target.value })
   const setPhotoUrl = (url) => setDraft({ ...draft, photo_url: url })
+
+  function applyScan(p) {
+    const hasTyped = draft.brand || draft.name || draft.notes
+    if (hasTyped && !confirm('Replace what you typed with what the AI read from the label?')) return
+    setDraft({
+      ...draft,
+      brand: p.brand || draft.brand,
+      name: p.name || draft.name,
+      category: p.category || draft.category,
+      notes: p.notes || draft.notes,
+    })
+    onAfterScan?.()
+  }
+
   return (
     <div className="bg-white/5 border border-pink-500/20 rounded-2xl p-6 mb-8">
       <h2 className="text-lg font-semibold mb-4 text-pink-300">{isNew ? 'Add product' : 'Edit product'}</h2>
-      <PhotoPicker photoUrl={draft.photo_url} onChange={setPhotoUrl} userId={user?.id} />
+      <PhotoPicker
+        photoUrl={draft.photo_url}
+        onChange={setPhotoUrl}
+        userId={user?.id}
+        scanEnabled={isNew}
+        onScan={applyScan}
+        atLimit={visionAtLimit}
+        premium={premium}
+        visionCount={visionCount}
+        onAtLimit={onAtLimit}
+      />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <label className="flex flex-col gap-1">
           <span className="text-xs text-gray-400">Brand</span>
@@ -340,6 +434,315 @@ function ProductForm({ draft, setDraft, saving, onSave, onCancel, isNew, user })
   )
 }
 
+function ShelfScanPanel({ user, premium, visionCount, atLimit, existingProducts, onClose, onAddToCatalog, onAfterFetch, onAtLimit }) {
+  const [photoUrl, setPhotoUrl] = useState('')
+  const [results, setResults] = useState([])
+  const [selected, setSelected] = useState({})  // index → boolean
+  const [scanning, setScanning] = useState(false)
+  const [adding, setAdding] = useState(false)
+  const [error, setError] = useState('')
+  const [done, setDone] = useState(0)
+
+  const existingSet = new Set(
+    existingProducts.map(p => `${(p.brand || '').toLowerCase()}|${(p.name || '').toLowerCase()}`)
+  )
+
+  async function scan() {
+    if (atLimit) { onAtLimit?.(); return }
+    if (!photoUrl) return
+    setScanning(true)
+    setError('')
+    setResults([])
+    setSelected({})
+    setDone(0)
+    try {
+      const res = await fetch('/api/scan-shelf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photoUrl }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Scan failed')
+      const products = data.products || []
+      setResults(products)
+      const initial = {}
+      products.forEach((p, i) => {
+        const key = `${p.brand.toLowerCase()}|${p.name.toLowerCase()}`
+        initial[i] = !existingSet.has(key)
+      })
+      setSelected(initial)
+      onAfterFetch?.()
+    } catch (err) {
+      setError(err.message || 'Scan failed')
+    } finally {
+      setScanning(false)
+    }
+  }
+
+  async function addSelected() {
+    setAdding(true)
+    let added = 0
+    for (let i = 0; i < results.length; i++) {
+      if (!selected[i]) continue
+      const created = await onAddToCatalog({ ...results[i], why: null })
+      if (created) added++
+    }
+    setDone(added)
+    setAdding(false)
+  }
+
+  const selectedCount = Object.values(selected).filter(Boolean).length
+
+  return (
+    <div className="relative bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-fuchsia-500/5 border border-purple-500/30 rounded-2xl p-6 mb-8 overflow-hidden">
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative">
+        <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
+          <div>
+            <h2 className="text-xl font-bold bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
+              📸 Scan my shelf
+            </h2>
+            <p className="text-sm text-gray-400 mt-1">Take a wide photo of your products and we'll add them all at once.</p>
+          </div>
+          <button onClick={onClose} className="text-xs text-gray-500 hover:text-white transition">Close</button>
+        </div>
+
+        <div className="mt-5">
+          <PhotoPicker photoUrl={photoUrl} onChange={setPhotoUrl} userId={user?.id} />
+        </div>
+
+        <div className="flex items-center gap-3 mt-3 flex-wrap">
+          {atLimit ? (
+            <a href="/profile" className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/20">
+              ✦ Daily limit hit — Upgrade
+            </a>
+          ) : (
+            <button
+              onClick={scan}
+              disabled={scanning || !photoUrl}
+              className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+            >
+              {scanning ? 'Reading shelf...' : results.length ? '↻ Scan again' : '✨ Identify products'}
+            </button>
+          )}
+          {!premium && (
+            <p className="text-xs text-gray-500">{Math.max(0, FREE_VISION_LIMIT - visionCount)} / {FREE_VISION_LIMIT} AI scans left today</p>
+          )}
+        </div>
+
+        {error && <p className="text-xs text-rose-300 mt-3">{error}</p>}
+
+        {results.length > 0 && (
+          <>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+              {results.map((p, i) => {
+                const key = `${p.brand.toLowerCase()}|${p.name.toLowerCase()}`
+                const inCatalog = existingSet.has(key)
+                return (
+                  <li key={i} className={`bg-white/5 border rounded-2xl p-4 transition ${selected[i] ? 'border-pink-500/40' : 'border-white/10'}`}>
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={!!selected[i]}
+                        onChange={e => setSelected(s => ({ ...s, [i]: e.target.checked }))}
+                        disabled={inCatalog}
+                        className="mt-1 accent-pink-500"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] uppercase tracking-wide text-pink-300/80">{p.brand}</p>
+                        <p className="text-sm font-semibold text-white break-words">{p.name}</p>
+                        <p className="text-[10px] text-gray-500 mt-1">{p.category}</p>
+                        {inCatalog && <p className="text-[10px] text-emerald-300 mt-1">Already in your catalog</p>}
+                      </div>
+                    </label>
+                  </li>
+                )
+              })}
+            </ul>
+
+            {done > 0 ? (
+              <p className="text-sm text-emerald-300 mt-5">✓ Added {done} {done === 1 ? 'product' : 'products'} to your catalog.</p>
+            ) : (
+              <button
+                onClick={addSelected}
+                disabled={adding || selectedCount === 0}
+                className="mt-5 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+              >
+                {adding ? 'Adding...' : `+ Add ${selectedCount} to my catalog`}
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function IngredientCheckPanel({ user, profile, premium, visionCount, atLimit, onClose, onAfterFetch, onAtLimit }) {
+  const [photoUrl, setPhotoUrl] = useState('')
+  const [analysis, setAnalysis] = useState(null)
+  const [scanning, setScanning] = useState(false)
+  const [error, setError] = useState('')
+
+  async function check() {
+    if (atLimit) { onAtLimit?.(); return }
+    if (!photoUrl) return
+    setScanning(true)
+    setError('')
+    setAnalysis(null)
+    try {
+      const res = await fetch('/api/check-ingredients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photoUrl, concerns: profile?.concerns || [] }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Check failed')
+      setAnalysis(data)
+      onAfterFetch?.()
+    } catch (err) {
+      setError(err.message || 'Check failed')
+    } finally {
+      setScanning(false)
+    }
+  }
+
+  const goods = analysis?.ingredients.filter(i => i.status === 'good') || []
+  const warnings = analysis?.ingredients.filter(i => i.status === 'warning') || []
+  const neutrals = analysis?.ingredients.filter(i => i.status === 'neutral') || []
+  const verdictMeta = {
+    great_match: { label: 'Great match', color: 'from-emerald-400/30 to-emerald-500/20 border-emerald-400/40 text-emerald-200' },
+    okay: { label: 'Worth considering', color: 'from-amber-400/30 to-amber-500/20 border-amber-400/40 text-amber-200' },
+    risky: { label: 'Be careful', color: 'from-rose-400/30 to-rose-500/20 border-rose-400/40 text-rose-200' },
+  }
+  const verdict = analysis && verdictMeta[analysis.verdict]
+
+  return (
+    <div className="relative bg-gradient-to-br from-amber-400/10 via-pink-500/10 to-purple-500/5 border border-amber-400/30 rounded-2xl p-6 mb-8 overflow-hidden">
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative">
+        <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
+          <div>
+            <h2 className="text-xl font-bold bg-gradient-to-r from-white via-amber-200 to-pink-200 bg-clip-text text-transparent">
+              🔍 Check ingredients
+            </h2>
+            <p className="text-sm text-gray-400 mt-1">Photograph the back-of-bottle ingredient list. We'll flag what's good or risky for your saved concerns.</p>
+          </div>
+          <button onClick={onClose} className="text-xs text-gray-500 hover:text-white transition">Close</button>
+        </div>
+
+        {!profile?.concerns?.length && (
+          <p className="text-xs text-amber-200 bg-amber-500/10 border border-amber-300/30 rounded-lg p-3 mt-3">
+            You haven't set any concerns on your profile yet — the analysis will be generic. Set concerns on the <a href="/profile" className="underline">profile page</a> for tailored flags.
+          </p>
+        )}
+
+        <div className="mt-5">
+          <PhotoPicker photoUrl={photoUrl} onChange={setPhotoUrl} userId={user?.id} />
+        </div>
+
+        <div className="flex items-center gap-3 mt-3 flex-wrap">
+          {atLimit ? (
+            <a href="/profile" className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/20">
+              ✦ Daily limit hit — Upgrade
+            </a>
+          ) : (
+            <button
+              onClick={check}
+              disabled={scanning || !photoUrl}
+              className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+            >
+              {scanning ? 'Reading label...' : analysis ? '↻ Check again' : '🔍 Analyze ingredients'}
+            </button>
+          )}
+          {!premium && (
+            <p className="text-xs text-gray-500">{Math.max(0, FREE_VISION_LIMIT - visionCount)} / {FREE_VISION_LIMIT} AI scans left today</p>
+          )}
+        </div>
+
+        {error && <p className="text-xs text-rose-300 mt-3">{error}</p>}
+
+        {analysis && (
+          <div className="mt-6 flex flex-col gap-4">
+            {verdict && (
+              <div className={`bg-gradient-to-br ${verdict.color} border rounded-2xl p-4`}>
+                <p className="text-[10px] uppercase tracking-wider font-bold mb-1">{verdict.label}</p>
+                <p className="text-sm text-white leading-relaxed">{analysis.summary}</p>
+              </div>
+            )}
+
+            {goods.length > 0 && (
+              <IngredientGroup title="Looks good for you" color="emerald" items={goods} />
+            )}
+            {warnings.length > 0 && (
+              <IngredientGroup title="Watch out for" color="rose" items={warnings} />
+            )}
+            {neutrals.length > 0 && (
+              <IngredientGroup title="Other ingredients of note" color="slate" items={neutrals} />
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function IngredientGroup({ title, color, items }) {
+  const styles = {
+    emerald: 'border-emerald-400/30 bg-emerald-500/5',
+    rose: 'border-rose-400/30 bg-rose-500/5',
+    slate: 'border-white/10 bg-white/5',
+  }[color]
+  const dot = {
+    emerald: 'bg-emerald-400',
+    rose: 'bg-rose-400',
+    slate: 'bg-gray-400',
+  }[color]
+  return (
+    <div className={`border rounded-2xl p-4 ${styles}`}>
+      <p className="text-xs uppercase tracking-wide text-gray-400 mb-3">{title}</p>
+      <ul className="flex flex-col gap-2">
+        {items.map((i, idx) => (
+          <li key={idx} className="flex gap-3">
+            <span className={`w-2 h-2 rounded-full ${dot} flex-shrink-0 mt-1.5`} />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-white">{i.name}</p>
+              {i.reason && <p className="text-xs text-gray-400 leading-relaxed mt-0.5">{i.reason}</p>}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function VisionUpgradeNudge({ onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div onClick={(e) => e.stopPropagation()} className="relative bg-[#0e0e0e] border border-pink-500/30 rounded-2xl w-full max-w-sm p-6 shadow-2xl shadow-pink-500/20">
+        <span className="text-[10px] uppercase tracking-wider bg-gradient-to-r from-amber-400/30 to-pink-400/30 border border-amber-300/40 text-amber-200 px-2 py-0.5 rounded-full font-semibold">
+          ✦ Premium
+        </span>
+        <h3 className="text-xl font-bold mt-3 mb-2 bg-gradient-to-r from-white via-pink-200 to-purple-300 bg-clip-text text-transparent">
+          You've hit today's AI scan limit
+        </h3>
+        <p className="text-sm text-gray-400 mb-5">
+          Free is capped at {FREE_VISION_LIMIT} AI photo scans per day (across label, shelf, and ingredient scans). Premium uncaps them all.
+        </p>
+        <div className="flex items-center gap-3">
+          <a href="/profile" className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/20">
+            Upgrade
+          </a>
+          <button onClick={onClose} className="text-sm text-gray-400 hover:text-white transition">
+            Maybe later
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ProductPhoto({ product }) {
   if (product.photo_url) {
     return (
@@ -366,8 +769,9 @@ function ProductPhoto({ product }) {
   )
 }
 
-function PhotoPicker({ photoUrl, onChange, userId }) {
+function PhotoPicker({ photoUrl, onChange, userId, scanEnabled, onScan, atLimit, premium, visionCount, onAtLimit }) {
   const [uploading, setUploading] = useState(false)
+  const [scanning, setScanning] = useState(false)
   const [error, setError] = useState('')
 
   async function handleFile(e) {
@@ -395,6 +799,27 @@ function PhotoPicker({ photoUrl, onChange, userId }) {
     }
   }
 
+  async function scan() {
+    if (atLimit) { onAtLimit?.(); return }
+    if (!photoUrl) return
+    setError('')
+    setScanning(true)
+    try {
+      const res = await fetch('/api/scan-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photoUrl }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Scan failed')
+      onScan?.(data.product)
+    } catch (err) {
+      setError(err.message || 'Scan failed')
+    } finally {
+      setScanning(false)
+    }
+  }
+
   return (
     <div className="mb-5">
       <p className="text-xs text-gray-400 mb-2">Photo</p>
@@ -405,7 +830,17 @@ function PhotoPicker({ photoUrl, onChange, userId }) {
             alt="Product"
             className="w-28 h-28 rounded-2xl object-cover border border-white/10 bg-white/5"
           />
-          <div className="flex flex-col gap-2 mt-1">
+          <div className="flex flex-col gap-2 mt-1 min-w-0">
+            {scanEnabled && (
+              <button
+                type="button"
+                onClick={scan}
+                disabled={scanning || uploading}
+                className="self-start bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full hover:opacity-90 transition disabled:opacity-40 shadow-md shadow-pink-500/20"
+              >
+                {scanning ? 'Reading label...' : atLimit ? '✦ Daily limit — Upgrade' : '✨ Scan label with AI'}
+              </button>
+            )}
             <label className="cursor-pointer text-xs text-pink-300 hover:text-pink-200 transition">
               {uploading ? 'Uploading...' : 'Replace photo'}
               <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
@@ -422,6 +857,9 @@ function PhotoPicker({ photoUrl, onChange, userId }) {
             >
               Remove photo
             </button>
+            {scanEnabled && !premium && (
+              <p className="text-[10px] text-gray-500">{Math.max(0, FREE_VISION_LIMIT - visionCount)} / {FREE_VISION_LIMIT} AI scans left today</p>
+            )}
           </div>
         </div>
       ) : (
