@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AppNavbar from '../components/AppNavbar'
 import { createClient } from '../../lib/supabase'
-import { PRODUCT_CATEGORIES } from '../../lib/catalog'
+import { PRODUCT_CATEGORIES, productLabel } from '../../lib/catalog'
 import { toLocalDateString } from '../../lib/dates'
 import { isPremium, FREE_SUGGEST_LIMIT, getSuggestCountToday, incrementSuggestCountToday, FREE_VISION_LIMIT, getVisionCountToday, incrementVisionCountToday } from '../../lib/profile'
+import { routinesFromRow, addProductToRoutine, removeProductFromRoutine, findProductInRoutines, stepInfoKeyForCategory, newRoutineId } from '../../lib/routine'
+import { getStepInfo } from '../../lib/step_info'
 
 const BLANK = { brand: '', name: '', category: '', notes: '', photo_url: '' }
 
@@ -40,6 +42,9 @@ export default function Catalog() {
   const [ingredientsOpen, setIngredientsOpen] = useState(false)
   const [visionCount, setVisionCount] = useState(0)
   const [showUpgrade, setShowUpgrade] = useState(false)
+  const [routines, setRoutines] = useState([])
+  const [openProductId, setOpenProductId] = useState(null)
+  const [showUnusedOnly, setShowUnusedOnly] = useState(false)
 
   const today = toLocalDateString()
   const premium = isPremium(profile)
@@ -67,15 +72,62 @@ export default function Catalog() {
         return
       }
       setUser(user)
-      const [productsRes, profileRes] = await Promise.all([
+      const [productsRes, profileRes, routinesRes] = await Promise.all([
         supabase.from('products').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle(),
+        supabase.from('routines').select('data, morning_steps, night_steps').eq('user_id', user.id).maybeSingle(),
       ])
       setProducts(productsRes.data || [])
       setProfile(profileRes.data)
+      setRoutines(routinesFromRow(routinesRes.data))
       setLoading(false)
     })
   }, [])
+
+  // ── Routine-linking ─────────────────────────────────────────────────
+  async function saveRoutines(nextRoutines) {
+    if (!user) return
+    setRoutines(nextRoutines)
+    const supabase = createClient()
+    await supabase.from('routines').upsert(
+      { user_id: user.id, data: nextRoutines, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' }
+    )
+  }
+
+  async function linkProductToRoutine(routineId, product) {
+    let target = routines.find(r => r.id === routineId)
+    let next
+    if (!target) {
+      // Create a routine on the fly if the user doesn't have a morning/night yet.
+      const defaults = routineId === 'morning'
+        ? { id: 'morning', name: 'Morning Routine', emoji: '☀️', steps: [] }
+        : routineId === 'night'
+          ? { id: 'night', name: 'Night Routine', emoji: '🌙', steps: [] }
+          : { id: newRoutineId(), name: 'My Routine', emoji: '🧴', steps: [] }
+      target = addProductToRoutine(defaults, product)
+      next = [...routines, target]
+    } else {
+      const updated = addProductToRoutine(target, product)
+      next = routines.map(r => r.id === routineId ? updated : r)
+    }
+    await saveRoutines(next)
+  }
+
+  async function unlinkProductFromAllRoutines(product) {
+    const next = routines.map(r => removeProductFromRoutine(r, product.id))
+    await saveRoutines(next)
+  }
+
+  // ── Used/unused stats ───────────────────────────────────────────────
+  const linkedProductIds = new Set()
+  for (const r of routines) {
+    for (const s of (r.steps || [])) {
+      if (s?.productId) linkedProductIds.add(s.productId)
+    }
+  }
+  const inUseCount = products.filter(p => linkedProductIds.has(p.id)).length
+  const unusedCount = products.length - inUseCount
 
   async function addSuggestionToCatalog(suggestion) {
     if (!user) return null
@@ -150,8 +202,19 @@ export default function Catalog() {
     if (!error) setProducts(products.filter(p => p.id !== id))
   }
 
-  const visible = filter === 'All' ? products : products.filter(p => p.category === filter)
+  let visible = filter === 'All' ? products : products.filter(p => p.category === filter)
+  if (showUnusedOnly) visible = visible.filter(p => !linkedProductIds.has(p.id))
   const categoriesInUse = ['All', ...PRODUCT_CATEGORIES.filter(c => products.some(p => p.category === c))]
+
+  const openProduct = openProductId ? products.find(p => p.id === openProductId) : null
+  const openProductUsage = openProduct ? findProductInRoutines(routines, openProduct.id) : []
+
+  async function updateProductFields(id, patch) {
+    const supabase = createClient()
+    const { data } = await supabase.from('products').update({ ...patch, updated_at: new Date().toISOString() }).eq('id', id).select().single()
+    if (data) setProducts(prev => prev.map(p => p.id === id ? data : p))
+    return data
+  }
 
   return (
     <main className="min-h-screen bg-[#080808] text-white px-4 pb-16 overflow-hidden">
@@ -210,6 +273,38 @@ export default function Catalog() {
           )}
         </div>
 
+        {/* Overview stats — your inventory at a glance */}
+        {editing === null && !loading && products.length > 0 && (
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <button
+              onClick={() => setShowUnusedOnly(false)}
+              className={`text-left bg-white/5 border rounded-2xl p-4 transition ${
+                !showUnusedOnly ? 'border-pink-500/40' : 'border-white/10 hover:border-white/20'
+              }`}
+            >
+              <p className="text-2xl font-bold text-white">{products.length}</p>
+              <p className="text-xs text-gray-500">Owned</p>
+            </button>
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+              <p className="text-2xl font-bold text-emerald-300">{inUseCount}</p>
+              <p className="text-xs text-gray-500">In active use</p>
+            </div>
+            <button
+              onClick={() => setShowUnusedOnly(true)}
+              disabled={unusedCount === 0}
+              className={`text-left bg-white/5 border rounded-2xl p-4 transition disabled:opacity-50 ${
+                showUnusedOnly ? 'border-amber-400/40' : 'border-white/10 hover:border-white/20'
+              }`}
+            >
+              <p className="text-2xl font-bold text-amber-300">{unusedCount}</p>
+              <p className="text-xs text-gray-500 flex items-center gap-1">
+                Unused
+                {showUnusedOnly && <span className="text-amber-300">· filtering</span>}
+              </p>
+            </button>
+          </div>
+        )}
+
         {editing === null && suggestOpen && (
           <SuggestPanel
             profile={profile}
@@ -251,6 +346,23 @@ export default function Catalog() {
         )}
 
         {showUpgrade && <VisionUpgradeNudge onClose={() => setShowUpgrade(false)} />}
+
+        {openProduct && (
+          <ProductDetailModal
+            product={openProduct}
+            profile={profile}
+            premium={premium}
+            suggestCount={suggestCount}
+            suggestAtLimit={suggestAtLimit}
+            usage={openProductUsage}
+            onClose={() => setOpenProductId(null)}
+            onLinkToRoutine={linkProductToRoutine}
+            onUnlink={unlinkProductFromAllRoutines}
+            onUpdateProduct={updateProductFields}
+            onAfterTip={bumpSuggestCount}
+            onAtLimit={() => setShowUpgrade(true)}
+          />
+        )}
 
         {editing !== null && (
           <ProductForm
@@ -303,33 +415,45 @@ export default function Catalog() {
             )}
 
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {visible.map(p => (
-                <li key={p.id} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden flex flex-col">
-                  <ProductPhoto product={p} />
-                  <div className="p-5 flex flex-col gap-2 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        {p.brand && <p className="text-xs uppercase tracking-wide text-pink-300/80">{p.brand}</p>}
-                        <p className="text-base font-semibold text-white break-words">{p.name}</p>
+              {visible.map(p => {
+                const inUse = linkedProductIds.has(p.id)
+                return (
+                  <li key={p.id} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden flex flex-col">
+                    <ProductPhoto product={p} />
+                    <div className="p-5 flex flex-col gap-2 flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          {p.brand && <p className="text-xs uppercase tracking-wide text-pink-300/80">{p.brand}</p>}
+                          <p className="text-base font-semibold text-white break-words">{p.name}</p>
+                        </div>
+                        {p.category && (
+                          <span className="flex-shrink-0 text-[10px] uppercase tracking-wide bg-purple-500/15 border border-purple-500/30 text-purple-200 px-2 py-1 rounded-full">
+                            {p.category}
+                          </span>
+                        )}
                       </div>
-                      {p.category && (
-                        <span className="flex-shrink-0 text-[10px] uppercase tracking-wide bg-purple-500/15 border border-purple-500/30 text-purple-200 px-2 py-1 rounded-full">
-                          {p.category}
-                        </span>
+                      {!inUse && (
+                        <p className="text-[10px] uppercase tracking-wider text-amber-300/80">Not in any routine yet</p>
                       )}
-                    </div>
-                    {p.notes && <p className="text-sm text-gray-400 break-words whitespace-pre-wrap">{p.notes}</p>}
-                    <div className="flex gap-3 mt-auto pt-3 border-t border-white/5 text-xs">
-                      <button onClick={() => startEdit(p)} className="text-pink-300 hover:text-pink-200 transition">
-                        Edit
+                      {p.notes && <p className="text-sm text-gray-400 break-words whitespace-pre-wrap line-clamp-2">{p.notes}</p>}
+                      <button
+                        onClick={() => setOpenProductId(p.id)}
+                        className="self-start mt-1 text-xs bg-white/5 border border-white/15 text-gray-200 hover:border-pink-500/40 hover:text-white px-3 py-1.5 rounded-full transition"
+                      >
+                        How to use →
                       </button>
-                      <button onClick={() => remove(p.id)} className="text-gray-500 hover:text-rose-400 transition">
-                        Delete
-                      </button>
+                      <div className="flex gap-3 mt-auto pt-3 border-t border-white/5 text-xs">
+                        <button onClick={() => startEdit(p)} className="text-pink-300 hover:text-pink-200 transition">
+                          Edit
+                        </button>
+                        <button onClick={() => remove(p.id)} className="text-gray-500 hover:text-rose-400 transition">
+                          Delete
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                )
+              })}
             </ul>
 
             {visible.length === 0 && (
@@ -1043,6 +1167,217 @@ function SuggestPanel({ profile, premium, suggestCount, atLimit, existingProduct
             })}
           </ul>
         )}
+      </div>
+    </div>
+  )
+}
+
+function ProductDetailModal({
+  product, profile, premium, suggestCount, suggestAtLimit, usage,
+  onClose, onLinkToRoutine, onUnlink, onUpdateProduct, onAfterTip, onAtLimit,
+}) {
+  const [tipLoading, setTipLoading] = useState(false)
+  const [tipError, setTipError] = useState('')
+  const tip = product.usage_tip || ''
+
+  const stepInfoKey = stepInfoKeyForCategory(product.category)
+  const stepInfo = stepInfoKey ? getStepInfo(stepInfoKey) : null
+
+  const inMorning = usage.some(u => u.routineId === 'morning')
+  const inNight = usage.some(u => u.routineId === 'night')
+
+  async function generateTip() {
+    if (suggestAtLimit) { onAtLimit?.(); return }
+    setTipError('')
+    setTipLoading(true)
+    try {
+      const res = await fetch('/api/product-tip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product: {
+            brand: product.brand,
+            name: product.name,
+            category: product.category,
+            notes: product.notes,
+          },
+          profile: {
+            skinType: profile?.skin_type,
+            ageRange: profile?.age_range,
+            concerns: profile?.concerns || [],
+          },
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Tip failed')
+      await onUpdateProduct(product.id, { usage_tip: data.tip, usage_tip_generated_at: new Date().toISOString() })
+      onAfterTip?.()
+    } catch (err) {
+      setTipError(err.message || 'Tip failed')
+    } finally {
+      setTipLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8 overflow-y-auto" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative bg-[#0e0e0e] border border-white/10 rounded-2xl w-full max-w-lg my-auto overflow-hidden shadow-2xl shadow-pink-500/10"
+      >
+        {/* Header w/ photo */}
+        <div className="relative">
+          {product.photo_url ? (
+            <div className="aspect-[16/9] w-full overflow-hidden">
+              <img src={product.photo_url} alt={product.name} className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <div className="aspect-[16/9] w-full bg-gradient-to-br from-pink-500/15 via-purple-500/10 to-amber-400/5 flex items-center justify-center">
+              <span className="text-6xl font-bold bg-gradient-to-r from-pink-200 via-purple-200 to-amber-200 bg-clip-text text-transparent">
+                {((product.brand?.[0] || '') + (product.name?.[0] || '')).toUpperCase() || '✨'}
+              </span>
+            </div>
+          )}
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white text-sm hover:bg-black/60 transition"
+            aria-label="Close"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="p-6 flex flex-col gap-5 max-h-[70vh] overflow-y-auto">
+          <div>
+            {product.brand && <p className="text-xs uppercase tracking-wide text-pink-300/80">{product.brand}</p>}
+            <h2 className="text-xl font-bold text-white mt-0.5">{product.name}</h2>
+            {product.category && (
+              <span className="inline-block mt-2 text-[10px] uppercase tracking-wide bg-purple-500/15 border border-purple-500/30 text-purple-200 px-2 py-1 rounded-full">
+                {product.category}
+              </span>
+            )}
+          </div>
+
+          {/* Where it's used */}
+          <section>
+            <p className="text-[10px] uppercase tracking-wide text-pink-300/80 mb-2">Where you use it</p>
+            {usage.length > 0 ? (
+              <ul className="flex flex-col gap-2">
+                {usage.map((u, i) => (
+                  <li key={i} className="flex items-center justify-between gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm">
+                    <span className="text-gray-200">{u.routineName} <span className="text-gray-500">·</span> <span className="text-gray-400">{u.stepName}</span></span>
+                  </li>
+                ))}
+                <li>
+                  <button onClick={() => onUnlink(product)} className="text-xs text-gray-500 hover:text-rose-300 transition">
+                    Remove from all routines
+                  </button>
+                </li>
+              </ul>
+            ) : (
+              <p className="text-sm text-amber-300/90 bg-amber-500/5 border border-amber-300/20 rounded-xl px-3 py-2">
+                Not in any routine yet.
+              </p>
+            )}
+            <div className="flex flex-wrap gap-2 mt-3">
+              <button
+                onClick={() => onLinkToRoutine('morning', product)}
+                disabled={inMorning}
+                className={`text-xs px-3 py-1.5 rounded-full border transition ${
+                  inMorning
+                    ? 'border-white/10 text-gray-500 cursor-default'
+                    : 'border-pink-500/30 text-pink-200 hover:bg-pink-500/10 hover:border-pink-500/50'
+                }`}
+              >
+                {inMorning ? '✓ In Morning' : '+ Add to Morning'}
+              </button>
+              <button
+                onClick={() => onLinkToRoutine('night', product)}
+                disabled={inNight}
+                className={`text-xs px-3 py-1.5 rounded-full border transition ${
+                  inNight
+                    ? 'border-white/10 text-gray-500 cursor-default'
+                    : 'border-purple-500/30 text-purple-200 hover:bg-purple-500/10 hover:border-purple-500/50'
+                }`}
+              >
+                {inNight ? '✓ In Night' : '+ Add to Night'}
+              </button>
+            </div>
+          </section>
+
+          {/* AI personalized tip */}
+          <section>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] uppercase tracking-wide text-pink-300/80">For you</p>
+              {tip && !premium && (
+                <span className="text-[10px] text-gray-500">cached — no extra cost</span>
+              )}
+            </div>
+            {tip ? (
+              <div className="bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-amber-400/5 border border-pink-500/20 rounded-xl p-4">
+                <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">{tip}</p>
+                <button
+                  onClick={generateTip}
+                  disabled={tipLoading}
+                  className="mt-3 text-[11px] text-gray-500 hover:text-pink-200 transition disabled:opacity-50"
+                >
+                  {tipLoading ? 'Refreshing...' : '↻ Regenerate'}
+                </button>
+              </div>
+            ) : (
+              <div>
+                <button
+                  onClick={generateTip}
+                  disabled={tipLoading}
+                  className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-sm font-semibold px-4 py-2 rounded-full hover:opacity-90 transition disabled:opacity-40 shadow-md shadow-pink-500/20"
+                >
+                  {tipLoading ? 'Thinking...' : suggestAtLimit ? '✦ Daily limit — Upgrade' : '✨ Get a personalized tip'}
+                </button>
+                <p className="text-[10px] text-gray-500 mt-2">
+                  Claude writes 2-3 sentences tailored to your concerns and skin type.
+                </p>
+                {!premium && (
+                  <p className="text-[10px] text-gray-500 mt-1">{Math.max(0, FREE_SUGGEST_LIMIT - suggestCount)} / {FREE_SUGGEST_LIMIT} AI tips left today</p>
+                )}
+              </div>
+            )}
+            {tipError && <p className="text-xs text-rose-300 mt-2">{tipError}</p>}
+          </section>
+
+          {/* What the category does */}
+          {stepInfo && (
+            <section>
+              <p className="text-[10px] uppercase tracking-wide text-pink-300/80 mb-2">What a {product.category.toLowerCase()} does</p>
+              <div className="bg-white/[0.03] border border-white/10 rounded-xl p-4 text-sm">
+                <p className="text-gray-300 mb-2 leading-relaxed">{stepInfo.what}</p>
+                <p className="text-pink-300/80 text-[10px] uppercase tracking-wide mb-1">When</p>
+                <p className="text-gray-400 leading-relaxed mb-2">{stepInfo.when}</p>
+                {stepInfo.tips?.length > 0 && (
+                  <>
+                    <p className="text-pink-300/80 text-[10px] uppercase tracking-wide mb-1">Tips</p>
+                    <ul className="flex flex-col gap-1">
+                      {stepInfo.tips.map((t, j) => (
+                        <li key={j} className="text-gray-400 flex gap-1.5 leading-relaxed text-xs">
+                          <span className="text-pink-300/60 flex-shrink-0">•</span>
+                          <span>{t}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* Notes */}
+          {product.notes && (
+            <section>
+              <p className="text-[10px] uppercase tracking-wide text-pink-300/80 mb-2">Your notes</p>
+              <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{product.notes}</p>
+            </section>
+          )}
+        </div>
       </div>
     </div>
   )
