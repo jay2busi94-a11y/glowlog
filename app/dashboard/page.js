@@ -272,7 +272,12 @@ export default function Dashboard() {
       .select('*')
       .eq('user_id', userId)
       .maybeSingle()
-    if (data) setProfile(data)
+    // First-time users (no row OR onboarded=false) get the guided start.
+    if (!data || data.onboarded === false) {
+      router.push('/onboarding')
+      return
+    }
+    setProfile(data)
   }
 
   async function loadRoutines(supabase, userId) {
