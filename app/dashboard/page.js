@@ -226,6 +226,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null)
   const [routines, setRoutines] = useState([])
   const [products, setProducts] = useState([])
+  const [profile, setProfile] = useState(null)
   const [completed, setCompleted] = useState({})   // { [routineId]: [completed step names] }
   const [picking, setPicking] = useState(null)     // { routineId, stepIdx } when the product picker is open
   const [skinRating, setSkinRating] = useState(null)
@@ -252,8 +253,18 @@ export default function Dashboard() {
       loadTodayLog(supabase, user.id)
       loadRoutines(supabase, user.id)
       loadProducts(supabase, user.id)
+      loadProfile(supabase, user.id)
     })
   }, [])
+
+  async function loadProfile(supabase, userId) {
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle()
+    if (data) setProfile(data)
+  }
 
   async function loadRoutines(supabase, userId) {
     const { data } = await supabase
@@ -369,7 +380,10 @@ export default function Dashboard() {
       const d = completed[r.id] || []
       return `- ${r.name}: ${d.length ? d.join(', ') : 'none yet'}`
     }).join('\n')
-    return `My main skin concern right now: ${activeConcern}
+    const profileConcerns = profile?.concerns?.length
+      ? `\nMy long-standing skin concerns (from profile): ${profile.concerns.join(', ')}`
+      : ''
+    return `My main skin concern right now: ${activeConcern}${profileConcerns}
 
 Today's context:
 - Skin rating: ${ratingText}
