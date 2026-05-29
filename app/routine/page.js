@@ -7,6 +7,30 @@ import { createClient } from '../../lib/supabase'
 import { routinesFromRow, accentFor, newRoutineId, STEP_LIBRARY, normalizeStep } from '../../lib/routine'
 import { productLabel } from '../../lib/catalog'
 import { getStepInfo } from '../../lib/step_info'
+import { isAdvancedMode } from '../../lib/profile'
+
+// Curated step lists per routine for Simple mode. Order matches how you'd
+// actually apply them in real life — top to bottom. Anything outside these
+// lists (custom steps) is preserved but not editable in Simple mode.
+const SIMPLE_MORNING_STEPS = [
+  'Oil Cleanser', 'Cleanser', 'Foaming Cleanser',
+  'Toner', 'Essence',
+  'Vitamin C Serum', 'Niacinamide Serum', 'Hyaluronic Acid', 'Peptide Serum',
+  'Eye Cream',
+  'Moisturizer', 'Moisturizer + SPF', 'Sunscreen (SPF)',
+  'Lip Balm',
+]
+const SIMPLE_NIGHT_STEPS = [
+  'Oil Cleanser', 'Cleanser', 'Foaming Cleanser', 'Micellar Water',
+  'Toner', 'Essence',
+  'Exfoliant (AHA/BHA)',
+  'Vitamin C Serum', 'Niacinamide Serum', 'Hyaluronic Acid', 'Retinol Serum', 'Peptide Serum',
+  'Spot Treatment',
+  'Eye Cream',
+  'Night Moisturizer', 'Moisturizer', 'Face Oil',
+  'Face Mask', 'Sheet Mask',
+  'Lip Balm',
+]
 
 function RoutineEditor({ routine, accent, products, onChange, onDelete }) {
   const [input, setInput] = useState('')
@@ -193,11 +217,15 @@ function RoutineEditor({ routine, accent, products, onChange, onDelete }) {
 export default function RoutineBuilder() {
   const router = useRouter()
   const [user, setUser] = useState(null)
+  const [profile, setProfile] = useState(null)
   const [routines, setRoutines] = useState([])
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [savingMode, setSavingMode] = useState(false)
+
+  const advanced = isAdvancedMode(profile)
 
   useEffect(() => {
     const supabase = createClient()
@@ -207,15 +235,30 @@ export default function RoutineBuilder() {
         return
       }
       setUser(user)
-      const [routinesRes, productsRes] = await Promise.all([
+      const [routinesRes, productsRes, profileRes] = await Promise.all([
         supabase.from('routines').select('data, morning_steps, night_steps').eq('user_id', user.id).maybeSingle(),
         supabase.from('products').select('*').eq('user_id', user.id).order('brand', { ascending: true }),
+        supabase.from('profiles').select('advanced_mode').eq('user_id', user.id).maybeSingle(),
       ])
       setRoutines(routinesFromRow(routinesRes.data))
       setProducts(productsRes.data || [])
+      setProfile(profileRes.data)
       setLoading(false)
     })
   }, [])
+
+  async function toggleMode() {
+    if (!user || savingMode) return
+    setSavingMode(true)
+    const next = !advanced
+    setProfile(prev => ({ ...(prev || {}), advanced_mode: next }))
+    const supabase = createClient()
+    await supabase.from('profiles').upsert(
+      { user_id: user.id, advanced_mode: next, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' }
+    )
+    setSavingMode(false)
+  }
 
   function updateRoutine(index, updated) {
     setRoutines(routines.map((r, i) => (i === index ? updated : r)))
@@ -251,13 +294,54 @@ export default function RoutineBuilder() {
 
       <div className="relative z-10 max-w-4xl mx-auto pt-32">
 
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold mb-2">Build Your Routines 🧴</h1>
-          <p className="text-gray-400">Create your own routines, rename them, and add steps. Link a product from your catalog to remember exactly what you use.</p>
+        <div className="flex items-end justify-between gap-4 mb-10 flex-wrap">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Build Your Routines 🧴</h1>
+            <p className="text-gray-400">
+              {advanced
+                ? 'Full editor — unlimited routines, drag-to-reorder, custom steps. Link a product to any step.'
+                : 'Pick what you do in the morning and at night. We keep the order right.'}
+            </p>
+          </div>
+          {!loading && (
+            <div className="flex gap-1 bg-white/5 border border-white/10 rounded-full p-1" title="Change in Settings too">
+              <button
+                onClick={() => advanced && toggleMode()}
+                disabled={savingMode}
+                className={`text-xs px-3 py-1 rounded-full transition ${
+                  !advanced
+                    ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md shadow-pink-500/20'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                🌱 Simple
+              </button>
+              <button
+                onClick={() => !advanced && toggleMode()}
+                disabled={savingMode}
+                className={`text-xs px-3 py-1 rounded-full transition ${
+                  advanced
+                    ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md shadow-pink-500/20'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                🧪 Advanced
+              </button>
+            </div>
+          )}
         </div>
 
         {loading ? (
           <p className="text-gray-500">Loading your routines...</p>
+        ) : !advanced ? (
+          <SimpleRoutineEditor
+            routines={routines}
+            products={products}
+            onChange={setRoutines}
+            onSave={handleSave}
+            saving={saving}
+            saved={saved}
+          />
         ) : (
           <>
             <div className="grid grid-cols-1 gap-6 mb-6">
@@ -297,5 +381,151 @@ export default function RoutineBuilder() {
 
       </div>
     </main>
+  )
+}
+
+// Pulls the morning/night routine (or creates them) and presents a guided
+// checklist. Steps not in the curated list ("custom" steps the user made
+// in Advanced mode) are preserved on save but hidden from the UI.
+function SimpleRoutineEditor({ routines, products, onChange, onSave, saving, saved }) {
+  const morning = routines.find(r => r.id === 'morning')
+    || { id: 'morning', name: 'Morning Routine', emoji: '☀️', steps: [] }
+  const night = routines.find(r => r.id === 'night')
+    || { id: 'night', name: 'Night Routine', emoji: '🌙', steps: [] }
+
+  function patchRoutine(updated) {
+    const has = routines.some(r => r.id === updated.id)
+    const next = has
+      ? routines.map(r => r.id === updated.id ? updated : r)
+      : [...routines, updated]
+    onChange(next)
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <SimpleRoutinePane
+        routine={morning}
+        curated={SIMPLE_MORNING_STEPS}
+        products={products}
+        accentClass="border-pink-500/20"
+        headClass="text-pink-300"
+        onChange={patchRoutine}
+      />
+      <SimpleRoutinePane
+        routine={night}
+        curated={SIMPLE_NIGHT_STEPS}
+        products={products}
+        accentClass="border-purple-500/20"
+        headClass="text-purple-300"
+        onChange={patchRoutine}
+      />
+
+      <div className="flex items-center gap-4">
+        <button
+          onClick={onSave}
+          disabled={saving}
+          className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+        >
+          {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save Routines'}
+        </button>
+        <a href="/dashboard" className="text-sm text-gray-400 hover:text-white transition">
+          Back to dashboard
+        </a>
+      </div>
+    </div>
+  )
+}
+
+function SimpleRoutinePane({ routine, curated, products, accentClass, headClass, onChange }) {
+  // Index existing steps so we can preserve productIds when re-toggling and
+  // remember unmanaged (custom) steps to keep them on save.
+  const normalizedSteps = routine.steps.map(s => (typeof s === 'string' ? { name: s, productId: null } : s))
+  const stepByName = new Map(normalizedSteps.map(s => [s.name, s]))
+  const checkedSet = new Set(normalizedSteps.map(s => s.name).filter(n => curated.includes(n)))
+  const unmanaged = normalizedSteps.filter(s => !curated.includes(s.name))
+
+  function commit({ nextChecked, nextProductByName }) {
+    const curatedSteps = curated
+      .filter(name => nextChecked.has(name))
+      .map(name => {
+        const existing = stepByName.get(name)
+        return {
+          name,
+          productId: nextProductByName?.[name] !== undefined
+            ? nextProductByName[name]
+            : (existing?.productId ?? null),
+        }
+      })
+    onChange({ ...routine, steps: [...curatedSteps, ...unmanaged] })
+  }
+
+  function toggleStep(name) {
+    const next = new Set(checkedSet)
+    if (next.has(name)) next.delete(name)
+    else next.add(name)
+    commit({ nextChecked: next })
+  }
+
+  function setStepProduct(name, productId) {
+    const next = new Set(checkedSet)
+    next.add(name)  // selecting a product implies the step is checked
+    commit({ nextChecked: next, nextProductByName: { [name]: productId || null } })
+  }
+
+  return (
+    <div className={`bg-white/5 border ${accentClass} rounded-2xl p-6`}>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className={`text-lg font-semibold ${headClass}`}>{routine.emoji} {routine.name}</h2>
+        <span className="text-xs text-gray-500">{checkedSet.size} {checkedSet.size === 1 ? 'step' : 'steps'}</span>
+      </div>
+
+      <ul className="flex flex-col gap-2">
+        {curated.map(name => {
+          const checked = checkedSet.has(name)
+          const existing = stepByName.get(name)
+          const productId = existing?.productId || ''
+          return (
+            <li key={name} className={`rounded-xl border transition ${
+              checked ? 'bg-white/[0.04] border-white/15' : 'bg-transparent border-white/5'
+            }`}>
+              <button
+                onClick={() => toggleStep(name)}
+                className="w-full flex items-center gap-3 p-3 text-left"
+              >
+                <span className={`w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0 transition ${
+                  checked ? 'bg-pink-500/20 border-pink-500/50 text-pink-200' : 'border-white/20 text-transparent'
+                }`}>
+                  ✓
+                </span>
+                <span className={`text-sm flex-1 ${checked ? 'text-white' : 'text-gray-400'}`}>{name}</span>
+              </button>
+              {checked && (
+                <div className="px-3 pb-3 pl-11">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] uppercase tracking-wide text-gray-500 flex-shrink-0">Product</span>
+                    <select
+                      value={productId}
+                      onChange={e => setStepProduct(name, e.target.value)}
+                      className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs text-gray-200 focus:outline-none focus:border-white/20 transition"
+                    >
+                      <option value="" className="bg-[#080808]">— none —</option>
+                      {products.map(p => (
+                        <option key={p.id} value={p.id} className="bg-[#080808]">{productLabel(p)}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+
+      {unmanaged.length > 0 && (
+        <p className="text-xs text-gray-500 mt-4">
+          You have {unmanaged.length} custom {unmanaged.length === 1 ? 'step' : 'steps'} ({unmanaged.map(s => s.name).join(', ')}) — kept on save, switch to Advanced to edit them.
+        </p>
+      )}
+    </div>
   )
 }

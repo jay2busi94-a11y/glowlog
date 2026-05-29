@@ -129,6 +129,13 @@ export default function AppNavbar() {
             >
               Edit profile
             </a>
+            <a
+              href="/settings"
+              onClick={() => setMenuOpen(false)}
+              className="block px-4 py-2.5 text-sm text-gray-200 hover:bg-white/5 transition"
+            >
+              Settings
+            </a>
             {!isPremium(profile) && (
               <a
                 href="/profile"

@@ -83,6 +83,7 @@ export default function Onboarding() {
       age_range: ageRange,
       concerns,
       onboarded: true,
+      advanced_mode: experience === 'enthusiast',
       updated_at: new Date().toISOString(),
     }
     const routinesPayload = {
