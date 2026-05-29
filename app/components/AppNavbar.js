@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
-import { displayNameFor, avatarFor } from '../../lib/profile'
+import { displayNameFor, avatarFor, isPremium } from '../../lib/profile'
 
 export default function AppNavbar() {
   const router = useRouter()
@@ -20,7 +20,7 @@ export default function AppNavbar() {
       setUser(user)
       const { data } = await supabase
         .from('profiles')
-        .select('display_name, avatar')
+        .select('display_name, avatar, tier')
         .eq('user_id', user.id)
         .maybeSingle()
       if (data) setProfile(data)
@@ -114,6 +114,18 @@ export default function AppNavbar() {
             >
               Edit profile
             </a>
+            {!isPremium(profile) && (
+              <a
+                href="/profile"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center justify-between px-4 py-2.5 text-sm bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-amber-400/5 hover:from-pink-500/20 hover:via-purple-500/20 hover:to-amber-400/10 transition border-y border-pink-500/15"
+              >
+                <span className="bg-gradient-to-r from-pink-200 via-purple-200 to-amber-200 bg-clip-text text-transparent font-semibold">
+                  ✦ Upgrade to Premium
+                </span>
+                <span className="text-[10px] uppercase tracking-wide text-amber-200/70">Free</span>
+              </a>
+            )}
             <button
               onClick={handleLogout}
               className="block w-full text-left px-4 py-2.5 text-sm text-rose-300 hover:bg-white/5 transition"
