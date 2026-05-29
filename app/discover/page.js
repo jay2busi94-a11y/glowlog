@@ -62,11 +62,11 @@ export default function Discover() {
   }
 
   return (
-    <main className="min-h-screen bg-[#080808] text-white px-4 pb-16 overflow-hidden">
+    <main className="min-h-screen bg-[#080808] text-white px-4 app-page-pad-bottom overflow-hidden">
       <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
       <AppNavbar />
 
-      <div className="relative z-10 max-w-5xl mx-auto pt-32">
+      <div className="relative z-10 max-w-5xl mx-auto app-page-pad-top">
 
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Discover Brands ✨</h1>

@@ -23,4 +23,57 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  /* Prevent horizontal jiggle on iOS when content slightly overflows.
+     A common cause of broken-looking mobile pages. */
+  overflow-x: hidden;
+  /* Don't render a grey highlight when tapping buttons on iOS. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Stop iOS from auto-zooming into form inputs when their font-size is
+   < 16px. We use small inputs in lots of places, so this is critical. */
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+@media (min-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: inherit;
+  }
+}
+
+/* Re-style autofilled inputs so Chrome/Safari don't paint them yellow
+   when our dark UI is behind them. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff;
+  -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset;
+  caret-color: #ffffff;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Pages with the AppNavbar use these to clear the top navbar (incl. iOS
+   notch) and the mobile bottom tab bar (incl. iOS home indicator). */
+.app-page-pad-top {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 8rem);
+}
+.app-page-pad-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
+}
+@media (min-width: 768px) {
+  .app-page-pad-bottom {
+    /* Desktop has no bottom tab bar — back to the original spacing. */
+    padding-bottom: 4rem;
+  }
+}
+
+/* Auth/onboarding/landing pages don't show the navbar at all — they only
+   need top safe-area so content isn't behind the iOS notch. */
+.safe-pad-top {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 3rem);
 }

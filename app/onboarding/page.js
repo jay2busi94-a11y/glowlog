@@ -104,7 +104,7 @@ export default function Onboarding() {
   }
 
   return (
-    <main className="min-h-screen bg-[#080808] text-white px-4 py-12 overflow-hidden">
+    <main className="min-h-screen bg-[#080808] text-white px-4 py-12 safe-pad-top overflow-hidden" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 3rem)' }}>
       <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-pink-500/15 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-150px] right-[-100px] w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
 

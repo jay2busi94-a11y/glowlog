@@ -103,11 +103,11 @@ export default function Progress() {
   const recent = [...logs].reverse()
 
   return (
-    <main className="min-h-screen bg-[#080808] text-white px-4 pb-16 overflow-hidden">
+    <main className="min-h-screen bg-[#080808] text-white px-4 app-page-pad-bottom overflow-hidden">
       <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
       <AppNavbar />
 
-      <div className="relative z-10 max-w-4xl mx-auto pt-32">
+      <div className="relative z-10 max-w-4xl mx-auto app-page-pad-top">
 
         <div className="mb-10">
           <h1 className="text-4xl font-bold mb-2">Your Progress 📈</h1>
