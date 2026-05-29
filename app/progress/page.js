@@ -37,10 +37,32 @@ function formatDate(dateStr) {
   })
 }
 
+const RANGES = [
+  { key: 5, label: '5 days' },
+  { key: 10, label: '10 days' },
+  { key: 30, label: '1 month' },
+]
+
+// Build the last N calendar days ending today, each paired with its log (or null).
+// Days without a log still get a slot so the chart shows a continuous window.
+function buildChartDays(logs, days) {
+  const byDate = new Map(logs.map(l => [l.date, l]))
+  const out = []
+  const d = new Date()
+  d.setDate(d.getDate() - (days - 1))
+  for (let i = 0; i < days; i++) {
+    const key = toLocalDateString(d)
+    out.push({ date: key, log: byDate.get(key) || null })
+    d.setDate(d.getDate() + 1)
+  }
+  return out
+}
+
 export default function Progress() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [logs, setLogs] = useState([])
+  const [range, setRange] = useState(30)
 
   useEffect(() => {
     const supabase = createClient()
@@ -62,7 +84,7 @@ export default function Progress() {
   const rated = logs.filter(l => l.skin_rating)
   const avg = rated.length ? rated.reduce((s, l) => s + l.skin_rating, 0) / rated.length : 0
   const streak = computeStreak(logs.map(l => l.date))
-  const chartLogs = logs.slice(-30)
+  const chartDays = buildChartDays(logs, range)
   const recent = [...logs].reverse()
 
   return (
@@ -110,25 +132,47 @@ export default function Progress() {
 
             {/* Rating chart */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
-              <h2 className="text-lg font-semibold mb-1">Skin rating</h2>
-              <p className="text-gray-400 text-sm mb-5">Last {chartLogs.length} logged {chartLogs.length === 1 ? 'day' : 'days'}</p>
-              <div className="flex items-end gap-1.5 h-40">
-                {chartLogs.map(l => (
-                  <div
-                    key={l.id}
-                    className="flex-1 flex flex-col justify-end h-full"
-                    title={`${formatDate(l.date)} — ${l.skin_rating ? RATINGS[l.skin_rating].label : 'no rating'}`}
-                  >
+              <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
+                <div>
+                  <h2 className="text-lg font-semibold">Skin rating</h2>
+                  <p className="text-gray-400 text-sm">Last {range} {range === 1 ? 'day' : 'days'}</p>
+                </div>
+                <div className="flex gap-1 bg-white/5 border border-white/10 rounded-full p-1">
+                  {RANGES.map(r => (
+                    <button
+                      key={r.key}
+                      onClick={() => setRange(r.key)}
+                      className={`text-xs px-3 py-1 rounded-full transition ${
+                        range === r.key
+                          ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md shadow-pink-500/20'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-end gap-1.5 h-40 mt-4">
+                {chartDays.map(d => {
+                  const rating = d.log?.skin_rating
+                  return (
                     <div
-                      className={`w-full rounded-t-md transition-all ${l.skin_rating ? RATINGS[l.skin_rating].color : 'bg-white/10'}`}
-                      style={{ height: `${((l.skin_rating || 0) / 5) * 100}%` }}
-                    />
-                  </div>
-                ))}
+                      key={d.date}
+                      className="flex-1 flex flex-col justify-end h-full"
+                      title={`${formatDate(d.date)} — ${rating ? RATINGS[rating].label : 'no log'}`}
+                    >
+                      <div
+                        className={`w-full rounded-t-md transition-all ${rating ? RATINGS[rating].color : 'bg-white/5'}`}
+                        style={{ height: rating ? `${(rating / 5) * 100}%` : '4px' }}
+                      />
+                    </div>
+                  )
+                })}
               </div>
               <div className="flex justify-between mt-3 text-xs text-gray-600">
-                <span>{formatDate(chartLogs[0].date)}</span>
-                <span>{formatDate(chartLogs[chartLogs.length - 1].date)}</span>
+                <span>{formatDate(chartDays[0].date)}</span>
+                <span>{formatDate(chartDays[chartDays.length - 1].date)}</span>
               </div>
             </div>
 
