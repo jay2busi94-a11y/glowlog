@@ -7,6 +7,7 @@ import { createClient } from '../../lib/supabase'
 import { routinesFromRow, accentFor } from '../../lib/routine'
 import { toLocalDateString } from '../../lib/dates'
 import { productLabel } from '../../lib/catalog'
+import { isPremium, FREE_AI_LIMIT, getAiCountToday, incrementAiCountToday } from '../../lib/profile'
 
 const SKIN_RATINGS = [
   { value: 1, emoji: '😣', label: 'Bad' },
@@ -239,8 +240,16 @@ export default function Dashboard() {
   const [chatInput, setChatInput] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState('')
+  const [aiCount, setAiCount] = useState(0)
+  const [showAiUpgrade, setShowAiUpgrade] = useState(false)
 
   const today = toLocalDateString()
+  const premium = isPremium(profile)
+  const atLimit = !premium && aiCount >= FREE_AI_LIMIT
+
+  useEffect(() => {
+    setAiCount(getAiCountToday(today))
+  }, [today])
 
   useEffect(() => {
     const supabase = createClient()
@@ -408,6 +417,7 @@ Give me personalized advice for this concern.`
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Something went wrong')
       setChat([...messages, { role: 'assistant', content: data.reply }])
+      setAiCount(incrementAiCountToday(today))
     } catch (err) {
       setAiError(err.message)
       setChat(prevChat)
@@ -419,6 +429,7 @@ Give me personalized advice for this concern.`
 
   function startAdvice() {
     if (!activeConcern || aiLoading) return
+    if (atLimit) { setShowAiUpgrade(true); return }
     const messages = [{ role: 'user', content: buildContextMessage() }]
     setChat(messages)
     askAI(messages, [], '')
@@ -428,6 +439,7 @@ Give me personalized advice for this concern.`
     e?.preventDefault()
     const text = chatInput.trim()
     if (!text || aiLoading) return
+    if (atLimit) { setShowAiUpgrade(true); return }
     const prev = chat
     const messages = [...chat, { role: 'user', content: text }]
     setChat(messages)
@@ -506,7 +518,22 @@ Give me personalized advice for this concern.`
 
         {/* Fix My Skin */}
         <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-          <h2 className="text-lg font-semibold mb-2">🔍 Fix My Skin</h2>
+          <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
+            <h2 className="text-lg font-semibold">🔍 Fix My Skin</h2>
+            {!premium && (
+              <button
+                onClick={() => atLimit && setShowAiUpgrade(true)}
+                className={`text-[11px] px-2.5 py-1 rounded-full border transition ${
+                  atLimit
+                    ? 'bg-amber-500/10 border-amber-400/40 text-amber-200 hover:bg-amber-500/15'
+                    : 'bg-white/5 border-white/10 text-gray-400 cursor-default'
+                }`}
+                title={atLimit ? 'Daily limit reached — tap to upgrade' : `${aiCount}/${FREE_AI_LIMIT} AI replies used today`}
+              >
+                {atLimit ? '✦ Daily limit hit — upgrade' : `AI ${aiCount}/${FREE_AI_LIMIT} today`}
+              </button>
+            )}
+          </div>
           <p className="text-gray-400 text-sm mb-4">What's your main skin concern right now?</p>
           <div className="flex flex-wrap gap-3">
             {CONCERNS.map((concern) => {
@@ -619,6 +646,41 @@ Give me personalized advice for this concern.`
         onPick={setStepProduct}
         onClose={() => setPicking(null)}
       />
+
+      {showAiUpgrade && <AiUpgradeNudge onClose={() => setShowAiUpgrade(false)} />}
     </main>
+  )
+}
+
+function AiUpgradeNudge({ onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative bg-[#0e0e0e] border border-pink-500/30 rounded-2xl w-full max-w-sm p-6 shadow-2xl shadow-pink-500/20"
+      >
+        <span className="text-[10px] uppercase tracking-wider bg-gradient-to-r from-amber-400/30 to-pink-400/30 border border-amber-300/40 text-amber-200 px-2 py-0.5 rounded-full font-semibold">
+          ✦ Premium
+        </span>
+        <h3 className="text-xl font-bold mt-3 mb-2 bg-gradient-to-r from-white via-pink-200 to-purple-300 bg-clip-text text-transparent">
+          You've hit today's AI limit
+        </h3>
+        <p className="text-sm text-gray-400 mb-5">
+          Free is capped at {FREE_AI_LIMIT} Fix My Skin replies per day. Premium uncaps it — and unlocks longer progress views too.
+        </p>
+        <div className="flex items-center gap-3">
+          <a
+            href="/profile"
+            className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/20"
+          >
+            Upgrade
+          </a>
+          <button onClick={onClose} className="text-sm text-gray-400 hover:text-white transition">
+            Maybe later
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }

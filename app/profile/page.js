@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AppNavbar from '../components/AppNavbar'
 import { createClient } from '../../lib/supabase'
-import { AVATAR_EMOJIS, DEFAULT_AVATAR, PROFILE_CONCERNS, displayNameFor } from '../../lib/profile'
+import { AVATAR_EMOJIS, DEFAULT_AVATAR, PROFILE_CONCERNS, displayNameFor, isPremium, PREMIUM_PERKS, UNLOCK_CODE } from '../../lib/profile'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -90,11 +90,26 @@ export default function ProfilePage() {
                 {avatar}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs uppercase tracking-wide text-pink-300/80">Signed in as</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs uppercase tracking-wide text-pink-300/80">Signed in as</p>
+                  {isPremium(profile) && (
+                    <span className="text-[10px] uppercase tracking-wider bg-gradient-to-r from-amber-400/30 to-pink-400/30 border border-amber-300/40 text-amber-200 px-2 py-0.5 rounded-full font-semibold">
+                      ✦ Premium
+                    </span>
+                  )}
+                </div>
                 <p className="text-lg font-semibold truncate">{displayNameFor({ display_name: displayName }, user)}</p>
                 <p className="text-xs text-gray-500 truncate">{user.email}</p>
               </div>
             </div>
+
+            {/* Upgrade card (free tier only) */}
+            {!isPremium(profile) && (
+              <UpgradeCard
+                profile={profile}
+                onUpgraded={(updatedProfile) => setProfile(updatedProfile)}
+              />
+            )}
 
             {/* Display name */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
@@ -175,5 +190,91 @@ export default function ProfilePage() {
 
       </div>
     </main>
+  )
+}
+
+function UpgradeCard({ profile, onUpgraded }) {
+  const [code, setCode] = useState('')
+  const [redeeming, setRedeeming] = useState(false)
+  const [error, setError] = useState('')
+
+  async function tryRedeem(e) {
+    e.preventDefault()
+    setError('')
+    if (!code.trim()) return
+    if (code.trim().toUpperCase() !== UNLOCK_CODE) {
+      setError("That code didn't work. Double-check it and try again.")
+      return
+    }
+    setRedeeming(true)
+    const supabase = createClient()
+    const { data, error: dbError } = await supabase
+      .from('profiles')
+      .update({ tier: 'premium', updated_at: new Date().toISOString() })
+      .eq('user_id', profile.user_id)
+      .select()
+      .single()
+    setRedeeming(false)
+    if (dbError) {
+      setError('Something went wrong — try again in a sec.')
+      return
+    }
+    onUpgraded(data)
+  }
+
+  return (
+    <div className="relative bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-amber-400/5 border border-pink-500/30 rounded-2xl p-6 mb-6 overflow-hidden">
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-pink-500/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-[10px] uppercase tracking-wider bg-gradient-to-r from-amber-400/30 to-pink-400/30 border border-amber-300/40 text-amber-200 px-2 py-0.5 rounded-full font-semibold">
+            ✦ Premium
+          </span>
+          <span className="text-xs text-gray-400">Free plan</span>
+        </div>
+        <h2 className="text-2xl font-bold mb-1 bg-gradient-to-r from-white via-pink-200 to-purple-300 bg-clip-text text-transparent">
+          Upgrade GlowLog
+        </h2>
+        <p className="text-sm text-gray-400 mb-5">Unlock the deeper tools and the AI without limits.</p>
+
+        <ul className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          {PREMIUM_PERKS.map(perk => (
+            <li key={perk.title} className="bg-white/5 border border-white/10 rounded-xl p-3">
+              <p className="text-lg mb-1">{perk.emoji}</p>
+              <p className="text-sm font-semibold text-white">{perk.title}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{perk.body}</p>
+            </li>
+          ))}
+        </ul>
+
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          <button
+            disabled
+            className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm shadow-lg shadow-pink-500/20 opacity-90 cursor-not-allowed"
+            title="Payments coming soon"
+          >
+            ✦ Upgrade — coming soon
+          </button>
+          <p className="text-xs text-gray-500">Stripe checkout is on the way. Have a code? Use it below.</p>
+        </div>
+
+        <form onSubmit={tryRedeem} className="flex flex-wrap items-center gap-2">
+          <input
+            value={code}
+            onChange={e => setCode(e.target.value)}
+            placeholder="Enter unlock code"
+            className="flex-1 min-w-[180px] bg-white/5 border border-white/10 rounded-full px-4 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition tracking-wider"
+          />
+          <button
+            type="submit"
+            disabled={redeeming || !code.trim()}
+            className="border border-white/15 text-gray-200 text-sm px-5 py-2 rounded-full hover:bg-white/10 transition disabled:opacity-40"
+          >
+            {redeeming ? 'Redeeming...' : 'Apply code'}
+          </button>
+        </form>
+        {error && <p className="text-xs text-rose-300 mt-2">{error}</p>}
+      </div>
+    </div>
   )
 }

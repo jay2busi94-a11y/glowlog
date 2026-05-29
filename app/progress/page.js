@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import AppNavbar from '../components/AppNavbar'
 import { createClient } from '../../lib/supabase'
 import { toLocalDateString } from '../../lib/dates'
+import { isPremium } from '../../lib/profile'
 
 const RATINGS = {
   1: { emoji: '😣', label: 'Bad', color: 'bg-rose-500' },
@@ -38,9 +39,12 @@ function formatDate(dateStr) {
 }
 
 const RANGES = [
-  { key: 5, label: '5 days' },
-  { key: 10, label: '10 days' },
-  { key: 30, label: '1 month' },
+  { key: 5, label: '5 days', premium: false },
+  { key: 10, label: '10 days', premium: false },
+  { key: 30, label: '1 month', premium: false },
+  { key: 90, label: '3 months', premium: true },
+  { key: 180, label: '6 months', premium: true },
+  { key: 365, label: '1 year', premium: true },
 ]
 
 // Build the last N calendar days ending today, each paired with its log (or null).
@@ -62,7 +66,9 @@ export default function Progress() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [logs, setLogs] = useState([])
+  const [profile, setProfile] = useState(null)
   const [range, setRange] = useState(30)
+  const [showUpgrade, setShowUpgrade] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -71,15 +77,24 @@ export default function Progress() {
         router.push('/login')
         return
       }
-      const { data } = await supabase
-        .from('skin_logs')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('date', { ascending: true })
-      setLogs(data || [])
+      const [logsRes, profileRes] = await Promise.all([
+        supabase.from('skin_logs').select('*').eq('user_id', user.id).order('date', { ascending: true }),
+        supabase.from('profiles').select('tier').eq('user_id', user.id).maybeSingle(),
+      ])
+      setLogs(logsRes.data || [])
+      setProfile(profileRes.data)
       setLoading(false)
     })
   }, [])
+
+  const premium = isPremium(profile)
+  function pickRange(r) {
+    if (r.premium && !premium) {
+      setShowUpgrade(true)
+      return
+    }
+    setRange(r.key)
+  }
 
   const rated = logs.filter(l => l.skin_rating)
   const avg = rated.length ? rated.reduce((s, l) => s + l.skin_rating, 0) / rated.length : 0
@@ -137,20 +152,27 @@ export default function Progress() {
                   <h2 className="text-lg font-semibold">Skin rating</h2>
                   <p className="text-gray-400 text-sm">Last {range} {range === 1 ? 'day' : 'days'}</p>
                 </div>
-                <div className="flex gap-1 bg-white/5 border border-white/10 rounded-full p-1">
-                  {RANGES.map(r => (
-                    <button
-                      key={r.key}
-                      onClick={() => setRange(r.key)}
-                      className={`text-xs px-3 py-1 rounded-full transition ${
-                        range === r.key
-                          ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md shadow-pink-500/20'
-                          : 'text-gray-400 hover:text-white'
-                      }`}
-                    >
-                      {r.label}
-                    </button>
-                  ))}
+                <div className="flex flex-wrap gap-1 bg-white/5 border border-white/10 rounded-full p-1">
+                  {RANGES.map(r => {
+                    const locked = r.premium && !premium
+                    const active = range === r.key
+                    return (
+                      <button
+                        key={r.key}
+                        onClick={() => pickRange(r)}
+                        className={`text-xs px-3 py-1 rounded-full transition flex items-center gap-1 ${
+                          active
+                            ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md shadow-pink-500/20'
+                            : locked
+                              ? 'text-amber-200/70 hover:text-amber-100'
+                              : 'text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        {locked && <span className="text-[10px]">✦</span>}
+                        {r.label}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
               <div className="flex items-end gap-1.5 h-40 mt-4">
@@ -204,6 +226,39 @@ export default function Progress() {
         )}
 
       </div>
+
+      {showUpgrade && <UpgradeNudge onClose={() => setShowUpgrade(false)} />}
     </main>
+  )
+}
+
+function UpgradeNudge({ onClose }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative bg-[#0e0e0e] border border-pink-500/30 rounded-2xl w-full max-w-sm p-6 shadow-2xl shadow-pink-500/20"
+      >
+        <span className="text-[10px] uppercase tracking-wider bg-gradient-to-r from-amber-400/30 to-pink-400/30 border border-amber-300/40 text-amber-200 px-2 py-0.5 rounded-full font-semibold">
+          ✦ Premium
+        </span>
+        <h3 className="text-xl font-bold mt-3 mb-2 bg-gradient-to-r from-white via-pink-200 to-purple-300 bg-clip-text text-transparent">
+          See longer trends with Premium
+        </h3>
+        <p className="text-sm text-gray-400 mb-5">3-month, 6-month, and yearly views are part of Premium. Free is capped at the last 30 days.</p>
+        <div className="flex items-center gap-3">
+          <a
+            href="/profile"
+            className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/20"
+          >
+            Upgrade
+          </a>
+          <button onClick={onClose} className="text-sm text-gray-400 hover:text-white transition">
+            Maybe later
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
