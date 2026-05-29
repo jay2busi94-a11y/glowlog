@@ -72,6 +72,12 @@ export default function AppNavbar() {
           Catalog
         </a>
         <a
+          href="/discover"
+          className={`transition ${pathname === '/discover' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
+        >
+          Discover
+        </a>
+        <a
           href="/progress"
           className={`transition ${pathname === '/progress' ? 'text-white' : 'text-gray-400 hover:text-white'}`}
         >

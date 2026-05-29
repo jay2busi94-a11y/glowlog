@@ -245,6 +245,7 @@ function StepProductPicker({ open, step, products, onPick, onClose }) {
 }
 
 function ProductRow({ product, active, onPick }) {
+  const initials = ((product.brand?.[0] || '') + (product.name?.[0] || '')).toUpperCase() || '✨'
   return (
     <button
       onClick={() => onPick(product.id)}
@@ -252,6 +253,17 @@ function ProductRow({ product, active, onPick }) {
         active ? 'bg-pink-500/10 border border-pink-500/30' : 'hover:bg-white/5 border border-transparent'
       }`}
     >
+      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border border-white/10">
+        {product.photo_url ? (
+          <img src={product.photo_url} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-pink-500/20 via-purple-500/15 to-amber-400/10 flex items-center justify-center">
+            <span className="text-xs font-bold bg-gradient-to-r from-pink-200 via-purple-200 to-amber-200 bg-clip-text text-transparent">
+              {initials}
+            </span>
+          </div>
+        )}
+      </div>
       <div className="min-w-0 flex-1">
         {product.brand && <p className="text-[10px] uppercase tracking-wide text-pink-300/80">{product.brand}</p>}
         <p className={`text-sm truncate ${active ? 'text-white font-semibold' : 'text-gray-200'}`}>{product.name}</p>

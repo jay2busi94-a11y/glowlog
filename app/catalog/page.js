@@ -8,7 +8,21 @@ import { PRODUCT_CATEGORIES } from '../../lib/catalog'
 import { toLocalDateString } from '../../lib/dates'
 import { isPremium, FREE_SUGGEST_LIMIT, getSuggestCountToday, incrementSuggestCountToday } from '../../lib/profile'
 
-const BLANK = { brand: '', name: '', category: '', notes: '' }
+const BLANK = { brand: '', name: '', category: '', notes: '', photo_url: '' }
+
+// Upload a file to the product-photos bucket under {userId}/{uuid}.{ext}
+// and return the public URL. Throws on failure.
+async function uploadProductPhoto(file, userId) {
+  const supabase = createClient()
+  const ext = (file.name?.split('.').pop() || 'jpg').toLowerCase()
+  const path = `${userId}/${crypto.randomUUID()}.${ext}`
+  const { error } = await supabase.storage
+    .from('product-photos')
+    .upload(path, file, { upsert: false, cacheControl: '31536000', contentType: file.type || 'image/jpeg' })
+  if (error) throw error
+  const { data: { publicUrl } } = supabase.storage.from('product-photos').getPublicUrl(path)
+  return publicUrl
+}
 
 export default function Catalog() {
   const router = useRouter()
@@ -78,7 +92,13 @@ export default function Catalog() {
   }
   function startEdit(p) {
     setEditing(p.id)
-    setDraft({ brand: p.brand || '', name: p.name || '', category: p.category || '', notes: p.notes || '' })
+    setDraft({
+      brand: p.brand || '',
+      name: p.name || '',
+      category: p.category || '',
+      notes: p.notes || '',
+      photo_url: p.photo_url || '',
+    })
   }
   function cancel() {
     setEditing(null)
@@ -95,6 +115,7 @@ export default function Catalog() {
       name: draft.name.trim(),
       category: draft.category || null,
       notes: draft.notes.trim() || null,
+      photo_url: draft.photo_url || null,
       updated_at: new Date().toISOString(),
     }
     if (editing === 'new') {
@@ -174,6 +195,7 @@ export default function Catalog() {
             onSave={save}
             onCancel={cancel}
             isNew={editing === 'new'}
+            user={user}
           />
         )}
 
@@ -212,26 +234,29 @@ export default function Catalog() {
 
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {visible.map(p => (
-                <li key={p.id} className="bg-white/5 border border-white/10 rounded-2xl p-5 flex flex-col gap-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      {p.brand && <p className="text-xs uppercase tracking-wide text-pink-300/80">{p.brand}</p>}
-                      <p className="text-base font-semibold text-white break-words">{p.name}</p>
+                <li key={p.id} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden flex flex-col">
+                  <ProductPhoto product={p} />
+                  <div className="p-5 flex flex-col gap-2 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        {p.brand && <p className="text-xs uppercase tracking-wide text-pink-300/80">{p.brand}</p>}
+                        <p className="text-base font-semibold text-white break-words">{p.name}</p>
+                      </div>
+                      {p.category && (
+                        <span className="flex-shrink-0 text-[10px] uppercase tracking-wide bg-purple-500/15 border border-purple-500/30 text-purple-200 px-2 py-1 rounded-full">
+                          {p.category}
+                        </span>
+                      )}
                     </div>
-                    {p.category && (
-                      <span className="flex-shrink-0 text-[10px] uppercase tracking-wide bg-purple-500/15 border border-purple-500/30 text-purple-200 px-2 py-1 rounded-full">
-                        {p.category}
-                      </span>
-                    )}
-                  </div>
-                  {p.notes && <p className="text-sm text-gray-400 break-words whitespace-pre-wrap">{p.notes}</p>}
-                  <div className="flex gap-3 mt-1 pt-3 border-t border-white/5 text-xs">
-                    <button onClick={() => startEdit(p)} className="text-pink-300 hover:text-pink-200 transition">
-                      Edit
-                    </button>
-                    <button onClick={() => remove(p.id)} className="text-gray-500 hover:text-rose-400 transition">
-                      Delete
-                    </button>
+                    {p.notes && <p className="text-sm text-gray-400 break-words whitespace-pre-wrap">{p.notes}</p>}
+                    <div className="flex gap-3 mt-auto pt-3 border-t border-white/5 text-xs">
+                      <button onClick={() => startEdit(p)} className="text-pink-300 hover:text-pink-200 transition">
+                        Edit
+                      </button>
+                      <button onClick={() => remove(p.id)} className="text-gray-500 hover:text-rose-400 transition">
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </li>
               ))}
@@ -248,11 +273,13 @@ export default function Catalog() {
   )
 }
 
-function ProductForm({ draft, setDraft, saving, onSave, onCancel, isNew }) {
+function ProductForm({ draft, setDraft, saving, onSave, onCancel, isNew, user }) {
   const set = (key) => (e) => setDraft({ ...draft, [key]: e.target.value })
+  const setPhotoUrl = (url) => setDraft({ ...draft, photo_url: url })
   return (
     <div className="bg-white/5 border border-pink-500/20 rounded-2xl p-6 mb-8">
       <h2 className="text-lg font-semibold mb-4 text-pink-300">{isNew ? 'Add product' : 'Edit product'}</h2>
+      <PhotoPicker photoUrl={draft.photo_url} onChange={setPhotoUrl} userId={user?.id} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <label className="flex flex-col gap-1">
           <span className="text-xs text-gray-400">Brand</span>
@@ -309,6 +336,113 @@ function ProductForm({ draft, setDraft, saving, onSave, onCancel, isNew }) {
           Cancel
         </button>
       </div>
+    </div>
+  )
+}
+
+function ProductPhoto({ product }) {
+  if (product.photo_url) {
+    return (
+      <div className="aspect-[4/3] w-full bg-white/5 border-b border-white/10 overflow-hidden">
+        <img
+          src={product.photo_url}
+          alt={product.name}
+          loading="lazy"
+          className="w-full h-full object-cover"
+        />
+      </div>
+    )
+  }
+  // Initials fallback when no photo — uses brand+product first letters.
+  const initials = (
+    (product.brand?.[0] || '') + (product.name?.[0] || '')
+  ).toUpperCase() || '✨'
+  return (
+    <div className="aspect-[4/3] w-full bg-gradient-to-br from-pink-500/15 via-purple-500/10 to-amber-400/5 border-b border-white/10 flex items-center justify-center">
+      <span className="text-5xl font-bold bg-gradient-to-r from-pink-200 via-purple-200 to-amber-200 bg-clip-text text-transparent">
+        {initials}
+      </span>
+    </div>
+  )
+}
+
+function PhotoPicker({ photoUrl, onChange, userId }) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''   // allow re-picking the same file later
+    if (!file || !userId) return
+    if (!file.type.startsWith('image/')) {
+      setError('Please pick an image file.')
+      return
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError('That image is over 8 MB — try a smaller one.')
+      return
+    }
+    setError('')
+    setUploading(true)
+    try {
+      const url = await uploadProductPhoto(file, userId)
+      onChange(url)
+    } catch (err) {
+      console.error(err)
+      setError('Upload failed. Try again.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return (
+    <div className="mb-5">
+      <p className="text-xs text-gray-400 mb-2">Photo</p>
+      {photoUrl ? (
+        <div className="flex items-start gap-4">
+          <img
+            src={photoUrl}
+            alt="Product"
+            className="w-28 h-28 rounded-2xl object-cover border border-white/10 bg-white/5"
+          />
+          <div className="flex flex-col gap-2 mt-1">
+            <label className="cursor-pointer text-xs text-pink-300 hover:text-pink-200 transition">
+              {uploading ? 'Uploading...' : 'Replace photo'}
+              <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
+            </label>
+            <label className="cursor-pointer text-xs text-pink-300 hover:text-pink-200 transition">
+              {uploading ? '...' : '📷 Take new photo'}
+              <input type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" disabled={uploading} />
+            </label>
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              className="text-xs text-gray-500 hover:text-rose-300 transition text-left"
+              disabled={uploading}
+            >
+              Remove photo
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-2xl py-6 text-sm transition ${
+            uploading ? 'border-white/10 text-gray-500' : 'border-white/20 text-gray-400 hover:border-pink-500/40 hover:text-white'
+          }`}>
+            <span className="text-lg">🖼️</span>
+            <span>{uploading ? 'Uploading...' : 'Choose photo'}</span>
+            <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
+          </label>
+          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-2xl py-6 text-sm transition ${
+            uploading ? 'border-white/10 text-gray-500' : 'border-white/20 text-gray-400 hover:border-pink-500/40 hover:text-white'
+          }`}>
+            <span className="text-lg">📷</span>
+            <span>{uploading ? 'Uploading...' : 'Take photo'}</span>
+            <input type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" disabled={uploading} />
+          </label>
+        </div>
+      )}
+      {error && <p className="text-xs text-rose-300 mt-2">{error}</p>}
     </div>
   )
 }
