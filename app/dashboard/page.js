@@ -51,7 +51,7 @@ const CONCERN_FIXES = {
   },
 }
 
-function RoutineCard({ routine, accent, products, done, onToggle, onCompleteAll, onClearAll }) {
+function RoutineCard({ routine, accent, products, done, onToggle, onPickProduct, onCompleteAll, onClearAll }) {
   const productById = new Map(products.map(p => [p.id, p]))
   return (
     <div className={`bg-white/5 border ${accent.ring} rounded-2xl p-6`}>
@@ -69,21 +69,42 @@ function RoutineCard({ routine, accent, products, done, onToggle, onCompleteAll,
               const isDone = done.includes(step.name)
               const linked = step.productId ? productById.get(step.productId) : null
               return (
-                <li
-                  key={step.name + i}
-                  onClick={() => onToggle(routine.id, step.name)}
-                  className={`flex items-start gap-3 text-sm cursor-pointer select-none transition ${isDone ? 'text-gray-500' : 'text-gray-300'}`}
-                >
-                  <span className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs flex-shrink-0 mt-0.5 transition ${isDone ? accent.dotDone : accent.dot}`}>
+                <li key={step.name + i} className="flex items-start gap-3 text-sm select-none">
+                  <button
+                    onClick={() => onToggle(routine.id, step.name)}
+                    className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs flex-shrink-0 mt-0.5 transition ${isDone ? accent.dotDone : accent.dot} hover:scale-105`}
+                    aria-label={isDone ? 'Mark not done' : 'Mark done'}
+                  >
                     {isDone ? '✓' : i + 1}
-                  </span>
+                  </button>
                   <div className="min-w-0 flex-1">
-                    <span className={isDone ? 'line-through' : ''}>{step.name}</span>
-                    {linked && (
-                      <p className={`text-xs ${isDone ? 'text-gray-600' : 'text-gray-500'} truncate`}>
-                        {productLabel(linked)}
-                      </p>
-                    )}
+                    <button
+                      onClick={() => onToggle(routine.id, step.name)}
+                      className={`text-left w-full ${isDone ? 'text-gray-500 line-through' : 'text-gray-200'} hover:text-white transition`}
+                    >
+                      {step.name}
+                    </button>
+                    <button
+                      onClick={() => onPickProduct(routine.id, i)}
+                      className={`mt-1 flex items-center gap-1.5 text-xs transition group ${
+                        linked
+                          ? `${isDone ? 'text-gray-600' : 'text-gray-400'} hover:text-white`
+                          : 'text-gray-600 hover:text-gray-300'
+                      }`}
+                    >
+                      {linked ? (
+                        <>
+                          <span className={`w-1.5 h-1.5 rounded-full ${accent.head.replace('text-', 'bg-')} opacity-60 group-hover:opacity-100 transition`} />
+                          <span className="truncate">{productLabel(linked)}</span>
+                          <span className="opacity-0 group-hover:opacity-100 transition text-gray-500 text-[10px]">change</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-gray-700">+</span>
+                          <span>Add product</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 </li>
               )
@@ -103,12 +124,110 @@ function RoutineCard({ routine, accent, products, done, onToggle, onCompleteAll,
   )
 }
 
+function StepProductPicker({ open, step, products, onPick, onClose }) {
+  if (!open) return null
+  const currentId = step?.productId || null
+  const sameCategory = step?.suggestedCategory
+    ? products.filter(p => p.category && step.suggestedCategory.toLowerCase().includes(p.category.toLowerCase()))
+    : []
+  const others = sameCategory.length
+    ? products.filter(p => !sameCategory.includes(p))
+    : products
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative bg-[#0e0e0e] border border-white/10 rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl shadow-pink-500/10 overflow-hidden"
+      >
+        <div className="p-5 border-b border-white/10">
+          <p className="text-xs uppercase tracking-wide text-gray-500">Pick a product for</p>
+          <h3 className="text-lg font-semibold text-white mt-0.5">{step?.name}</h3>
+        </div>
+
+        <div className="overflow-y-auto p-3 flex-1">
+          {products.length === 0 ? (
+            <div className="p-6 text-center">
+              <p className="text-sm text-gray-300 mb-1">No products in your catalog yet</p>
+              <p className="text-xs text-gray-500 mb-4">Add your cleansers, serums, and creams so you can link them to your routine.</p>
+              <a
+                href="/catalog"
+                className="inline-block bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-full text-xs hover:opacity-90 transition shadow-lg shadow-pink-500/20"
+              >
+                + Add your first product
+              </a>
+            </div>
+          ) : (
+            <>
+              {sameCategory.length > 0 && (
+                <p className="text-[10px] uppercase tracking-wide text-pink-300/70 px-2 py-2">Suggested</p>
+              )}
+              {sameCategory.map(p => (
+                <ProductRow key={p.id} product={p} active={p.id === currentId} onPick={onPick} />
+              ))}
+              {sameCategory.length > 0 && others.length > 0 && (
+                <p className="text-[10px] uppercase tracking-wide text-gray-500 px-2 py-2 mt-1">Other products</p>
+              )}
+              {others.map(p => (
+                <ProductRow key={p.id} product={p} active={p.id === currentId} onPick={onPick} />
+              ))}
+            </>
+          )}
+        </div>
+
+        <div className="border-t border-white/10 p-3 flex items-center justify-between gap-3">
+          {currentId ? (
+            <button
+              onClick={() => onPick(null)}
+              className="text-xs text-rose-300 hover:text-rose-200 transition px-3 py-2"
+            >
+              Remove product
+            </button>
+          ) : <span />}
+          <div className="flex items-center gap-3">
+            <a href="/catalog" className="text-xs text-gray-400 hover:text-white transition">
+              Manage catalog →
+            </a>
+            <button onClick={onClose} className="text-xs text-gray-400 hover:text-white transition px-3 py-2">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProductRow({ product, active, onPick }) {
+  return (
+    <button
+      onClick={() => onPick(product.id)}
+      className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${
+        active ? 'bg-pink-500/10 border border-pink-500/30' : 'hover:bg-white/5 border border-transparent'
+      }`}
+    >
+      <div className="min-w-0 flex-1">
+        {product.brand && <p className="text-[10px] uppercase tracking-wide text-pink-300/80">{product.brand}</p>}
+        <p className={`text-sm truncate ${active ? 'text-white font-semibold' : 'text-gray-200'}`}>{product.name}</p>
+      </div>
+      {product.category && (
+        <span className="flex-shrink-0 text-[10px] uppercase tracking-wide bg-purple-500/15 border border-purple-500/30 text-purple-200 px-2 py-1 rounded-full">
+          {product.category}
+        </span>
+      )}
+      {active && <span className="text-pink-300 text-sm flex-shrink-0">✓</span>}
+    </button>
+  )
+}
+
 export default function Dashboard() {
   const router = useRouter()
   const [user, setUser] = useState(null)
   const [routines, setRoutines] = useState([])
   const [products, setProducts] = useState([])
   const [completed, setCompleted] = useState({})   // { [routineId]: [completed step names] }
+  const [picking, setPicking] = useState(null)     // { routineId, stepIdx } when the product picker is open
   const [skinRating, setSkinRating] = useState(null)
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
@@ -189,6 +308,30 @@ export default function Dashboard() {
   function clearAllSteps(routineId) {
     setCompleted(prev => ({ ...prev, [routineId]: [] }))
   }
+
+  function openProductPicker(routineId, stepIdx) {
+    setPicking({ routineId, stepIdx })
+  }
+
+  async function setStepProduct(productId) {
+    if (!picking || !user) return
+    const { routineId, stepIdx } = picking
+    const nextRoutines = routines.map(r => {
+      if (r.id !== routineId) return r
+      return { ...r, steps: r.steps.map((s, i) => i === stepIdx ? { ...s, productId } : s) }
+    })
+    setRoutines(nextRoutines)
+    setPicking(null)
+    const supabase = createClient()
+    await supabase.from('routines').upsert({
+      user_id: user.id,
+      data: nextRoutines,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' })
+  }
+
+  const pickingRoutine = picking ? routines.find(r => r.id === picking.routineId) : null
+  const pickingStep = pickingRoutine?.steps[picking.stepIdx]
 
   async function handleSave() {
     if (!user || !skinRating) return
@@ -305,6 +448,7 @@ Give me personalized advice for this concern.`
               products={products}
               done={completed[routine.id] || []}
               onToggle={toggleStep}
+              onPickProduct={openProductPicker}
               onCompleteAll={completeAllSteps}
               onClearAll={clearAllSteps}
             />
@@ -453,6 +597,14 @@ Give me personalized advice for this concern.`
         </div>
 
       </div>
+
+      <StepProductPicker
+        open={!!picking}
+        step={pickingStep}
+        products={products}
+        onPick={setStepProduct}
+        onClose={() => setPicking(null)}
+      />
     </main>
   )
 }
