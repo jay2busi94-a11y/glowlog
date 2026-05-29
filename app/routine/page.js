@@ -6,11 +6,13 @@ import AppNavbar from '../components/AppNavbar'
 import { createClient } from '../../lib/supabase'
 import { routinesFromRow, accentFor, newRoutineId, STEP_LIBRARY, normalizeStep } from '../../lib/routine'
 import { productLabel } from '../../lib/catalog'
+import { getStepInfo } from '../../lib/step_info'
 
 function RoutineEditor({ routine, accent, products, onChange, onDelete }) {
   const [input, setInput] = useState('')
   const [dragIndex, setDragIndex] = useState(null)
   const [overIndex, setOverIndex] = useState(null)
+  const [openInfo, setOpenInfo] = useState(null)
 
   const steps = routine.steps
   const setSteps = (next) => onChange({ ...routine, steps: next })
@@ -73,6 +75,8 @@ function RoutineEditor({ routine, accent, products, onChange, onDelete }) {
         )}
         {steps.map((step, i) => {
           const linked = products.find(p => p.id === step.productId)
+          const info = getStepInfo(step.name)
+          const infoOpen = openInfo === i
           return (
             <li
               key={step.name + i}
@@ -89,6 +93,20 @@ function RoutineEditor({ routine, accent, products, onChange, onDelete }) {
               <div className="flex items-center gap-1">
                 <span className="text-gray-600 select-none px-1 text-lg leading-none" aria-hidden>⠿</span>
                 <span className="flex-1 text-sm text-gray-200 break-words">{step.name}</span>
+                {info && (
+                  <button
+                    onClick={() => setOpenInfo(infoOpen ? null : i)}
+                    className={`flex-shrink-0 w-5 h-5 rounded-full border text-[10px] font-semibold transition mr-1 ${
+                      infoOpen
+                        ? 'bg-white/15 border-white/30 text-white'
+                        : 'border-white/15 text-gray-500 hover:text-white hover:border-white/30'
+                    }`}
+                    aria-label={`What is ${step.name}?`}
+                    title={`What is ${step.name}?`}
+                  >
+                    i
+                  </button>
+                )}
                 <button onClick={() => move(i, -1)} disabled={i === 0} className="text-gray-500 hover:text-white disabled:opacity-20 transition px-2 text-xs" aria-label="Move up">▲</button>
                 <button onClick={() => move(i, 1)} disabled={i === steps.length - 1} className="text-gray-500 hover:text-white disabled:opacity-20 transition px-2 text-xs" aria-label="Move down">▼</button>
                 <button onClick={() => remove(i)} className="text-gray-500 hover:text-rose-400 transition px-2" aria-label="Remove step">✕</button>
@@ -109,6 +127,26 @@ function RoutineEditor({ routine, accent, products, onChange, onDelete }) {
                   <span className="text-[10px] text-gray-500 flex-shrink-0 hidden sm:inline">{linked.category || ''}</span>
                 )}
               </div>
+              {infoOpen && info && (
+                <div className="ml-6 mt-2 bg-white/[0.03] border border-white/10 rounded-lg p-3 text-xs">
+                  <p className="text-gray-300 mb-2 leading-relaxed">{info.what}</p>
+                  <p className="text-pink-300/80 text-[10px] uppercase tracking-wide mb-1">When</p>
+                  <p className="text-gray-400 mb-2 leading-relaxed">{info.when}</p>
+                  {info.tips?.length > 0 && (
+                    <>
+                      <p className="text-pink-300/80 text-[10px] uppercase tracking-wide mb-1">Tips</p>
+                      <ul className="flex flex-col gap-1">
+                        {info.tips.map((t, j) => (
+                          <li key={j} className="text-gray-400 flex gap-1.5 leading-relaxed">
+                            <span className="text-pink-300/60 flex-shrink-0">•</span>
+                            <span>{t}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              )}
             </li>
           )
         })}

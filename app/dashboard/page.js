@@ -8,6 +8,7 @@ import { routinesFromRow, accentFor } from '../../lib/routine'
 import { toLocalDateString } from '../../lib/dates'
 import { productLabel } from '../../lib/catalog'
 import { isPremium, FREE_AI_LIMIT, getAiCountToday, incrementAiCountToday } from '../../lib/profile'
+import { getStepInfo } from '../../lib/step_info'
 
 const SKIN_RATINGS = [
   { value: 1, emoji: '😣', label: 'Bad' },
@@ -52,8 +53,32 @@ const CONCERN_FIXES = {
   },
 }
 
+function StepInfoPanel({ info }) {
+  return (
+    <div className="mt-2.5 bg-white/[0.03] border border-white/10 rounded-xl p-3 text-xs">
+      <p className="text-gray-300 mb-2 leading-relaxed">{info.what}</p>
+      <p className="text-pink-300/80 text-[11px] uppercase tracking-wide mb-1">When</p>
+      <p className="text-gray-400 mb-2.5 leading-relaxed">{info.when}</p>
+      {info.tips?.length > 0 && (
+        <>
+          <p className="text-pink-300/80 text-[11px] uppercase tracking-wide mb-1">Tips</p>
+          <ul className="flex flex-col gap-1">
+            {info.tips.map((t, j) => (
+              <li key={j} className="text-gray-400 flex gap-1.5 leading-relaxed">
+                <span className="text-pink-300/60 flex-shrink-0">•</span>
+                <span>{t}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
+  )
+}
+
 function RoutineCard({ routine, accent, products, done, onToggle, onPickProduct, onCompleteAll, onClearAll }) {
   const productById = new Map(products.map(p => [p.id, p]))
+  const [openInfo, setOpenInfo] = useState(null) // index of expanded step's info, or null
   return (
     <div className={`bg-white/5 border ${accent.ring} rounded-2xl p-6`}>
       <div className="flex items-center justify-between mb-4">
@@ -69,6 +94,8 @@ function RoutineCard({ routine, accent, products, done, onToggle, onPickProduct,
             {routine.steps.map((step, i) => {
               const isDone = done.includes(step.name)
               const linked = step.productId ? productById.get(step.productId) : null
+              const info = getStepInfo(step.name)
+              const infoOpen = openInfo === i
               return (
                 <li key={step.name + i} className="flex items-start gap-3 text-sm select-none">
                   <button
@@ -79,12 +106,28 @@ function RoutineCard({ routine, accent, products, done, onToggle, onPickProduct,
                     {isDone ? '✓' : i + 1}
                   </button>
                   <div className="min-w-0 flex-1">
-                    <button
-                      onClick={() => onToggle(routine.id, step.name)}
-                      className={`text-left w-full ${isDone ? 'text-gray-500 line-through' : 'text-gray-200'} hover:text-white transition`}
-                    >
-                      {step.name}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => onToggle(routine.id, step.name)}
+                        className={`text-left flex-1 min-w-0 ${isDone ? 'text-gray-500 line-through' : 'text-gray-200'} hover:text-white transition truncate`}
+                      >
+                        {step.name}
+                      </button>
+                      {info && (
+                        <button
+                          onClick={() => setOpenInfo(infoOpen ? null : i)}
+                          className={`flex-shrink-0 w-5 h-5 rounded-full border text-[10px] font-semibold transition ${
+                            infoOpen
+                              ? 'bg-white/15 border-white/30 text-white'
+                              : 'border-white/15 text-gray-500 hover:text-white hover:border-white/30'
+                          }`}
+                          aria-label={`Info about ${step.name}`}
+                          title={`What is ${step.name}?`}
+                        >
+                          i
+                        </button>
+                      )}
+                    </div>
                     <button
                       onClick={() => onPickProduct(routine.id, i)}
                       className={`mt-1 flex items-center gap-1.5 text-xs transition group ${
@@ -106,6 +149,7 @@ function RoutineCard({ routine, accent, products, done, onToggle, onPickProduct,
                         </>
                       )}
                     </button>
+                    {infoOpen && info && <StepInfoPanel info={info} />}
                   </div>
                 </li>
               )
