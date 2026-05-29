@@ -6,6 +6,7 @@ import AppNavbar from "../components/AppNavbar"
 import { createClient } from '../../lib/supabase'
 import { routinesFromRow, accentFor } from '../../lib/routine'
 import { toLocalDateString } from '../../lib/dates'
+import { productLabel } from '../../lib/catalog'
 
 const SKIN_RATINGS = [
   { value: 1, emoji: '😣', label: 'Bad' },
@@ -50,7 +51,8 @@ const CONCERN_FIXES = {
   },
 }
 
-function RoutineCard({ routine, accent, done, onToggle, onCompleteAll, onClearAll }) {
+function RoutineCard({ routine, accent, products, done, onToggle, onCompleteAll, onClearAll }) {
+  const productById = new Map(products.map(p => [p.id, p]))
   return (
     <div className={`bg-white/5 border ${accent.ring} rounded-2xl p-6`}>
       <div className="flex items-center justify-between mb-4">
@@ -64,23 +66,31 @@ function RoutineCard({ routine, accent, done, onToggle, onCompleteAll, onClearAl
         <>
           <ul className="flex flex-col gap-3">
             {routine.steps.map((step, i) => {
-              const isDone = done.includes(step)
+              const isDone = done.includes(step.name)
+              const linked = step.productId ? productById.get(step.productId) : null
               return (
                 <li
-                  key={step + i}
-                  onClick={() => onToggle(routine.id, step)}
-                  className={`flex items-center gap-3 text-sm cursor-pointer select-none transition ${isDone ? 'text-gray-500' : 'text-gray-300'}`}
+                  key={step.name + i}
+                  onClick={() => onToggle(routine.id, step.name)}
+                  className={`flex items-start gap-3 text-sm cursor-pointer select-none transition ${isDone ? 'text-gray-500' : 'text-gray-300'}`}
                 >
-                  <span className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs flex-shrink-0 transition ${isDone ? accent.dotDone : accent.dot}`}>
+                  <span className={`w-6 h-6 rounded-full border flex items-center justify-center text-xs flex-shrink-0 mt-0.5 transition ${isDone ? accent.dotDone : accent.dot}`}>
                     {isDone ? '✓' : i + 1}
                   </span>
-                  <span className={isDone ? 'line-through' : ''}>{step}</span>
+                  <div className="min-w-0 flex-1">
+                    <span className={isDone ? 'line-through' : ''}>{step.name}</span>
+                    {linked && (
+                      <p className={`text-xs ${isDone ? 'text-gray-600' : 'text-gray-500'} truncate`}>
+                        {productLabel(linked)}
+                      </p>
+                    )}
+                  </div>
                 </li>
               )
             })}
           </ul>
           <div className="flex gap-4 mt-4 pt-3 border-t border-white/5 text-xs">
-            <button onClick={() => onCompleteAll(routine.id, routine.steps)} className={`${accent.link} transition`}>
+            <button onClick={() => onCompleteAll(routine.id, routine.steps.map(s => s.name))} className={`${accent.link} transition`}>
               Complete all
             </button>
             <button onClick={() => onClearAll(routine.id)} className="text-gray-500 hover:text-gray-300 transition">
@@ -97,6 +107,7 @@ export default function Dashboard() {
   const router = useRouter()
   const [user, setUser] = useState(null)
   const [routines, setRoutines] = useState([])
+  const [products, setProducts] = useState([])
   const [completed, setCompleted] = useState({})   // { [routineId]: [completed step names] }
   const [skinRating, setSkinRating] = useState(null)
   const [note, setNote] = useState('')
@@ -121,6 +132,7 @@ export default function Dashboard() {
       setUser(user)
       loadTodayLog(supabase, user.id)
       loadRoutines(supabase, user.id)
+      loadProducts(supabase, user.id)
     })
   }, [])
 
@@ -131,6 +143,14 @@ export default function Dashboard() {
       .eq('user_id', userId)
       .maybeSingle()
     setRoutines(routinesFromRow(data))
+  }
+
+  async function loadProducts(supabase, userId) {
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .eq('user_id', userId)
+    setProducts(data || [])
   }
 
   async function loadTodayLog(supabase, userId) {
@@ -282,6 +302,7 @@ Give me personalized advice for this concern.`
               key={routine.id}
               routine={routine}
               accent={accentFor(idx)}
+              products={products}
               done={completed[routine.id] || []}
               onToggle={toggleStep}
               onCompleteAll={completeAllSteps}

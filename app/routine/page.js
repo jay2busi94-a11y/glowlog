@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AppNavbar from '../components/AppNavbar'
 import { createClient } from '../../lib/supabase'
-import { routinesFromRow, accentFor, newRoutineId, STEP_LIBRARY } from '../../lib/routine'
+import { routinesFromRow, accentFor, newRoutineId, STEP_LIBRARY, normalizeStep } from '../../lib/routine'
+import { productLabel } from '../../lib/catalog'
 
-function RoutineEditor({ routine, accent, onChange, onDelete }) {
+function RoutineEditor({ routine, accent, products, onChange, onDelete }) {
   const [input, setInput] = useState('')
   const [dragIndex, setDragIndex] = useState(null)
   const [overIndex, setOverIndex] = useState(null)
@@ -16,13 +17,16 @@ function RoutineEditor({ routine, accent, onChange, onDelete }) {
 
   function addStep(value) {
     const v = value.trim()
-    if (!v || steps.includes(v)) return
-    setSteps([...steps, v])
+    if (!v || steps.some(s => s.name === v)) return
+    setSteps([...steps, { name: v, productId: null }])
   }
   function addCustom(e) {
     e.preventDefault()
     addStep(input)
     setInput('')
+  }
+  function updateStep(i, patch) {
+    setSteps(steps.map((s, idx) => idx === i ? { ...s, ...patch } : s))
   }
   function remove(i) {
     setSteps(steps.filter((_, idx) => idx !== i))
@@ -46,7 +50,8 @@ function RoutineEditor({ routine, accent, onChange, onDelete }) {
     setOverIndex(null)
   }
 
-  const available = STEP_LIBRARY.filter(s => !steps.includes(s))
+  const stepNames = new Set(steps.map(s => s.name))
+  const available = STEP_LIBRARY.filter(s => !stepNames.has(s))
 
   return (
     <div className={`bg-white/5 border ${accent.ring} rounded-2xl p-6`}>
@@ -66,27 +71,54 @@ function RoutineEditor({ routine, accent, onChange, onDelete }) {
         {steps.length === 0 && (
           <li className="text-sm text-gray-500 py-2">No steps yet — pick from the suggestions or add your own.</li>
         )}
-        {steps.map((step, i) => (
-          <li
-            key={step + i}
-            draggable
-            onDragStart={() => setDragIndex(i)}
-            onDragEnter={() => setOverIndex(i)}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={() => { reorder(dragIndex, i); endDrag() }}
-            onDragEnd={endDrag}
-            className={`flex items-center gap-1 bg-white/5 border rounded-xl pl-2 pr-2 py-2 cursor-grab active:cursor-grabbing transition ${
-              dragIndex === i ? 'opacity-40' : overIndex === i ? 'border-white/40' : 'border-white/10'
-            }`}
-          >
-            <span className="text-gray-600 select-none px-1 text-lg leading-none" aria-hidden>⠿</span>
-            <span className="flex-1 text-sm text-gray-200 break-words">{step}</span>
-            <button onClick={() => move(i, -1)} disabled={i === 0} className="text-gray-500 hover:text-white disabled:opacity-20 transition px-2 text-xs" aria-label="Move up">▲</button>
-            <button onClick={() => move(i, 1)} disabled={i === steps.length - 1} className="text-gray-500 hover:text-white disabled:opacity-20 transition px-2 text-xs" aria-label="Move down">▼</button>
-            <button onClick={() => remove(i)} className="text-gray-500 hover:text-rose-400 transition px-2" aria-label="Remove step">✕</button>
-          </li>
-        ))}
+        {steps.map((step, i) => {
+          const linked = products.find(p => p.id === step.productId)
+          return (
+            <li
+              key={step.name + i}
+              draggable
+              onDragStart={() => setDragIndex(i)}
+              onDragEnter={() => setOverIndex(i)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => { reorder(dragIndex, i); endDrag() }}
+              onDragEnd={endDrag}
+              className={`bg-white/5 border rounded-xl p-2 cursor-grab active:cursor-grabbing transition ${
+                dragIndex === i ? 'opacity-40' : overIndex === i ? 'border-white/40' : 'border-white/10'
+              }`}
+            >
+              <div className="flex items-center gap-1">
+                <span className="text-gray-600 select-none px-1 text-lg leading-none" aria-hidden>⠿</span>
+                <span className="flex-1 text-sm text-gray-200 break-words">{step.name}</span>
+                <button onClick={() => move(i, -1)} disabled={i === 0} className="text-gray-500 hover:text-white disabled:opacity-20 transition px-2 text-xs" aria-label="Move up">▲</button>
+                <button onClick={() => move(i, 1)} disabled={i === steps.length - 1} className="text-gray-500 hover:text-white disabled:opacity-20 transition px-2 text-xs" aria-label="Move down">▼</button>
+                <button onClick={() => remove(i)} className="text-gray-500 hover:text-rose-400 transition px-2" aria-label="Remove step">✕</button>
+              </div>
+              <div className="flex items-center gap-2 mt-2 ml-6">
+                <span className="text-[10px] uppercase tracking-wide text-gray-500 flex-shrink-0">Product</span>
+                <select
+                  value={step.productId || ''}
+                  onChange={e => updateStep(i, { productId: e.target.value || null })}
+                  className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs text-gray-200 focus:outline-none focus:border-white/20 transition"
+                >
+                  <option value="" className="bg-[#080808]">— none —</option>
+                  {products.map(p => (
+                    <option key={p.id} value={p.id} className="bg-[#080808]">{productLabel(p)}</option>
+                  ))}
+                </select>
+                {linked && (
+                  <span className="text-[10px] text-gray-500 flex-shrink-0 hidden sm:inline">{linked.category || ''}</span>
+                )}
+              </div>
+            </li>
+          )
+        })}
       </ul>
+
+      {products.length === 0 && (
+        <p className="text-xs text-gray-500 mb-3">
+          Add products on the <a href="/catalog" className={`${accent.link} transition`}>Catalog</a> page to link them to steps.
+        </p>
+      )}
 
       {available.length > 0 && (
         <div className="mb-4">
@@ -124,6 +156,7 @@ export default function RoutineBuilder() {
   const router = useRouter()
   const [user, setUser] = useState(null)
   const [routines, setRoutines] = useState([])
+  const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -136,12 +169,12 @@ export default function RoutineBuilder() {
         return
       }
       setUser(user)
-      const { data } = await supabase
-        .from('routines')
-        .select('data, morning_steps, night_steps')
-        .eq('user_id', user.id)
-        .maybeSingle()
-      setRoutines(routinesFromRow(data))
+      const [routinesRes, productsRes] = await Promise.all([
+        supabase.from('routines').select('data, morning_steps, night_steps').eq('user_id', user.id).maybeSingle(),
+        supabase.from('products').select('*').eq('user_id', user.id).order('brand', { ascending: true }),
+      ])
+      setRoutines(routinesFromRow(routinesRes.data))
+      setProducts(productsRes.data || [])
       setLoading(false)
     })
   }, [])
@@ -182,7 +215,7 @@ export default function RoutineBuilder() {
 
         <div className="mb-10">
           <h1 className="text-4xl font-bold mb-2">Build Your Routines 🧴</h1>
-          <p className="text-gray-400">Create your own routines, rename them, and add steps. These show up on your dashboard.</p>
+          <p className="text-gray-400">Create your own routines, rename them, and add steps. Link a product from your catalog to remember exactly what you use.</p>
         </div>
 
         {loading ? (
@@ -195,6 +228,7 @@ export default function RoutineBuilder() {
                   key={routine.id}
                   routine={routine}
                   accent={accentFor(idx)}
+                  products={products}
                   onChange={(updated) => updateRoutine(idx, updated)}
                   onDelete={() => deleteRoutine(idx)}
                 />
