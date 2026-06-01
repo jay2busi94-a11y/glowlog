@@ -10,6 +10,20 @@ import { productLabel } from '../../lib/catalog'
 import { isPremium, FREE_AI_LIMIT, getAiCountToday, incrementAiCountToday } from '../../lib/profile'
 import { getStepInfo } from '../../lib/step_info'
 
+// Upload a skin progress photo to the user's folder in skin-photos and
+// return its public URL. Same pattern as catalog product photos.
+async function uploadSkinPhoto(file, userId) {
+  const supabase = createClient()
+  const ext = (file.name?.split('.').pop() || 'jpg').toLowerCase()
+  const path = `${userId}/${crypto.randomUUID()}.${ext}`
+  const { error } = await supabase.storage
+    .from('skin-photos')
+    .upload(path, file, { upsert: false, cacheControl: '31536000', contentType: file.type || 'image/jpeg' })
+  if (error) throw error
+  const { data: { publicUrl } } = supabase.storage.from('skin-photos').getPublicUrl(path)
+  return publicUrl
+}
+
 const SKIN_RATINGS = [
   { value: 1, emoji: '😣', label: 'Bad' },
   { value: 2, emoji: '😐', label: 'Meh' },
@@ -288,6 +302,7 @@ export default function Dashboard() {
   const [picking, setPicking] = useState(null)     // { routineId, stepIdx } when the product picker is open
   const [skinRating, setSkinRating] = useState(null)
   const [note, setNote] = useState('')
+  const [skinPhotoUrl, setSkinPhotoUrl] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [todayLogged, setTodayLogged] = useState(false)
@@ -371,6 +386,7 @@ export default function Dashboard() {
       })
       setSkinRating(data.skin_rating)
       setNote(data.note || '')
+      setSkinPhotoUrl(data.photo_url || '')
       setTodayLogged(true)
     }
   }
@@ -425,6 +441,7 @@ export default function Dashboard() {
       completed,
       skin_rating: skinRating,
       note,
+      photo_url: skinPhotoUrl || null,
     }, { onConflict: 'user_id,date' })
 
     setSaving(false)
@@ -588,6 +605,12 @@ ${closer}`
             placeholder="Any notes? (new product, reaction, etc.)"
             rows={2}
             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition resize-none mb-4"
+          />
+
+          <SkinPhotoPicker
+            photoUrl={skinPhotoUrl}
+            onChange={setSkinPhotoUrl}
+            userId={user?.id}
           />
 
           <button
@@ -809,6 +832,85 @@ function AiUpgradeNudge({ onClose }) {
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+function SkinPhotoPicker({ photoUrl, onChange, userId }) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !userId) return
+    if (!file.type.startsWith('image/')) {
+      setError('Please pick an image file.')
+      return
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError('That image is over 8 MB — try a smaller one.')
+      return
+    }
+    setError('')
+    setUploading(true)
+    try {
+      const url = await uploadSkinPhoto(file, userId)
+      onChange(url)
+    } catch (err) {
+      console.error(err)
+      setError('Upload failed. Try again.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return (
+    <div className="mb-4">
+      <p className="text-xs text-gray-400 mb-2">Today's photo <span className="text-gray-600">(optional)</span></p>
+      {photoUrl ? (
+        <div className="flex items-start gap-4">
+          <div className="w-28 h-28 rounded-2xl overflow-hidden border border-white/10 bg-white/5 flex-shrink-0">
+            <img src={photoUrl} alt="Today's skin photo" className="w-full h-full object-cover" />
+          </div>
+          <div className="flex flex-col gap-2 mt-1 min-w-0">
+            <label className="cursor-pointer text-xs text-pink-300 hover:text-pink-200 transition">
+              {uploading ? 'Uploading...' : 'Replace photo'}
+              <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
+            </label>
+            <label className="cursor-pointer text-xs text-pink-300 hover:text-pink-200 transition">
+              {uploading ? '...' : '📷 Take new selfie'}
+              <input type="file" accept="image/*" capture="user" onChange={handleFile} className="hidden" disabled={uploading} />
+            </label>
+            <button
+              type="button"
+              onClick={() => onChange('')}
+              className="text-xs text-gray-500 hover:text-rose-300 transition text-left"
+              disabled={uploading}
+            >
+              Remove photo
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-2xl py-5 text-sm transition ${
+            uploading ? 'border-white/10 text-gray-500' : 'border-white/20 text-gray-400 hover:border-pink-500/40 hover:text-white'
+          }`}>
+            <span className="text-lg">🖼️</span>
+            <span>{uploading ? 'Uploading...' : 'Choose photo'}</span>
+            <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
+          </label>
+          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-2xl py-5 text-sm transition ${
+            uploading ? 'border-white/10 text-gray-500' : 'border-white/20 text-gray-400 hover:border-pink-500/40 hover:text-white'
+          }`}>
+            <span className="text-lg">📷</span>
+            <span>{uploading ? 'Uploading...' : 'Take selfie'}</span>
+            <input type="file" accept="image/*" capture="user" onChange={handleFile} className="hidden" disabled={uploading} />
+          </label>
+        </div>
+      )}
+      {error && <p className="text-xs text-rose-300 mt-2">{error}</p>}
     </div>
   )
 }
