@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "GlowLog",
-  description: "Your skincare routine, products, and progress — in one app.",
+  description: "Your skincare routine, products, and progress — all in one app.",
   applicationName: "GlowLog",
   appleWebApp: {
     capable: true,
