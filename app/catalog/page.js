@@ -39,6 +39,7 @@ export default function Catalog() {
   const [suggestOpen, setSuggestOpen] = useState(false)
   const [suggestCount, setSuggestCount] = useState(0)
   const [shelfOpen, setShelfOpen] = useState(false)
+  const [batchOpen, setBatchOpen] = useState(false)
   const [ingredientsOpen, setIngredientsOpen] = useState(false)
   const [visionCount, setVisionCount] = useState(0)
   const [showUpgrade, setShowUpgrade] = useState(false)
@@ -129,15 +130,19 @@ export default function Catalog() {
   const inUseCount = products.filter(p => linkedProductIds.has(p.id)).length
   const unusedCount = products.length - inUseCount
 
-  async function addSuggestionToCatalog(suggestion) {
-    if (!user) return null
+  // Low-level insert used by every "add to catalog" surface (suggestions,
+  // shelf scan, batch scan, brand discover). Accepts a full record so each
+  // caller can pass exactly what they have.
+  async function insertProductRecord({ brand, name, category, notes, photo_url }) {
+    if (!user || !name) return null
     const supabase = createClient()
     const payload = {
       user_id: user.id,
-      brand: suggestion.brand || null,
-      name: suggestion.name,
-      category: suggestion.category || null,
-      notes: suggestion.why || null,
+      brand: brand || null,
+      name,
+      category: category || null,
+      notes: notes || null,
+      photo_url: photo_url || null,
       updated_at: new Date().toISOString(),
     }
     const { data, error } = await supabase.from('products').insert(payload).select().single()
@@ -146,6 +151,17 @@ export default function Catalog() {
       return data
     }
     return null
+  }
+
+  // Used by SuggestPanel + Discover + ShelfScanPanel — they pass `why` as
+  // notes. Keeps their call sites unchanged.
+  function addSuggestionToCatalog(suggestion) {
+    return insertProductRecord({
+      brand: suggestion.brand,
+      name: suggestion.name,
+      category: suggestion.category,
+      notes: suggestion.why,
+    })
   }
 
   function bumpSuggestCount() {
@@ -230,6 +246,17 @@ export default function Catalog() {
           </div>
           {editing === null && (
             <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => setBatchOpen(v => !v)}
+                className={`border text-sm px-4 py-2.5 rounded-full transition flex items-center gap-2 ${
+                  batchOpen
+                    ? 'bg-white/10 border-white/20 text-white'
+                    : 'border-sky-500/30 text-sky-200 hover:bg-sky-500/10 hover:border-sky-500/50'
+                }`}
+              >
+                <span>📦</span>
+                <span>Batch scan</span>
+              </button>
               <button
                 onClick={() => setShelfOpen(v => !v)}
                 className={`border text-sm px-4 py-2.5 rounded-full transition flex items-center gap-2 ${
@@ -328,6 +355,19 @@ export default function Catalog() {
             onClose={() => setShelfOpen(false)}
             onAddToCatalog={addSuggestionToCatalog}
             onAfterFetch={bumpVisionCount}
+            onAtLimit={() => setShowUpgrade(true)}
+          />
+        )}
+
+        {editing === null && batchOpen && (
+          <BatchScanPanel
+            user={user}
+            premium={premium}
+            visionCount={visionCount}
+            atLimit={visionAtLimit}
+            onClose={() => setBatchOpen(false)}
+            onInsertProduct={insertProductRecord}
+            onAfterScan={bumpVisionCount}
             onAtLimit={() => setShowUpgrade(true)}
           />
         )}
@@ -555,6 +595,248 @@ function ProductForm({ draft, setDraft, saving, onSave, onCancel, isNew, user, v
         </button>
       </div>
     </div>
+  )
+}
+
+function BatchScanPanel({ user, premium, visionCount, atLimit, onClose, onInsertProduct, onAfterScan, onAtLimit }) {
+  const [items, setItems] = useState([])  // { id, photoUrl, status, brand, name, category, notes, confidence, error }
+  const [busy, setBusy] = useState(false)
+  const [committing, setCommitting] = useState(false)
+  const [savedCount, setSavedCount] = useState(0)
+  const [error, setError] = useState('')
+
+  async function handleFile(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !user) return
+    if (atLimit) { onAtLimit?.(); return }
+    if (!file.type.startsWith('image/')) {
+      setError('Please pick an image file.')
+      return
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setError('That image is over 8 MB — try a smaller one.')
+      return
+    }
+    setError('')
+    setBusy(true)
+    const tempId = crypto.randomUUID()
+    let photoUrl
+    try {
+      photoUrl = await uploadProductPhoto(file, user.id)
+    } catch (err) {
+      setError('Upload failed. Try again.')
+      setBusy(false)
+      return
+    }
+    // Add placeholder while the scan resolves so the user sees progress.
+    setItems(prev => [...prev, {
+      id: tempId, photoUrl, status: 'scanning',
+      brand: '', name: '', category: '', notes: '', confidence: 'low',
+    }])
+    try {
+      const res = await fetch('/api/scan-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photoUrl }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Scan failed')
+      onAfterScan?.()
+      setItems(prev => prev.map(it => it.id === tempId
+        ? { ...it, status: 'ready', brand: data.product.brand, name: data.product.name, category: data.product.category, notes: data.product.notes, confidence: data.product.confidence }
+        : it))
+    } catch (err) {
+      setItems(prev => prev.map(it => it.id === tempId
+        ? { ...it, status: 'failed', error: err.message || 'Scan failed' }
+        : it))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function updateItem(id, patch) {
+    setItems(prev => prev.map(it => it.id === id ? { ...it, ...patch } : it))
+  }
+  function removeItem(id) {
+    setItems(prev => prev.filter(it => it.id !== id))
+  }
+
+  async function commitAll() {
+    const ready = items.filter(it => (it.status === 'ready' || it.status === 'edited') && it.name.trim())
+    if (!ready.length) return
+    setCommitting(true)
+    let count = 0
+    for (const it of ready) {
+      const created = await onInsertProduct({
+        brand: it.brand,
+        name: it.name,
+        category: it.category,
+        notes: it.notes,
+        photo_url: it.photoUrl,
+      })
+      if (created) count++
+    }
+    setSavedCount(count)
+    setCommitting(false)
+    // Mark saved items so the user can keep adding without duplicating.
+    setItems(prev => prev.map(it =>
+      ready.find(r => r.id === it.id) ? { ...it, status: 'saved' } : it
+    ))
+  }
+
+  const readyCount = items.filter(it => (it.status === 'ready' || it.status === 'edited') && it.name.trim()).length
+
+  return (
+    <div className="relative bg-gradient-to-br from-sky-500/10 via-cyan-500/10 to-blue-500/5 border border-sky-500/30 rounded-2xl p-6 mb-8 overflow-hidden">
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-sky-500/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative">
+        <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
+          <div>
+            <h2 className="text-xl font-bold bg-gradient-to-r from-white via-sky-200 to-cyan-200 bg-clip-text text-transparent">
+              📦 Batch scan
+            </h2>
+            <p className="text-sm text-gray-400 mt-1">
+              Snap one product after another. We scan each as you go — review and save them all at the end.
+            </p>
+          </div>
+          <button onClick={onClose} className="text-xs text-gray-500 hover:text-white transition">Close</button>
+        </div>
+
+        {/* Primary action — keeps the camera button big and obvious */}
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label className={`cursor-pointer flex items-center justify-center gap-2 border rounded-2xl py-5 text-sm font-semibold transition ${
+            busy || atLimit ? 'border-white/10 text-gray-500' : 'border-sky-400/40 bg-sky-500/10 text-sky-100 hover:bg-sky-500/15 hover:border-sky-400/60'
+          }`}>
+            <span className="text-2xl">📷</span>
+            <span>{busy ? 'Scanning...' : atLimit ? '✦ Limit hit' : 'Snap next product'}</span>
+            <input type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" disabled={busy || atLimit} />
+          </label>
+          <label className={`cursor-pointer flex items-center justify-center gap-2 border border-dashed rounded-2xl py-5 text-sm transition ${
+            busy || atLimit ? 'border-white/10 text-gray-500' : 'border-white/20 text-gray-400 hover:border-sky-400/40 hover:text-white'
+          }`}>
+            <span className="text-2xl">🖼️</span>
+            <span>{busy ? '...' : 'Or pick from library'}</span>
+            <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={busy || atLimit} />
+          </label>
+        </div>
+
+        <div className="flex items-center gap-3 mt-3 flex-wrap text-xs">
+          {!premium && (
+            <p className="text-gray-500">{Math.max(0, FREE_VISION_LIMIT - visionCount)} / {FREE_VISION_LIMIT} AI scans left today</p>
+          )}
+          {items.length > 0 && (
+            <p className="text-gray-500">
+              {items.length} {items.length === 1 ? 'item' : 'items'} scanned · {readyCount} ready to save
+            </p>
+          )}
+        </div>
+
+        {error && <p className="text-xs text-rose-300 mt-3">{error}</p>}
+
+        {/* Scanned items list */}
+        {items.length > 0 && (
+          <ul className="flex flex-col gap-3 mt-6">
+            {items.map(it => (
+              <BatchScanRow
+                key={it.id}
+                item={it}
+                onChange={(patch) => updateItem(it.id, { ...patch, status: it.status === 'saved' ? 'saved' : 'edited' })}
+                onRemove={() => removeItem(it.id)}
+              />
+            ))}
+          </ul>
+        )}
+
+        {/* Save / saved feedback */}
+        {readyCount > 0 && (
+          <button
+            onClick={commitAll}
+            disabled={committing}
+            className="mt-6 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+          >
+            {committing ? 'Saving...' : `+ Save ${readyCount} to my catalog`}
+          </button>
+        )}
+        {savedCount > 0 && (
+          <p className="text-sm text-emerald-300 mt-3">
+            ✓ Added {savedCount} {savedCount === 1 ? 'product' : 'products'}. Keep snapping or close the panel.
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function BatchScanRow({ item, onChange, onRemove }) {
+  const isSaving = item.status === 'scanning'
+  const isFailed = item.status === 'failed'
+  const isSaved = item.status === 'saved'
+
+  return (
+    <li className={`bg-white/5 border rounded-2xl p-3 flex gap-3 ${
+      isFailed ? 'border-rose-400/30' : isSaved ? 'border-emerald-400/30' : 'border-white/10'
+    }`}>
+      <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-white/5 border border-white/10">
+        <img src={item.photoUrl} alt="" className="w-full h-full object-cover" />
+      </div>
+      <div className="flex-1 min-w-0">
+        {isSaving ? (
+          <p className="text-xs text-gray-400 mt-6">✨ Reading label...</p>
+        ) : isFailed ? (
+          <div>
+            <p className="text-xs text-rose-300">Scan failed: {item.error}</p>
+            <button onClick={onRemove} className="text-xs text-gray-500 hover:text-rose-300 transition mt-2">Remove</button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            <div className="flex gap-2">
+              <input
+                value={item.brand}
+                onChange={e => onChange({ brand: e.target.value })}
+                placeholder="Brand"
+                disabled={isSaved}
+                className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-pink-500/30 disabled:opacity-60"
+              />
+              <select
+                value={item.category}
+                onChange={e => onChange({ category: e.target.value })}
+                disabled={isSaved}
+                className="w-28 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-pink-500/30 disabled:opacity-60"
+              >
+                <option value="" className="bg-[#080808]">—</option>
+                {PRODUCT_CATEGORIES.map(c => (
+                  <option key={c} value={c} className="bg-[#080808]">{c}</option>
+                ))}
+              </select>
+            </div>
+            <input
+              value={item.name}
+              onChange={e => onChange({ name: e.target.value })}
+              placeholder="Product name"
+              disabled={isSaved}
+              className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-pink-500/30 disabled:opacity-60"
+            />
+            <textarea
+              value={item.notes}
+              onChange={e => onChange({ notes: e.target.value })}
+              placeholder="Notes / ingredients"
+              rows={1}
+              disabled={isSaved}
+              className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-pink-500/30 resize-none disabled:opacity-60"
+            />
+            <div className="flex items-center justify-between gap-2 mt-0.5">
+              <span className="text-[10px] text-gray-500">
+                {isSaved ? '✓ Saved' : item.confidence === 'high' ? 'High confidence' : item.confidence === 'medium' ? 'Edit before saving' : 'Low confidence — check fields'}
+              </span>
+              {!isSaved && (
+                <button onClick={onRemove} className="text-[10px] text-gray-500 hover:text-rose-300 transition">Remove</button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </li>
   )
 }
 
