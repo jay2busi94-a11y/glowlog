@@ -20,10 +20,20 @@ Look at the image and identify the skincare product. Extract:
 - notes (short — 1-2 sentences. Key active ingredients you can see on the label, plus claims like 'fragrance-free', 'oil-free', SPF level, etc. If you can read the ingredient list, mention the 3-5 most relevant actives. Otherwise just summarize claims.)
 - confidence ('high', 'medium', or 'low')
 
+For category — even if the label does NOT say the product type, infer it from ingredients and context:
+- AHA (glycolic, lactic, mandelic acid) or BHA (salicylic acid) as a key ingredient → Exfoliant
+- Hyaluronic acid, niacinamide, retinol, vitamin C, peptides as the main ingredient in a lightweight formula → Serum
+- SPF or sunscreen actives (zinc oxide, titanium dioxide, avobenzone) → Sunscreen
+- Thick cream or lotion with ceramides, shea butter, or occlusives → Moisturizer
+- Surfactants (sodium lauryl sulfate, cocamidopropyl betaine) as first ingredients → Cleanser
+- Lightweight watery formula with humectants after cleansing → Toner or Essence
+- Retinol or tretinoin as the main active → Serum (or Spot Treatment if small size)
+- Use all visual clues: bottle shape, texture descriptions, usage instructions, and any step numbers shown.
+
 Hard rules:
 - If you cannot clearly identify a real product (blurry / not skincare / no readable text), set confidence to 'low' and use empty strings for fields you can't read.
 - NEVER invent a brand or product name you don't actually see in the image.
-- For category, pick the closest category from the list. If unclear, use 'Other'.
+- Always pick the most specific category you can — only use 'Other' if truly nothing fits.
 
 Output FORMAT (critical — your entire response must be valid JSON, nothing else):
 {
