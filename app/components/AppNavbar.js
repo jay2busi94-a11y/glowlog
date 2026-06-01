@@ -11,7 +11,7 @@ const NAV_LINKS = [
   { href: '/dashboard', label: 'Dashboard', emoji: '🏠' },
   { href: '/routine',   label: 'Routine',   emoji: '🧴' },
   { href: '/catalog',   label: 'Catalog',   emoji: '🗂️' },
-  { href: '/discover',  label: 'Discover',  emoji: '✨' },
+  { href: '/friends',   label: 'Friends',   emoji: '👥' },
   { href: '/progress',  label: 'Progress',  emoji: '📈' },
 ]
 

@@ -24,6 +24,7 @@ export default function ProfilePage() {
   const router = useRouter()
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
+  const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [avatar, setAvatar] = useState(DEFAULT_AVATAR)
   const [avatarUrl, setAvatarUrl] = useState('')
@@ -48,6 +49,7 @@ export default function ProfilePage() {
         .maybeSingle()
       if (data) {
         setProfile(data)
+        setUsername(data.username || '')
         setDisplayName(data.display_name || '')
         setAvatar(data.avatar || DEFAULT_AVATAR)
         setAvatarUrl(data.avatar_url || '')
@@ -68,6 +70,7 @@ export default function ProfilePage() {
     const supabase = createClient()
     const payload = {
       user_id: user.id,
+      username: username.trim().toLowerCase().replace(/[^a-z0-9_]/g, '') || null,
       display_name: displayName.trim() || null,
       avatar,
       avatar_url: avatarMode === 'photo' && avatarUrl ? avatarUrl : null,
@@ -138,6 +141,27 @@ export default function ProfilePage() {
                 onDowngraded={(updatedProfile) => setProfile(updatedProfile)}
               />
             )}
+
+            {/* Username */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+              <label className="block">
+                <span className="text-sm font-semibold text-pink-300">Username</span>
+                <p className="text-xs text-gray-500 mb-3">Your public handle — used in your profile URL. Letters, numbers, and underscores only.</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-500 text-sm">@</span>
+                  <input
+                    value={username}
+                    onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                    placeholder="e.g. jayflare"
+                    maxLength={30}
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition"
+                  />
+                </div>
+                {username && (
+                  <p className="text-xs text-gray-600 mt-2">Your profile: glowlog-neon.vercel.app/u/{username}</p>
+                )}
+              </label>
+            </div>
 
             {/* Display name */}
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
