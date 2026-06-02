@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from "../components/Navbar"
 import { createClient } from '../../lib/supabase'
@@ -9,13 +9,29 @@ export default function Login() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(true)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Pre-fill the email if Remember me was checked on a previous visit.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const saved = window.localStorage.getItem('glowlog:remember_email')
+    if (saved) setEmail(saved)
+  }, [])
 
   async function handleLogin(e) {
     e.preventDefault()
     setError('')
     setLoading(true)
+
+    // Save (or clear) the email handle for next visit. Supabase already
+    // persists the auth session itself by default — this checkbox is the
+    // visible signal that the session sticks, plus the email-prefill UX.
+    if (typeof window !== 'undefined') {
+      if (rememberMe) window.localStorage.setItem('glowlog:remember_email', email)
+      else window.localStorage.removeItem('glowlog:remember_email')
+    }
 
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -65,7 +81,16 @@ export default function Login() {
             />
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={e => setRememberMe(e.target.checked)}
+                className="accent-pink-500 w-4 h-4"
+              />
+              <span className="text-sm text-gray-300">Remember me</span>
+            </label>
             <a href="#" className="text-sm text-pink-400 hover:text-pink-300 transition">Forgot password?</a>
           </div>
 
