@@ -151,6 +151,10 @@ export default function PublicProfile() {
             )}
           </div>
 
+          {profile.bio && (
+            <p className="text-sm text-gray-300 whitespace-pre-wrap mt-4 pt-4 border-t border-white/10 leading-relaxed">{profile.bio}</p>
+          )}
+
           {profile.concerns?.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/10">
               {profile.concerns.map(c => (
