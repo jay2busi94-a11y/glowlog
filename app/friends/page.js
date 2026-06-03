@@ -28,18 +28,34 @@ export default function FriendsPage() {
       if (!user) { router.push('/login'); return }
       setMe(user)
 
+      // Two-step load. PostgREST embedded `profiles(...)` queries DON'T work
+      // here because follows.{follower,following}_id foreign-keys to
+      // auth.users, NOT to public.profiles — so the embed returns null for
+      // every row, which made it look like Follow wasn't saving (the
+      // Following list always loaded empty even when DB had the row).
+      // Step 1: get the raw IDs + own profile.
       const [followingRes, followersRes, profileRes] = await Promise.all([
-        supabase.from('follows')
-          .select('following_id, profiles(user_id, username, display_name, avatar, avatar_url)')
-          .eq('follower_id', user.id),
-        supabase.from('follows')
-          .select('follower_id, profiles(user_id, username, display_name, avatar, avatar_url)')
-          .eq('following_id', user.id),
+        supabase.from('follows').select('following_id').eq('follower_id', user.id),
+        supabase.from('follows').select('follower_id').eq('following_id', user.id),
         supabase.from('profiles').select('username').eq('user_id', user.id).maybeSingle(),
       ])
 
-      setFollowing((followingRes.data || []).map(r => r.profiles).filter(Boolean))
-      setFollowers((followersRes.data || []).map(r => r.profiles).filter(Boolean))
+      const followingIds = (followingRes.data || []).map(r => r.following_id)
+      const followerIds = (followersRes.data || []).map(r => r.follower_id)
+      const allIds = [...new Set([...followingIds, ...followerIds])]
+
+      // Step 2: fetch profiles for everyone we follow / who follows us.
+      let profilesById = new Map()
+      if (allIds.length > 0) {
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('user_id, username, display_name, avatar, avatar_url')
+          .in('user_id', allIds)
+        for (const p of (profs || [])) profilesById.set(p.user_id, p)
+      }
+
+      setFollowing(followingIds.map(id => profilesById.get(id)).filter(Boolean))
+      setFollowers(followerIds.map(id => profilesById.get(id)).filter(Boolean))
       setMyProfile(profileRes.data)
       setLoading(false)
     })
