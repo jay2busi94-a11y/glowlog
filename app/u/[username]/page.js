@@ -27,11 +27,14 @@ export default function PublicProfile() {
     const { data: { user } } = await supabase.auth.getUser()
     setMe(user)
 
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('username', username)
-      .maybeSingle()
+    // The route param is called "username" but we ALSO accept a user_id UUID
+    // here so users without a username set (the column is nullable) can still
+    // be viewed — /friends links to user_id when username is missing.
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(username)
+    const query = supabase.from('profiles').select('*')
+    const { data: profileData } = isUuid
+      ? await query.eq('user_id', username).maybeSingle()
+      : await query.eq('username', username).maybeSingle()
 
     if (!profileData) { setNotFound(true); setLoading(false); return }
     setProfile(profileData)
@@ -116,8 +119,8 @@ export default function PublicProfile() {
                 )}
               </div>
               <div>
-                <h1 className="text-2xl font-bold">{profile.display_name || `@${profile.username}`}</h1>
-                <p className="text-gray-500 text-sm">@{profile.username}</p>
+                <h1 className="text-2xl font-bold">{profile.display_name || (profile.username ? `@${profile.username}` : 'GlowLog User')}</h1>
+                {profile.username && <p className="text-gray-500 text-sm">@{profile.username}</p>}
                 <div className="flex gap-4 mt-2 text-sm">
                   <span className="text-gray-300">
                     <span className="font-semibold text-white">{followerCount}</span> followers

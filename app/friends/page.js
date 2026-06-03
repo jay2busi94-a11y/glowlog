@@ -172,7 +172,7 @@ export default function FriendsPage() {
                   return (
                     <li key={p.user_id} className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center gap-3">
                       <a
-                        href={p.username ? `/u/${p.username}` : '#'}
+                        href={`/u/${p.username || p.user_id}`}
                         className="flex items-center gap-3 min-w-0 flex-1 group"
                       >
                         <span className="w-11 h-11 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-lg overflow-hidden flex-shrink-0">
@@ -267,7 +267,7 @@ export default function FriendsPage() {
             {list.map(p => (
               <li key={p.user_id} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between gap-4">
                 <a
-                  href={p.username ? `/u/${p.username}` : '#'}
+                  href={`/u/${p.username || p.user_id}`}
                   className="flex items-center gap-3 min-w-0 flex-1"
                 >
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-xl flex-shrink-0 overflow-hidden">
