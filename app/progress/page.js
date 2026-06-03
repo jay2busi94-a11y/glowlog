@@ -6,6 +6,7 @@ import AppNavbar from '../components/AppNavbar'
 import { createClient } from '../../lib/supabase'
 import { toLocalDateString } from '../../lib/dates'
 import { isPremium } from '../../lib/profile'
+import { computeRoutineStreak, computeBestRoutineStreak } from '../../lib/streaks'
 
 const RATINGS = {
   1: { emoji: '😣', label: 'Bad', color: 'bg-rose-500' },
@@ -13,20 +14,6 @@ const RATINGS = {
   3: { emoji: '🙂', label: 'Okay', color: 'bg-amber-400' },
   4: { emoji: '😊', label: 'Good', color: 'bg-pink-500' },
   5: { emoji: '✨', label: 'Glowing', color: 'bg-purple-500' },
-}
-
-// Count consecutive days logged ending today (or yesterday, so an un-logged
-// today doesn't break the streak mid-day). Dates are 'YYYY-MM-DD' strings.
-function computeStreak(dates) {
-  const set = new Set(dates)
-  let streak = 0
-  const d = new Date()
-  if (!set.has(toLocalDateString(d))) d.setDate(d.getDate() - 1)
-  while (set.has(toLocalDateString(d))) {
-    streak++
-    d.setDate(d.getDate() - 1)
-  }
-  return streak
 }
 
 function formatDate(dateStr) {
@@ -99,7 +86,10 @@ export default function Progress() {
 
   const rated = logs.filter(l => l.skin_rating)
   const avg = rated.length ? rated.reduce((s, l) => s + l.skin_rating, 0) / rated.length : 0
-  const streak = computeStreak(logs.map(l => l.date))
+  // Routine streak: consecutive days you actually checked at least one
+  // step (not just days where a log row exists).
+  const streak = computeRoutineStreak(logs)
+  const bestStreak = computeBestRoutineStreak(logs)
   const chartDays = buildChartDays(logs, range)
   const recent = [...logs].reverse()
   // Photo timeline: newest first, only logs with a photo. Indexed so the
@@ -134,7 +124,7 @@ export default function Progress() {
         ) : (
           <>
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center">
                 <p className="text-3xl font-bold text-pink-300">{logs.length}</p>
                 <p className="text-xs text-gray-500 mt-1">Days logged</p>
@@ -143,9 +133,17 @@ export default function Progress() {
                 <p className="text-3xl font-bold text-purple-300">{avg ? avg.toFixed(1) : '—'}</p>
                 <p className="text-xs text-gray-500 mt-1">Avg rating</p>
               </div>
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center">
+              <div className={`rounded-2xl p-5 text-center border ${
+                streak >= 7
+                  ? 'bg-gradient-to-br from-amber-400/15 via-pink-500/15 to-purple-500/10 border-amber-300/30 shadow-md shadow-pink-500/10'
+                  : 'bg-white/5 border-white/10'
+              }`}>
                 <p className="text-3xl font-bold text-rose-300">{streak}🔥</p>
-                <p className="text-xs text-gray-500 mt-1">Day streak</p>
+                <p className="text-xs text-gray-500 mt-1">Current streak</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center">
+                <p className="text-3xl font-bold text-amber-300">{bestStreak}</p>
+                <p className="text-xs text-gray-500 mt-1">Best streak</p>
               </div>
             </div>
 
