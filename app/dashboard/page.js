@@ -9,6 +9,7 @@ import { toLocalDateString } from '../../lib/dates'
 import { productLabel } from '../../lib/catalog'
 import { isPremium, FREE_AI_LIMIT, getAiCountToday, incrementAiCountToday } from '../../lib/profile'
 import { getStepInfo } from '../../lib/step_info'
+import { computeRoutineStreak, streakMilestoneLabel, hasAnyRoutineStep } from '../../lib/streaks'
 
 // Upload a skin progress photo to the user's folder in skin-photos and
 // return its public URL. Same pattern as catalog product photos.
@@ -303,6 +304,7 @@ export default function Dashboard() {
   const [skinRating, setSkinRating] = useState(null)
   const [note, setNote] = useState('')
   const [skinPhotoUrl, setSkinPhotoUrl] = useState('')
+  const [recentLogs, setRecentLogs] = useState([])  // last ~60 days for streak math
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [todayLogged, setTodayLogged] = useState(false)
@@ -370,24 +372,39 @@ export default function Dashboard() {
   }
 
   async function loadTodayLog(supabase, userId) {
-    const { data } = await supabase
+    // Pull the last ~60 days so streak math has enough history. 60 covers
+    // even "two month streak" badges without paying a big query cost.
+    const sinceDate = new Date()
+    sinceDate.setDate(sinceDate.getDate() - 60)
+    const since = toLocalDateString(sinceDate)
+    const { data: recent } = await supabase
       .from('skin_logs')
-      .select('*')
+      .select('date, completed, morning_completed, night_completed')
       .eq('user_id', userId)
-      .eq('date', today)
-      .maybeSingle()
+      .gte('date', since)
+      .order('date', { ascending: true })
+    setRecentLogs(recent || [])
 
-    if (data) {
-      // Prefer the new `completed` map; fall back to the legacy morning/night columns.
-      const hasCompleted = data.completed && Object.keys(data.completed).length
-      setCompleted(hasCompleted ? data.completed : {
-        morning: data.morning_completed || [],
-        night: data.night_completed || [],
-      })
-      setSkinRating(data.skin_rating)
-      setNote(data.note || '')
-      setSkinPhotoUrl(data.photo_url || '')
-      setTodayLogged(true)
+    const todayRow = (recent || []).find(l => l.date === today)
+    if (todayRow) {
+      // Need the full row for today (note, rating, photo) — re-query.
+      const { data } = await supabase
+        .from('skin_logs')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('date', today)
+        .maybeSingle()
+      if (data) {
+        const hasCompleted = data.completed && Object.keys(data.completed).length
+        setCompleted(hasCompleted ? data.completed : {
+          morning: data.morning_completed || [],
+          night: data.night_completed || [],
+        })
+        setSkinRating(data.skin_rating)
+        setNote(data.note || '')
+        setSkinPhotoUrl(data.photo_url || '')
+        setTodayLogged(true)
+      }
     }
   }
 
@@ -551,6 +568,16 @@ ${closer}`
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
 
+  // Live streak — counts today only if user has checked at least one step.
+  // Merges in-memory `completed` state for today with persisted history so
+  // the badge updates the moment they tick a step (no save required).
+  const todayHasStep = Object.values(completed).some(arr => Array.isArray(arr) && arr.length > 0)
+  const logsForStreak = todayHasStep
+    ? [...recentLogs.filter(l => l.date !== today), { date: today, completed }]
+    : recentLogs.filter(l => l.date !== today)
+  const currentStreak = computeRoutineStreak(logsForStreak)
+  const streakLabel = streakMilestoneLabel(currentStreak)
+
   return (
     <main className="min-h-screen bg-[#080808] text-white px-4 app-page-pad-bottom overflow-hidden">
       <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-pink-500/10 rounded-full blur-[120px] pointer-events-none" />
@@ -562,6 +589,25 @@ ${closer}`
         <div className="mb-10">
           <h1 className="text-4xl font-bold mb-2">{greeting}, {userName} 👋</h1>
           <p className="text-gray-400">Here's your skincare routine for today.</p>
+          {currentStreak > 0 && (
+            <div className={`mt-4 inline-flex items-center gap-3 rounded-2xl px-4 py-2.5 border ${
+              currentStreak >= 7
+                ? 'bg-gradient-to-r from-amber-400/15 via-pink-500/15 to-purple-500/15 border-amber-300/40 shadow-lg shadow-pink-500/10'
+                : 'bg-white/5 border-white/10'
+            }`}>
+              <span className="text-2xl">🔥</span>
+              <div>
+                <p className="text-sm font-semibold text-white">
+                  {currentStreak} {currentStreak === 1 ? 'day' : 'days'} in a row
+                </p>
+                {streakLabel && (
+                  <p className={`text-[10px] uppercase tracking-wider ${
+                    currentStreak >= 7 ? 'text-amber-200' : 'text-gray-500'
+                  }`}>{streakLabel}</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Routine Cards */}

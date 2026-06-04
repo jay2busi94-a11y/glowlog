@@ -29,6 +29,7 @@ export default function ProfilePage() {
   const [avatar, setAvatar] = useState(DEFAULT_AVATAR)
   const [avatarUrl, setAvatarUrl] = useState('')
   const [avatarMode, setAvatarMode] = useState('emoji')   // 'emoji' | 'photo'
+  const [bio, setBio] = useState('')
   const [concerns, setConcerns] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -51,6 +52,7 @@ export default function ProfilePage() {
         setProfile(data)
         setUsername(data.username || '')
         setDisplayName(data.display_name || '')
+        setBio(data.bio || '')
         setAvatar(data.avatar || DEFAULT_AVATAR)
         setAvatarUrl(data.avatar_url || '')
         setAvatarMode(data.avatar_url ? 'photo' : 'emoji')
@@ -72,6 +74,7 @@ export default function ProfilePage() {
       user_id: user.id,
       username: username.trim().toLowerCase().replace(/[^a-z0-9_]/g, '') || null,
       display_name: displayName.trim() || null,
+      bio: bio.trim() || null,
       avatar,
       avatar_url: avatarMode === 'photo' && avatarUrl ? avatarUrl : null,
       concerns,
@@ -175,6 +178,23 @@ export default function ProfilePage() {
                   maxLength={40}
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition"
                 />
+              </label>
+            </div>
+
+            {/* Bio */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+              <label className="block">
+                <span className="text-sm font-semibold text-pink-300">Bio</span>
+                <p className="text-xs text-gray-500 mb-3">A short line about you. Shows on your public profile.</p>
+                <textarea
+                  value={bio}
+                  onChange={e => setBio(e.target.value)}
+                  placeholder="Skin type, current goals, the basics..."
+                  rows={3}
+                  maxLength={280}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition resize-none"
+                />
+                <p className="text-[10px] text-gray-600 text-right mt-1">{bio.length}/280</p>
               </label>
             </div>
 
