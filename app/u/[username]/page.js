@@ -66,13 +66,20 @@ export default function PublicProfile() {
     setFollowLoading(true)
     const supabase = createClient()
     if (isFollowing) {
-      await supabase.from('follows').delete().eq('follower_id', me.id).eq('following_id', profile.user_id)
-      setIsFollowing(false)
-      setFollowerCount(c => c - 1)
+      const { error } = await supabase.from('follows').delete().eq('follower_id', me.id).eq('following_id', profile.user_id)
+      if (!error) {
+        setIsFollowing(false)
+        setFollowerCount(c => c - 1)
+      }
     } else {
-      await supabase.from('follows').insert({ follower_id: me.id, following_id: profile.user_id })
-      setIsFollowing(true)
-      setFollowerCount(c => c + 1)
+      const { error } = await supabase.from('follows').insert({ follower_id: me.id, following_id: profile.user_id })
+      // Treat unique-violation as success (already following). Any other
+      // error → leave UI as-is rather than show a fake "Following".
+      const dup = `${error?.message || ''}`.toLowerCase().includes('duplicate')
+      if (!error || dup) {
+        setIsFollowing(true)
+        setFollowerCount(c => dup ? c : c + 1)
+      }
     }
     setFollowLoading(false)
   }
