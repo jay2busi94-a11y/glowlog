@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AppNavbar from '../components/AppNavbar'
 import { createClient } from '../../lib/supabase'
-import { AVATAR_EMOJIS, DEFAULT_AVATAR, PROFILE_CONCERNS, displayNameFor, isPremium, PREMIUM_PERKS, UNLOCK_CODE } from '../../lib/profile'
+import { AVATAR_EMOJIS, DEFAULT_AVATAR, PROFILE_CONCERNS, displayNameFor, isPremium, PREMIUM_PERKS, UNLOCK_CODE, validateUsername, sanitizeUsername, MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH } from '../../lib/profile'
 
 // Upload a profile photo to the user's folder in the avatars bucket and
 // return the public URL. Throws on failure.
@@ -35,6 +35,9 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState('')
+  // Username availability: 'idle' | 'checking' | 'available' | 'taken' | 'invalid' | 'reserved' | 'too_short'
+  const [usernameStatus, setUsernameStatus] = useState('idle')
+  const [usernameMessage, setUsernameMessage] = useState('')
 
   useEffect(() => {
     const supabase = createClient()
@@ -63,18 +66,83 @@ export default function ProfilePage() {
     })
   }, [])
 
+  // Debounced username availability check. Skips if the value equals
+  // what's already saved on the user's own profile row (so editing other
+  // fields doesn't flag your own name as "taken").
+  useEffect(() => {
+    if (!user || loading) return
+    const candidate = sanitizeUsername(username)
+    // Empty username is fine — treat as cleared / valid.
+    if (!candidate) {
+      setUsernameStatus('idle')
+      setUsernameMessage('')
+      return
+    }
+    // If it matches what's saved on your row, no need to query.
+    if (profile?.username && candidate === profile.username) {
+      setUsernameStatus('available')
+      setUsernameMessage('')
+      return
+    }
+    // Local validation first (cheaper than a DB round-trip).
+    const local = validateUsername(candidate)
+    if (!local.ok) {
+      setUsernameStatus(candidate.length < MIN_USERNAME_LENGTH ? 'too_short' : 'reserved')
+      setUsernameMessage(local.error)
+      return
+    }
+    // Live availability check, debounced 400ms.
+    setUsernameStatus('checking')
+    setUsernameMessage('')
+    const t = setTimeout(async () => {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('user_id')
+        .eq('username', candidate)
+        .neq('user_id', user.id)
+        .maybeSingle()
+      if (error) {
+        setUsernameStatus('idle')
+        setUsernameMessage('')
+        return
+      }
+      if (data) {
+        setUsernameStatus('taken')
+        setUsernameMessage(`@${candidate} is taken.`)
+      } else {
+        setUsernameStatus('available')
+        setUsernameMessage('Available')
+      }
+    }, 400)
+    return () => clearTimeout(t)
+  }, [username, user, loading, profile?.username])
+
   function toggleConcern(c) {
     setConcerns(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c])
   }
 
   async function handleSave() {
     if (!user) return
-    setSaving(true)
     setSaveError('')
+    const cleanUsername = sanitizeUsername(username)
+    // Block save when the live check has flagged the value as bad. The
+    // button is also disabled in this state, but this is the belt-and-
+    // suspenders so it can't be bypassed by clicking before the
+    // disabled prop catches up.
+    if (cleanUsername) {
+      const v = validateUsername(cleanUsername)
+      if (!v.ok) { setSaveError(v.error); return }
+      if (usernameStatus === 'taken') {
+        setSaveError(`The username @${cleanUsername} is already taken. Try another.`)
+        return
+      }
+    }
+    setSaving(true)
     const supabase = createClient()
     const payload = {
       user_id: user.id,
-      username: username.trim().toLowerCase().replace(/[^a-z0-9_]/g, '') || null,
+      username: cleanUsername || null,
       display_name: displayName.trim() || null,
       bio: bio.trim() || null,
       avatar,
@@ -163,18 +231,41 @@ export default function ProfilePage() {
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
               <label className="block">
                 <span className="text-sm font-semibold text-pink-300">Username</span>
-                <p className="text-xs text-gray-500 mb-3">Your public handle — used in your profile URL. Letters, numbers, and underscores only.</p>
-                <div className="flex items-center gap-2">
+                <p className="text-xs text-gray-500 mb-3">Your public handle — used in your profile URL. Letters, numbers, and underscores only. {MIN_USERNAME_LENGTH}–{MAX_USERNAME_LENGTH} characters.</p>
+                <div className={`flex items-center gap-2 bg-white/5 border rounded-xl px-4 py-2.5 transition ${
+                  usernameStatus === 'taken' || usernameStatus === 'reserved' || usernameStatus === 'too_short'
+                    ? 'border-rose-500/40 focus-within:border-rose-500/60'
+                    : usernameStatus === 'available' && username
+                      ? 'border-emerald-500/40 focus-within:border-emerald-500/60'
+                      : 'border-white/10 focus-within:border-pink-500/30'
+                }`}>
                   <span className="text-gray-500 text-sm">@</span>
                   <input
                     value={username}
                     onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                     placeholder="e.g. jayflare"
-                    maxLength={30}
-                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition"
+                    maxLength={MAX_USERNAME_LENGTH}
+                    className="flex-1 bg-transparent text-white placeholder-gray-600 text-sm focus:outline-none"
                   />
+                  {/* Live status indicator */}
+                  {username && (
+                    <span className="text-xs flex-shrink-0">
+                      {usernameStatus === 'checking' && <span className="text-gray-500">…</span>}
+                      {usernameStatus === 'available' && <span className="text-emerald-300">✓</span>}
+                      {(usernameStatus === 'taken' || usernameStatus === 'reserved' || usernameStatus === 'too_short') && (
+                        <span className="text-rose-300">✗</span>
+                      )}
+                    </span>
+                  )}
                 </div>
-                {username && (
+                {usernameMessage && (
+                  <p className={`text-xs mt-2 ${
+                    usernameStatus === 'available' ? 'text-emerald-300/80' : 'text-rose-300'
+                  }`}>
+                    {usernameMessage}
+                  </p>
+                )}
+                {username && usernameStatus !== 'taken' && usernameStatus !== 'reserved' && usernameStatus !== 'too_short' && (
                   <p className="text-xs text-gray-600 mt-2">Your profile: glowlog-neon.vercel.app/u/{username}</p>
                 )}
               </label>
@@ -298,7 +389,7 @@ export default function ProfilePage() {
               <div className="flex items-center gap-4">
                 <button
                   onClick={handleSave}
-                  disabled={saving}
+                  disabled={saving || usernameStatus === 'taken' || usernameStatus === 'too_short' || usernameStatus === 'reserved' || usernameStatus === 'checking'}
                   className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
                 >
                   {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save Profile'}
