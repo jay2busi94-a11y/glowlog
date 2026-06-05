@@ -167,13 +167,103 @@ export default function SettingsPage() {
 
             {saving && <p className="text-[10px] text-gray-500 mb-4">Saving...</p>}
 
+            <DangerZone />
+
             <a href="/dashboard" className="text-sm text-gray-400 hover:text-white transition">
               ← Back to dashboard
             </a>
+
+            <div className="mt-12 pt-6 border-t border-white/5 flex gap-5 text-xs text-gray-600">
+              <a href="/privacy" className="hover:text-white transition">Privacy</a>
+              <a href="/terms" className="hover:text-white transition">Terms</a>
+              <a href="/about" className="hover:text-white transition">About</a>
+            </div>
           </>
         )}
 
       </div>
     </main>
+  )
+}
+
+function DangerZone() {
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const [confirmText, setConfirmText] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleDelete() {
+    if (confirmText.trim().toUpperCase() !== 'DELETE') {
+      setError('Type DELETE in the box to confirm.')
+      return
+    }
+    setBusy(true)
+    setError('')
+    try {
+      const res = await fetch('/api/delete-account', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Could not delete your account. Try again.')
+        setBusy(false)
+        return
+      }
+      // Sign out locally (server-side admin delete already revoked the session)
+      // and route to landing. Best-effort — don't block on it.
+      try {
+        const supabase = createClient()
+        await supabase.auth.signOut()
+      } catch {}
+      router.push('/')
+    } catch (err) {
+      setError(err.message || 'Could not delete your account.')
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="bg-rose-500/5 border border-rose-500/20 rounded-2xl p-6 mb-6">
+      <p className="text-sm font-semibold text-rose-300 mb-1">Danger zone</p>
+      <p className="text-xs text-gray-500 mb-4">Permanently delete your account, your routines, your product catalog, your skin logs, your photos, and your follows. This cannot be undone.</p>
+
+      {!open ? (
+        <button
+          onClick={() => setOpen(true)}
+          className="text-sm bg-rose-500/10 border border-rose-500/30 text-rose-200 px-5 py-2.5 rounded-full hover:bg-rose-500/15 hover:border-rose-500/50 transition"
+        >
+          Delete account
+        </button>
+      ) : (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-rose-200">
+            This is permanent. Type <span className="font-mono bg-rose-500/10 px-2 py-0.5 rounded">DELETE</span> below to confirm.
+          </p>
+          <input
+            value={confirmText}
+            onChange={e => setConfirmText(e.target.value)}
+            placeholder="Type DELETE"
+            className="bg-white/5 border border-rose-500/30 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-rose-500/60 transition tracking-wider"
+            autoFocus
+          />
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={handleDelete}
+              disabled={busy || confirmText.trim().toUpperCase() !== 'DELETE'}
+              className="text-sm bg-rose-500/80 border border-rose-500/50 text-white font-semibold px-5 py-2.5 rounded-full hover:bg-rose-500 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {busy ? 'Deleting...' : 'Yes, delete my account'}
+            </button>
+            <button
+              onClick={() => { setOpen(false); setConfirmText(''); setError('') }}
+              disabled={busy}
+              className="text-sm text-gray-400 hover:text-white transition disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </div>
+          {error && <p className="text-xs text-rose-300 bg-rose-500/5 border border-rose-500/20 rounded-xl p-3">{error}</p>}
+        </div>
+      )}
+    </div>
   )
 }

@@ -111,6 +111,12 @@ export default function Login() {
           <a href="/signup" className="text-pink-400 hover:text-pink-300 transition">Sign up</a>
         </p>
 
+        <div className="flex justify-center gap-5 mt-6 text-xs text-gray-600">
+          <a href="/privacy" className="hover:text-gray-300 transition">Privacy</a>
+          <a href="/terms" className="hover:text-gray-300 transition">Terms</a>
+          <a href="/about" className="hover:text-gray-300 transition">About</a>
+        </div>
+
       </div>
     </main>
   )

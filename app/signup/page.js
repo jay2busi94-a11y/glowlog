@@ -92,12 +92,22 @@ export default function SignUp() {
             {loading ? 'Creating account...' : 'Create Account'}
           </button>
 
+          <p className="text-[10px] text-gray-500 text-center mt-1">
+            By signing up you agree to our <a href="/terms" className="text-pink-400 hover:text-pink-300 transition">Terms</a> and <a href="/privacy" className="text-pink-400 hover:text-pink-300 transition">Privacy Policy</a>.
+          </p>
+
         </form>
 
         <p className="text-center text-gray-500 text-sm mt-6">
           Already have an account?{" "}
           <a href="/login" className="text-pink-400 hover:text-pink-300 transition">Log in</a>
         </p>
+
+        <div className="flex justify-center gap-5 mt-6 text-xs text-gray-600">
+          <a href="/privacy" className="hover:text-gray-300 transition">Privacy</a>
+          <a href="/terms" className="hover:text-gray-300 transition">Terms</a>
+          <a href="/about" className="hover:text-gray-300 transition">About</a>
+        </div>
 
       </div>
     </main>
