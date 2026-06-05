@@ -34,6 +34,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   useEffect(() => {
     const supabase = createClient()
@@ -69,6 +70,7 @@ export default function ProfilePage() {
   async function handleSave() {
     if (!user) return
     setSaving(true)
+    setSaveError('')
     const supabase = createClient()
     const payload = {
       user_id: user.id,
@@ -90,6 +92,18 @@ export default function ProfilePage() {
       setProfile(data)
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
+      return
+    }
+    // Surface the failure instead of silently no-op'ing. The most common
+    // case is the username UNIQUE constraint — translate it to plain
+    // English so the user knows why nothing saved.
+    const msg = `${error?.message || ''}`.toLowerCase()
+    if (msg.includes('duplicate') && msg.includes('username')) {
+      setSaveError(`The username @${payload.username} is already taken. Try another.`)
+    } else if (msg.includes('duplicate')) {
+      setSaveError('Something on your profile is already in use by someone else. Try changing your username.')
+    } else {
+      setSaveError(error?.message || 'Could not save. Try again.')
     }
   }
 
@@ -280,17 +294,24 @@ export default function ProfilePage() {
             </div>
 
             {/* Save */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
-              >
-                {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save Profile'}
-              </button>
-              <a href="/dashboard" className="text-sm text-gray-400 hover:text-white transition">
-                Back to dashboard
-              </a>
+            <div>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+                >
+                  {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save Profile'}
+                </button>
+                <a href="/dashboard" className="text-sm text-gray-400 hover:text-white transition">
+                  Back to dashboard
+                </a>
+              </div>
+              {saveError && (
+                <p className="text-xs text-rose-300 mt-3 bg-rose-500/5 border border-rose-500/20 rounded-xl p-3">
+                  {saveError}
+                </p>
+              )}
             </div>
           </>
         )}
