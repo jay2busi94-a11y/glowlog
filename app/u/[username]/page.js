@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import AppNavbar from '../../components/AppNavbar'
 import { createClient } from '../../../lib/supabase'
 import { routinesFromRow } from '../../../lib/routine'
+import { isPublicProfile } from '../../../lib/profile'
 
 export default function PublicProfile() {
   const { username } = useParams()
@@ -39,17 +40,32 @@ export default function PublicProfile() {
     if (!profileData) { setNotFound(true); setLoading(false); return }
     setProfile(profileData)
 
-    const [routinesRes, productsRes, followersRes, followingRes] = await Promise.all([
-      supabase.from('routines').select('*').eq('user_id', profileData.user_id).maybeSingle(),
-      supabase.from('products').select('id, brand, name, category, photo_url').eq('user_id', profileData.user_id).order('created_at', { ascending: false }).limit(12),
+    const viewerIsOwner = user?.id === profileData.user_id
+    const canSeeContent = viewerIsOwner || isPublicProfile(profileData)
+
+    // Follower counts always run — they're independent of profile content
+    // and we want them visible even on private profiles so people can
+    // still see who someone is + decide to follow.
+    const counts = await Promise.all([
       supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', profileData.user_id),
       supabase.from('follows').select('id', { count: 'exact', head: true }).eq('follower_id', profileData.user_id),
     ])
+    setFollowerCount(counts[0].count || 0)
+    setFollowingCount(counts[1].count || 0)
 
-    setRoutines(routinesFromRow(routinesRes.data))
-    setProducts(productsRes.data || [])
-    setFollowerCount(followersRes.count || 0)
-    setFollowingCount(followingRes.count || 0)
+    // Routines + products are gated. Skip the queries entirely when we
+    // can't show them (RLS would return empty anyway, but no point).
+    if (canSeeContent) {
+      const [routinesRes, productsRes] = await Promise.all([
+        supabase.from('routines').select('*').eq('user_id', profileData.user_id).maybeSingle(),
+        supabase.from('products').select('id, brand, name, category, photo_url').eq('user_id', profileData.user_id).order('created_at', { ascending: false }).limit(12),
+      ])
+      setRoutines(routinesFromRow(routinesRes.data))
+      setProducts(productsRes.data || [])
+    } else {
+      setRoutines([])
+      setProducts([])
+    }
 
     if (user && user.id !== profileData.user_id) {
       const { data: followData } = await supabase
@@ -85,6 +101,8 @@ export default function PublicProfile() {
   }
 
   const isOwnProfile = me?.id === profile?.user_id
+  // Render gate: owner sees everything; non-owners only see public-profile content.
+  const canSeeContent = isOwnProfile || isPublicProfile(profile)
 
   if (loading) return (
     <main className="min-h-screen bg-[#080808] text-white px-4">
@@ -158,11 +176,11 @@ export default function PublicProfile() {
             )}
           </div>
 
-          {profile.bio && (
+          {canSeeContent && profile.bio && (
             <p className="text-sm text-gray-300 whitespace-pre-wrap mt-4 pt-4 border-t border-white/10 leading-relaxed">{profile.bio}</p>
           )}
 
-          {profile.concerns?.length > 0 && (
+          {canSeeContent && profile.concerns?.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/10">
               {profile.concerns.map(c => (
                 <span key={c} className="text-xs px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-300">{c}</span>
@@ -171,30 +189,43 @@ export default function PublicProfile() {
           )}
         </div>
 
-        {/* Routines */}
-        <h2 className="text-lg font-semibold mb-3">Skincare Routine</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-          {routines.map(routine => (
-            <div key={routine.id} className="bg-white/5 border border-white/10 rounded-2xl p-5">
-              <h3 className="text-sm font-semibold text-pink-300 mb-3">{routine.emoji} {routine.name}</h3>
-              {routine.steps.length === 0 ? (
-                <p className="text-gray-600 text-xs">No steps added yet</p>
-              ) : (
-                <ul className="flex flex-col gap-2">
-                  {routine.steps.map((step, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm text-gray-300">
-                      <span className="w-5 h-5 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs text-gray-500 flex-shrink-0">{i + 1}</span>
-                      {step.name}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          ))}
-        </div>
+        {/* Private placeholder — replaces routines + products + bio + concerns for non-owners viewing a private profile */}
+        {!canSeeContent && (
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-10 text-center">
+            <p className="text-4xl mb-3">🔒</p>
+            <p className="text-gray-200 font-semibold mb-2">This profile is private</p>
+            <p className="text-gray-500 text-sm">Follow them and they may let you see their routines and product shelf later.</p>
+          </div>
+        )}
 
-        {/* Products */}
-        {products.length > 0 && (
+        {/* Routines — owner or public profile only */}
+        {canSeeContent && (
+          <>
+            <h2 className="text-lg font-semibold mb-3">Skincare Routine</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              {routines.map(routine => (
+                <div key={routine.id} className="bg-white/5 border border-white/10 rounded-2xl p-5">
+                  <h3 className="text-sm font-semibold text-pink-300 mb-3">{routine.emoji} {routine.name}</h3>
+                  {routine.steps.length === 0 ? (
+                    <p className="text-gray-600 text-xs">No steps added yet</p>
+                  ) : (
+                    <ul className="flex flex-col gap-2">
+                      {routine.steps.map((step, i) => (
+                        <li key={i} className="flex items-center gap-2 text-sm text-gray-300">
+                          <span className="w-5 h-5 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs text-gray-500 flex-shrink-0">{i + 1}</span>
+                          {step.name}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Products — owner or public profile only */}
+        {canSeeContent && products.length > 0 && (
           <>
             <h2 className="text-lg font-semibold mb-3">Product Shelf</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

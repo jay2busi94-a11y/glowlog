@@ -10,6 +10,7 @@ export default function SettingsPage() {
   const [user, setUser] = useState(null)
   const [profile, setProfile] = useState(null)
   const [advancedMode, setAdvancedMode] = useState(false)
+  const [publicProfile, setPublicProfile] = useState(true)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -23,11 +24,13 @@ export default function SettingsPage() {
       setUser(user)
       const { data } = await supabase
         .from('profiles')
-        .select('advanced_mode')
+        .select('advanced_mode, public_profile')
         .eq('user_id', user.id)
         .maybeSingle()
       setProfile(data)
       setAdvancedMode(!!data?.advanced_mode)
+      // Default true so users who never set it stay public (matches DB default).
+      setPublicProfile(data?.public_profile !== false)
       setLoading(false)
     })
   }, [])
@@ -41,6 +44,20 @@ export default function SettingsPage() {
       .from('profiles')
       .upsert(
         { user_id: user.id, advanced_mode: next, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id' }
+      )
+    setSaving(false)
+  }
+
+  async function setVisibility(nextPublic) {
+    if (!user || saving) return
+    setSaving(true)
+    setPublicProfile(nextPublic)
+    const supabase = createClient()
+    await supabase
+      .from('profiles')
+      .upsert(
+        { user_id: user.id, public_profile: nextPublic, updated_at: new Date().toISOString() },
         { onConflict: 'user_id' }
       )
     setSaving(false)
@@ -103,8 +120,52 @@ export default function SettingsPage() {
               <p className="text-xs text-gray-600 mt-4">
                 You can switch any time, including from inside the Routine tab. Your saved routines are kept either way.
               </p>
-              {saving && <p className="text-[10px] text-gray-500 mt-2">Saving...</p>}
             </div>
+
+            {/* Profile visibility */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+              <p className="text-sm font-semibold text-pink-300 mb-1">Profile visibility</p>
+              <p className="text-xs text-gray-500 mb-5">Who can see your routines and product shelf.</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={() => setVisibility(true)}
+                  className={`text-left p-5 rounded-2xl border transition ${
+                    publicProfile
+                      ? 'bg-pink-500/10 border-pink-500/50 shadow-md shadow-pink-500/10'
+                      : 'bg-white/5 border-white/10 hover:border-white/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">🌐</span>
+                    <p className={`font-semibold ${publicProfile ? 'text-white' : 'text-gray-200'}`}>Public</p>
+                    {publicProfile && <span className="text-[10px] uppercase tracking-wider text-pink-300/80 font-bold">· Active</span>}
+                  </div>
+                  <p className="text-xs text-gray-400">Anyone signed in can find your profile, see your routines and product shelf, and follow you. Default.</p>
+                </button>
+                <button
+                  onClick={() => setVisibility(false)}
+                  className={`text-left p-5 rounded-2xl border transition ${
+                    !publicProfile
+                      ? 'bg-pink-500/10 border-pink-500/50 shadow-md shadow-pink-500/10'
+                      : 'bg-white/5 border-white/10 hover:border-white/30'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">🔒</span>
+                    <p className={`font-semibold ${!publicProfile ? 'text-white' : 'text-gray-200'}`}>Private</p>
+                    {!publicProfile && <span className="text-[10px] uppercase tracking-wider text-pink-300/80 font-bold">· Active</span>}
+                  </div>
+                  <p className="text-xs text-gray-400">Your name, avatar, and follower counts stay visible so people can still find + follow you. Routines, products, bio, and concerns are hidden.</p>
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-600 mt-4">
+                Changing this takes effect immediately for anyone viewing your profile. Your existing followers are not removed.
+              </p>
+            </div>
+
+            {saving && <p className="text-[10px] text-gray-500 mb-4">Saving...</p>}
 
             <a href="/dashboard" className="text-sm text-gray-400 hover:text-white transition">
               ← Back to dashboard
