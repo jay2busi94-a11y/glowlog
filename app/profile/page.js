@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import AppNavbar from '../components/AppNavbar'
 import { createClient } from '../../lib/supabase'
 import { AVATAR_EMOJIS, DEFAULT_AVATAR, PROFILE_CONCERNS, displayNameFor, isPremium, PREMIUM_PERKS, UNLOCK_CODE, validateUsername, sanitizeUsername, MIN_USERNAME_LENGTH, MAX_USERNAME_LENGTH } from '../../lib/profile'
+import { ikAvatar } from '../../lib/imagekit'
 
 // Upload a profile photo to the user's folder in the avatars bucket and
 // return the public URL. Throws on failure.
@@ -195,7 +196,7 @@ export default function ProfilePage() {
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6 flex items-center gap-5">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-4xl shadow-lg shadow-pink-500/10 overflow-hidden">
                 {avatarMode === 'photo' && avatarUrl ? (
-                  <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                  <img src={ikAvatar(avatarUrl, 80)} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <span>{avatar}</span>
                 )}

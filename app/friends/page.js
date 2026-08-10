@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import AppNavbar from '../components/AppNavbar'
 import { createClient } from '../../lib/supabase'
+import { ikAvatar } from '../../lib/imagekit'
 
 export default function FriendsPage() {
   const router = useRouter()
@@ -177,7 +178,7 @@ export default function FriendsPage() {
                       >
                         <span className="w-11 h-11 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-lg overflow-hidden flex-shrink-0">
                           {p.avatar_url ? (
-                            <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
+                            <img src={ikAvatar(p.avatar_url, 56)} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <span>{p.avatar || '✨'}</span>
                           )}
@@ -272,7 +273,7 @@ export default function FriendsPage() {
                 >
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-xl flex-shrink-0 overflow-hidden">
                     {p.avatar_url ? (
-                      <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
+                      <img src={ikAvatar(p.avatar_url, 56)} alt="" className="w-full h-full object-cover" />
                     ) : (
                       <span>{p.avatar || '✨'}</span>
                     )}

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '../../lib/supabase'
 import { displayNameFor, avatarFor, avatarPhotoFor, isPremium } from '../../lib/profile'
+import { ikAvatar } from '../../lib/imagekit'
 
 // Destinations show up in both the desktop top nav and the mobile bottom
 // tab bar. Order matters — keep them aligned with how the app is used.
@@ -99,7 +100,7 @@ export default function AppNavbar() {
           >
             <span className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-base overflow-hidden">
               {avatarPhoto ? (
-                <img src={avatarPhoto} alt="" className="w-full h-full object-cover" />
+                <img src={ikAvatar(avatarPhoto, 28)} alt="" className="w-full h-full object-cover" />
               ) : (
                 <span>{avatar}</span>
               )}
@@ -113,7 +114,7 @@ export default function AppNavbar() {
               <div className="px-4 py-3 border-b border-white/10 flex items-center gap-3">
                 <span className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-xl flex-shrink-0 overflow-hidden">
                   {avatarPhoto ? (
-                    <img src={avatarPhoto} alt="" className="w-full h-full object-cover" />
+                    <img src={ikAvatar(avatarPhoto, 40)} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <span>{avatar}</span>
                   )}

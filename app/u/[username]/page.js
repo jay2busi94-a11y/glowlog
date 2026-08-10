@@ -6,6 +6,7 @@ import AppNavbar from '../../components/AppNavbar'
 import { createClient } from '../../../lib/supabase'
 import { routinesFromRow } from '../../../lib/routine'
 import { isPublicProfile } from '../../../lib/profile'
+import { ikAvatar, ikProductCard } from '../../../lib/imagekit'
 
 export default function PublicProfile() {
   const { username } = useParams()
@@ -138,7 +139,7 @@ export default function PublicProfile() {
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-4xl overflow-hidden flex-shrink-0 shadow-lg shadow-pink-500/10">
                 {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                  <img src={ikAvatar(profile.avatar_url, 80)} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <span>{profile.avatar || '✨'}</span>
                 )}
@@ -233,7 +234,7 @@ export default function PublicProfile() {
                 <div key={p.id} className="bg-white/5 border border-white/10 rounded-xl p-3">
                   {p.photo_url && (
                     <div className="w-full aspect-square rounded-lg overflow-hidden mb-2 bg-white/5">
-                      <img src={p.photo_url} alt="" className="w-full h-full object-cover" />
+                      <img src={ikProductCard(p.photo_url)} alt="" className="w-full h-full object-cover" />
                     </div>
                   )}
                   <p className="text-xs text-gray-500 truncate">{p.brand}</p>

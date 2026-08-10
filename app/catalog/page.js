@@ -9,6 +9,7 @@ import { toLocalDateString } from '../../lib/dates'
 import { isPremium, FREE_SUGGEST_LIMIT, getSuggestCountToday, incrementSuggestCountToday, FREE_VISION_LIMIT, getVisionCountToday, incrementVisionCountToday } from '../../lib/profile'
 import { routinesFromRow, addProductToRoutine, removeProductFromRoutine, findProductInRoutines, stepInfoKeyForCategory, newRoutineId } from '../../lib/routine'
 import { getStepInfo } from '../../lib/step_info'
+import { ikProductCard, ikProductDetail } from '../../lib/imagekit'
 
 const BLANK = { brand: '', name: '', category: '', notes: '', photo_url: '' }
 
@@ -1154,7 +1155,7 @@ function ProductPhoto({ product }) {
     return (
       <div className="aspect-[4/3] w-full bg-white/5 border-b border-white/10 overflow-hidden">
         <img
-          src={product.photo_url}
+          src={ikProductCard(product.photo_url)}
           alt={product.name}
           loading="lazy"
           className="w-full h-full object-cover"
@@ -1512,7 +1513,7 @@ function ProductDetailModal({
         <div className="relative">
           {product.photo_url ? (
             <div className="aspect-[16/9] w-full overflow-hidden">
-              <img src={product.photo_url} alt={product.name} className="w-full h-full object-cover" />
+              <img src={ikProductDetail(product.photo_url)} alt={product.name} className="w-full h-full object-cover" />
             </div>
           ) : (
             <div className="aspect-[16/9] w-full bg-gradient-to-br from-pink-500/15 via-purple-500/10 to-amber-400/5 flex items-center justify-center">

@@ -10,6 +10,8 @@ import { productLabel } from '../../lib/catalog'
 import { isPremium, FREE_AI_LIMIT, getAiCountToday, incrementAiCountToday } from '../../lib/profile'
 import { getStepInfo } from '../../lib/step_info'
 import { computeRoutineStreak, streakMilestoneLabel, hasAnyRoutineStep } from '../../lib/streaks'
+// Skin photos are deliberately NOT routed through ImageKit — see lib/imagekit.js
+import { ikProductThumb } from '../../lib/imagekit'
 
 // Upload a skin progress photo to the user's folder in skin-photos and
 // return its public URL. Same pattern as catalog product photos.
@@ -270,7 +272,7 @@ function ProductRow({ product, active, onPick }) {
     >
       <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border border-white/10">
         {product.photo_url ? (
-          <img src={product.photo_url} alt="" className="w-full h-full object-cover" />
+          <img src={ikProductThumb(product.photo_url)} alt="" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-pink-500/20 via-purple-500/15 to-amber-400/10 flex items-center justify-center">
             <span className="text-xs font-bold bg-gradient-to-r from-pink-200 via-purple-200 to-amber-200 bg-clip-text text-transparent">
