@@ -12,6 +12,8 @@ export default function SignUp() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [confirmationPending, setConfirmationPending] = useState(false)
+  const [resendStatus, setResendStatus] = useState('')
 
   async function handleSignUp(e) {
     e.preventDefault()
@@ -19,7 +21,7 @@ export default function SignUp() {
     setLoading(true)
 
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: name } }
@@ -28,9 +30,21 @@ export default function SignUp() {
     if (error) {
       setError(error.message)
       setLoading(false)
-    } else {
+    } else if (data.session) {
+      // Email confirmation is off — user is already signed in.
       router.push('/dashboard')
+    } else {
+      // Email confirmation is on — nothing to log in to yet.
+      setConfirmationPending(true)
+      setLoading(false)
     }
+  }
+
+  async function handleResend() {
+    setResendStatus('sending')
+    const supabase = createClient()
+    const { error } = await supabase.auth.resend({ type: 'signup', email })
+    setResendStatus(error ? 'error' : 'sent')
   }
 
   return (
@@ -40,6 +54,34 @@ export default function SignUp() {
 
       <Navbar />
 
+      {confirmationPending ? (
+        <div className="relative z-10 w-full max-w-md bg-white/5 border border-white/10 rounded-2xl p-8 mt-10 text-center">
+          <div className="text-4xl mb-4">📩</div>
+          <h2 className="text-2xl font-bold mb-2">Check your email</h2>
+          <p className="text-gray-400 text-sm mb-6">
+            We sent a confirmation link to <span className="text-white">{email}</span>. Click it to activate your account, then come back and log in.
+          </p>
+
+          <button
+            onClick={handleResend}
+            disabled={resendStatus === 'sending'}
+            className="w-full bg-white/10 hover:bg-white/15 border border-white/10 text-white text-sm font-semibold py-3 rounded-full transition disabled:opacity-50"
+          >
+            {resendStatus === 'sending' ? 'Sending...' : "Didn't get it? Resend email"}
+          </button>
+          {resendStatus === 'sent' && (
+            <p className="text-green-400 text-xs mt-3">Sent! Check your inbox (and spam folder).</p>
+          )}
+          {resendStatus === 'error' && (
+            <p className="text-red-400 text-xs mt-3">Couldn&apos;t resend right now — try again in a moment.</p>
+          )}
+
+          <p className="text-center text-gray-500 text-sm mt-6">
+            Already confirmed?{" "}
+            <a href="/login" className="text-pink-400 hover:text-pink-300 transition">Log in</a>
+          </p>
+        </div>
+      ) : (
       <div className="relative z-10 w-full max-w-md bg-white/5 border border-white/10 rounded-2xl p-8 mt-10">
         <h2 className="text-3xl font-bold mb-2 text-center">Create your account</h2>
         <p className="text-gray-400 text-sm text-center mb-8">Start building your perfect skincare routine</p>
@@ -110,6 +152,7 @@ export default function SignUp() {
         </div>
 
       </div>
+      )}
     </main>
   )
 }

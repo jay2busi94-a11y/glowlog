@@ -25,14 +25,14 @@ export default function Home() {
           <a href="/signup" className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-8 py-3 rounded-full hover:opacity-90 transition shadow-lg shadow-pink-500/30">
             Get Started — It's Free
           </a>
-          <button className="border border-white/20 text-white font-semibold px-8 py-3 rounded-full hover:bg-white/10 transition">
+          <a href="/about" className="border border-white/20 text-white font-semibold px-8 py-3 rounded-full hover:bg-white/10 transition">
             See How It Works
-          </button>
+          </a>
         </div>
       </div>
 
       {/* Features Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mt-24 px-4 relative z-10">
+      <div id="features" className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mt-24 px-4 relative z-10 scroll-mt-24">
         <div className="bg-white/5 border border-pink-500/20 rounded-2xl p-6 hover:bg-pink-500/10 hover:border-pink-500/40 transition group">
           <div className="text-3xl mb-3">🧴</div>
           <h3 className="text-white font-semibold text-lg mb-2 group-hover:text-pink-300 transition">Custom Routines</h3>

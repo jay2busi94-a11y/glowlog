@@ -91,7 +91,7 @@ export default function Login() {
               />
               <span className="text-sm text-gray-300">Remember me</span>
             </label>
-            <a href="#" className="text-sm text-pink-400 hover:text-pink-300 transition">Forgot password?</a>
+            <a href="/forgot-password" className="text-sm text-pink-400 hover:text-pink-300 transition">Forgot password?</a>
           </div>
 
           {error && <p className="text-red-400 text-sm text-center">{error}</p>}

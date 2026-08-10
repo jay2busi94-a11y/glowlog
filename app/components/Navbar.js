@@ -9,9 +9,8 @@ export default function Navbar() {
 
       {/* Nav Links */}
       <div className="hidden md:flex items-center gap-8 text-sm text-gray-400">
-        <a href="#" className="hover:text-white transition">Features</a>
-        <a href="#" className="hover:text-white transition">How It Works</a>
-        <a href="#" className="hover:text-white transition">Pricing</a>
+        <a href="/#features" className="hover:text-white transition">Features</a>
+        <a href="/about" className="hover:text-white transition">How It Works</a>
       </div>
 
       {/* Auth Buttons */}
