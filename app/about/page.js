@@ -38,27 +38,27 @@ const FEATURES = [
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-[#080808] text-white px-4 app-page-pad-bottom overflow-hidden">
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-pink-500/15 rounded-full blur-[120px] pointer-events-none" />
+    <main className="min-h-screen bg-paper text-ink px-4 app-page-pad-bottom overflow-hidden">
+      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
       <AppNavbar />
 
       <div className="relative z-10 max-w-3xl mx-auto app-page-pad-top">
 
         <div className="mb-10 text-center">
-          <h1 className="text-5xl font-bold mb-3 bg-gradient-to-r from-white via-pink-200 to-purple-300 bg-clip-text text-transparent">
+          <h1 className="text-5xl font-bold mb-3 text-ink">
             GlowLog ✨
           </h1>
-          <p className="text-gray-400 text-lg">A skincare app for people who don't know where to begin.</p>
+          <p className="text-ink-mute text-lg">A skincare app for people who don't know where to begin.</p>
         </div>
 
         <section className="mb-10">
           <h2 className="text-2xl font-bold mb-5">Our mission</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {PILLARS.map(p => (
-              <div key={p.title} className="bg-white/5 border border-white/10 rounded-2xl p-5">
+              <div key={p.title} className="bg-card border border-rule rounded-card p-5">
                 <p className="text-3xl mb-2">{p.emoji}</p>
-                <p className="font-semibold text-pink-300 text-sm mb-2">{p.title}</p>
-                <p className="text-gray-400 text-xs leading-relaxed">{p.body}</p>
+                <p className="font-semibold text-accent text-sm mb-2">{p.title}</p>
+                <p className="text-ink-mute text-xs leading-relaxed">{p.body}</p>
               </div>
             ))}
           </div>
@@ -68,9 +68,9 @@ export default function AboutPage() {
           <h2 className="text-2xl font-bold mb-5">What you can do</h2>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {FEATURES.map(f => (
-              <li key={f.label} className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-xl p-3">
+              <li key={f.label} className="flex items-start gap-3 bg-card border border-rule rounded-xl p-3">
                 <span className="text-xl flex-shrink-0">{f.emoji}</span>
-                <span className="text-sm text-gray-300">{f.label}</span>
+                <span className="text-sm text-ink">{f.label}</span>
               </li>
             ))}
           </ul>
@@ -78,7 +78,7 @@ export default function AboutPage() {
 
         <section className="mb-10">
           <h2 className="text-2xl font-bold mb-3">Built carefully</h2>
-          <p className="text-sm text-gray-300 leading-relaxed">
+          <p className="text-sm text-ink leading-relaxed">
             We don't sell your data. There are no third-party trackers. AI advice is general,
             not medical — for anything painful, persistent, or worsening, please see a
             dermatologist. You can switch your profile to private any time on Settings, and
@@ -86,20 +86,20 @@ export default function AboutPage() {
           </p>
         </section>
 
-        <section className="bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-amber-400/5 border border-pink-500/30 rounded-2xl p-6 text-center mb-10">
-          <p className="text-sm text-gray-400 mb-3">New here?</p>
+        <section className="bg-accent/10 border border-accent rounded-card p-6 text-center mb-10">
+          <p className="text-sm text-ink-mute mb-3">New here?</p>
           <a
             href="/signup"
-            className="inline-block bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/20"
+            className="inline-block bg-accent text-paper font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg"
           >
             Create your account
           </a>
         </section>
 
-        <div className="flex gap-5 text-sm text-gray-500">
-          <a href="/privacy" className="hover:text-white transition">Privacy Policy</a>
-          <a href="/terms" className="hover:text-white transition">Terms of Service</a>
-          <a href="/dashboard" className="hover:text-white transition ml-auto">Back to dashboard</a>
+        <div className="flex gap-5 text-sm text-ink-mute">
+          <a href="/privacy" className="hover:text-ink transition">Privacy Policy</a>
+          <a href="/terms" className="hover:text-ink transition">Terms of Service</a>
+          <a href="/dashboard" className="hover:text-ink transition ml-auto">Back to dashboard</a>
         </div>
 
       </div>

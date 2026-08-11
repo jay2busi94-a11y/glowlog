@@ -106,38 +106,38 @@ export default function PublicProfile() {
   const canSeeContent = isOwnProfile || isPublicProfile(profile)
 
   if (loading) return (
-    <main className="min-h-screen bg-[#080808] text-white px-4">
+    <main className="min-h-screen bg-paper text-ink px-4">
       <AppNavbar />
       <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-500">Loading profile...</p>
+        <p className="text-ink-mute">Loading profile...</p>
       </div>
     </main>
   )
 
   if (notFound) return (
-    <main className="min-h-screen bg-[#080808] text-white px-4">
+    <main className="min-h-screen bg-paper text-ink px-4">
       <AppNavbar />
       <div className="flex flex-col items-center justify-center h-screen gap-3">
         <p className="text-4xl">😶</p>
-        <p className="text-gray-200 font-semibold text-lg">User not found</p>
-        <p className="text-gray-500 text-sm">@{username} doesn't exist or hasn't set a username yet.</p>
-        <a href="/friends" className="text-pink-400 text-sm hover:text-pink-300 transition mt-2">Browse friends →</a>
+        <p className="text-ink font-semibold text-lg">User not found</p>
+        <p className="text-ink-mute text-sm">@{username} doesn't exist or hasn't set a username yet.</p>
+        <a href="/friends" className="text-accent text-sm hover:text-accent transition mt-2">Browse friends →</a>
       </div>
     </main>
   )
 
   return (
-    <main className="min-h-screen bg-[#080808] text-white px-4 pb-24 overflow-hidden">
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
+    <main className="min-h-screen bg-paper text-ink px-4 pb-24 overflow-hidden">
+      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
       <AppNavbar />
 
       <div className="relative z-10 max-w-3xl mx-auto pt-32">
 
         {/* Profile header */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+        <div className="bg-card border border-rule rounded-card p-6 mb-6">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-4">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-4xl overflow-hidden flex-shrink-0 shadow-lg shadow-pink-500/10">
+              <div className="w-20 h-20 rounded-full bg-accent/10 border border-rule flex items-center justify-center text-4xl overflow-hidden flex-shrink-0 shadow-lg">
                 {profile.avatar_url ? (
                   <img src={ikAvatar(profile.avatar_url, 80)} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -146,20 +146,20 @@ export default function PublicProfile() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold">{profile.display_name || (profile.username ? `@${profile.username}` : 'GlowLog User')}</h1>
-                {profile.username && <p className="text-gray-500 text-sm">@{profile.username}</p>}
+                {profile.username && <p className="text-ink-mute text-sm">@{profile.username}</p>}
                 <div className="flex gap-4 mt-2 text-sm">
-                  <span className="text-gray-300">
-                    <span className="font-semibold text-white">{followerCount}</span> followers
+                  <span className="text-ink">
+                    <span className="font-semibold text-ink">{followerCount}</span> followers
                   </span>
-                  <span className="text-gray-300">
-                    <span className="font-semibold text-white">{followingCount}</span> following
+                  <span className="text-ink">
+                    <span className="font-semibold text-ink">{followingCount}</span> following
                   </span>
                 </div>
               </div>
             </div>
 
             {isOwnProfile ? (
-              <a href="/profile" className="px-5 py-2 rounded-full text-sm font-semibold bg-white/10 border border-white/20 text-gray-200 hover:bg-white/15 transition">
+              <a href="/profile" className="px-5 py-2 rounded-full text-sm font-semibold bg-card border border-rule text-ink hover:bg-card transition">
                 Edit profile
               </a>
             ) : (
@@ -168,8 +168,8 @@ export default function PublicProfile() {
                 disabled={followLoading}
                 className={`px-5 py-2 rounded-full text-sm font-semibold transition disabled:opacity-50 ${
                   isFollowing
-                    ? 'bg-white/10 border border-white/20 text-gray-200 hover:bg-rose-500/10 hover:border-rose-500/40 hover:text-rose-300'
-                    : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-lg shadow-pink-500/20 hover:opacity-90'
+                    ? 'bg-card border border-rule text-ink hover:bg-warn/10 hover:border-warn hover:text-warn'
+                    : 'bg-accent text-paper shadow-lg  hover:opacity-90'
                 }`}
               >
                 {followLoading ? '...' : isFollowing ? 'Following' : '+ Follow'}
@@ -178,13 +178,13 @@ export default function PublicProfile() {
           </div>
 
           {canSeeContent && profile.bio && (
-            <p className="text-sm text-gray-300 whitespace-pre-wrap mt-4 pt-4 border-t border-white/10 leading-relaxed">{profile.bio}</p>
+            <p className="text-sm text-ink whitespace-pre-wrap mt-4 pt-4 border-t border-rule leading-relaxed">{profile.bio}</p>
           )}
 
           {canSeeContent && profile.concerns?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/10">
+            <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-rule">
               {profile.concerns.map(c => (
-                <span key={c} className="text-xs px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/20 text-pink-300">{c}</span>
+                <span key={c} className="text-xs px-3 py-1 rounded-full bg-accent/10 border border-accent text-accent">{c}</span>
               ))}
             </div>
           )}
@@ -192,10 +192,10 @@ export default function PublicProfile() {
 
         {/* Private placeholder — replaces routines + products + bio + concerns for non-owners viewing a private profile */}
         {!canSeeContent && (
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-10 text-center">
+          <div className="bg-card border border-rule rounded-card p-10 text-center">
             <p className="text-4xl mb-3">🔒</p>
-            <p className="text-gray-200 font-semibold mb-2">This profile is private</p>
-            <p className="text-gray-500 text-sm">Follow them and they may let you see their routines and product shelf later.</p>
+            <p className="text-ink font-semibold mb-2">This profile is private</p>
+            <p className="text-ink-mute text-sm">Follow them and they may let you see their routines and product shelf later.</p>
           </div>
         )}
 
@@ -205,15 +205,15 @@ export default function PublicProfile() {
             <h2 className="text-lg font-semibold mb-3">Skincare Routine</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               {routines.map(routine => (
-                <div key={routine.id} className="bg-white/5 border border-white/10 rounded-2xl p-5">
-                  <h3 className="text-sm font-semibold text-pink-300 mb-3">{routine.emoji} {routine.name}</h3>
+                <div key={routine.id} className="bg-card border border-rule rounded-card p-5">
+                  <h3 className="text-sm font-semibold text-ink mb-3">{routine.emoji} {routine.name}</h3>
                   {routine.steps.length === 0 ? (
-                    <p className="text-gray-600 text-xs">No steps added yet</p>
+                    <p className="text-ink-mute text-xs">No steps added yet</p>
                   ) : (
                     <ul className="flex flex-col gap-2">
                       {routine.steps.map((step, i) => (
-                        <li key={i} className="flex items-center gap-2 text-sm text-gray-300">
-                          <span className="w-5 h-5 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-xs text-gray-500 flex-shrink-0">{i + 1}</span>
+                        <li key={i} className="flex items-center gap-2 text-sm text-ink">
+                          <span className="w-5 h-5 rounded-full bg-card border border-rule flex items-center justify-center text-xs text-ink-mute flex-shrink-0">{i + 1}</span>
                           {step.name}
                         </li>
                       ))}
@@ -231,15 +231,15 @@ export default function PublicProfile() {
             <h2 className="text-lg font-semibold mb-3">Product Shelf</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {products.map(p => (
-                <div key={p.id} className="bg-white/5 border border-white/10 rounded-xl p-3">
+                <div key={p.id} className="bg-card border border-rule rounded-xl p-3">
                   {p.photo_url && (
-                    <div className="w-full aspect-square rounded-lg overflow-hidden mb-2 bg-white/5">
+                    <div className="w-full aspect-square rounded-lg overflow-hidden mb-2 bg-card">
                       <img src={ikProductCard(p.photo_url)} alt="" className="w-full h-full object-cover" />
                     </div>
                   )}
-                  <p className="text-xs text-gray-500 truncate">{p.brand}</p>
-                  <p className="text-sm font-medium text-gray-200 truncate">{p.name}</p>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 mt-1 inline-block">{p.category}</span>
+                  <p className="text-xs text-ink-mute truncate">{p.brand}</p>
+                  <p className="text-sm font-medium text-ink truncate">{p.name}</p>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 border border-accent text-accent mt-1 inline-block">{p.category}</span>
                 </div>
               ))}
             </div>

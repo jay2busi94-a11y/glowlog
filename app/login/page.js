@@ -45,39 +45,39 @@ export default function Login() {
   }
 
   return (
-    <main className="min-h-screen bg-[#080808] text-white flex flex-col items-center justify-center px-4 overflow-hidden">
+    <main className="min-h-screen bg-paper text-ink flex flex-col items-center justify-center px-4 overflow-hidden">
 
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
 
       <Navbar />
 
-      <div className="relative z-10 w-full max-w-md bg-white/5 border border-white/10 rounded-2xl p-8 mt-10">
+      <div className="relative z-10 w-full max-w-md bg-card border border-rule rounded-card p-8 mt-10">
         <h2 className="text-3xl font-bold mb-2 text-center">Welcome back</h2>
-        <p className="text-gray-400 text-sm text-center mb-8">Log in to your GlowLog account</p>
+        <p className="text-ink-mute text-sm text-center mb-8">Log in to your GlowLog account</p>
 
         <form onSubmit={handleLogin} className="flex flex-col gap-4">
 
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Email</label>
+            <label className="text-sm text-ink-mute mb-1 block">Email</label>
             <input
               type="email"
               placeholder="you@example.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 transition"
+              className="w-full bg-card border border-rule rounded-xl px-4 py-3 text-ink placeholder-ink-mute focus:outline-none focus:border-accent transition"
             />
           </div>
 
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Password</label>
+            <label className="text-sm text-ink-mute mb-1 block">Password</label>
             <input
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-purple-500/50 transition"
+              className="w-full bg-card border border-rule rounded-xl px-4 py-3 text-ink placeholder-ink-mute focus:outline-none focus:border-accent transition"
             />
           </div>
 
@@ -87,34 +87,34 @@ export default function Login() {
                 type="checkbox"
                 checked={rememberMe}
                 onChange={e => setRememberMe(e.target.checked)}
-                className="accent-pink-500 w-4 h-4"
+                className="accent-accent w-4 h-4"
               />
-              <span className="text-sm text-gray-300">Remember me</span>
+              <span className="text-sm text-ink">Remember me</span>
             </label>
-            <a href="/forgot-password" className="text-sm text-pink-400 hover:text-pink-300 transition">Forgot password?</a>
+            <a href="/forgot-password" className="text-sm text-accent hover:text-accent transition">Forgot password?</a>
           </div>
 
-          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+          {error && <p className="text-warn text-sm text-center">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold py-3 rounded-full hover:opacity-90 transition shadow-lg shadow-purple-500/20 disabled:opacity-50"
+            className="w-full bg-accent text-paper font-semibold py-3 rounded-full hover:opacity-90 transition shadow-lg disabled:opacity-50"
           >
             {loading ? 'Logging in...' : 'Log In'}
           </button>
 
         </form>
 
-        <p className="text-center text-gray-500 text-sm mt-6">
+        <p className="text-center text-ink-mute text-sm mt-6">
           Don't have an account?{" "}
-          <a href="/signup" className="text-pink-400 hover:text-pink-300 transition">Sign up</a>
+          <a href="/signup" className="text-accent hover:text-accent transition">Sign up</a>
         </p>
 
-        <div className="flex justify-center gap-5 mt-6 text-xs text-gray-600">
-          <a href="/privacy" className="hover:text-gray-300 transition">Privacy</a>
-          <a href="/terms" className="hover:text-gray-300 transition">Terms</a>
-          <a href="/about" className="hover:text-gray-300 transition">About</a>
+        <div className="flex justify-center gap-5 mt-6 text-xs text-ink-mute">
+          <a href="/privacy" className="hover:text-ink transition">Privacy</a>
+          <a href="/terms" className="hover:text-ink transition">Terms</a>
+          <a href="/about" className="hover:text-ink transition">About</a>
         </div>
 
       </div>

@@ -132,51 +132,51 @@ export default function FriendsPage() {
   const followingIds = new Set(following.map(p => p.user_id))
 
   return (
-    <main className="min-h-screen bg-[#080808] text-white px-4 app-page-pad-bottom overflow-hidden">
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-pink-500/10 rounded-full blur-[120px] pointer-events-none" />
+    <main className="min-h-screen bg-paper text-ink px-4 app-page-pad-bottom overflow-hidden">
+      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
       <AppNavbar />
 
       <div className="relative z-10 max-w-2xl mx-auto app-page-pad-top">
 
         <div className="mb-6">
           <h1 className="text-4xl font-bold mb-2">Friends 👥</h1>
-          <p className="text-gray-400">Find people, follow them, and see who you're connected to.</p>
+          <p className="text-ink-mute">Find people, follow them, and see who you're connected to.</p>
         </div>
 
         {/* People search */}
         <div className="relative mb-6">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">🔎</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-mute">🔎</span>
           <input
             ref={searchInputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search people by name or @username"
-            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition"
+            className="w-full bg-card border border-rule rounded-card pl-10 pr-4 py-3 text-ink placeholder-ink-mute text-sm focus:outline-none focus:border-accent transition"
           />
         </div>
 
         {/* Search results (only when there's a query, or browsing) */}
         {(query || searchResults.length > 0) && (
           <div className="mb-8">
-            <p className="text-[10px] uppercase tracking-wider text-pink-300/80 mb-2">
+            <p className="text-[10px] uppercase tracking-wider text-ink-mute mb-2">
               {query ? `Results for "${query}"` : 'Suggested people'}
             </p>
             {searching ? (
-              <p className="text-gray-500 text-sm">Searching...</p>
+              <p className="text-ink-mute text-sm">Searching...</p>
             ) : searchResults.length === 0 ? (
-              <p className="text-gray-500 text-sm">No one matches that. {!query && 'When other users sign up, they\'ll show up here.'}</p>
+              <p className="text-ink-mute text-sm">No one matches that. {!query && 'When other users sign up, they\'ll show up here.'}</p>
             ) : (
               <ul className="flex flex-col gap-2">
                 {searchResults.map(p => {
                   const isAlreadyFollowing = followingIds.has(p.user_id)
                   const isBusy = !!followBusy[p.user_id]
                   return (
-                    <li key={p.user_id} className="bg-white/5 border border-white/10 rounded-2xl p-3 flex items-center gap-3">
+                    <li key={p.user_id} className="bg-card border border-rule rounded-card p-3 flex items-center gap-3">
                       <a
                         href={`/u/${p.username || p.user_id}`}
                         className="flex items-center gap-3 min-w-0 flex-1 group"
                       >
-                        <span className="w-11 h-11 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-lg overflow-hidden flex-shrink-0">
+                        <span className="w-11 h-11 rounded-full bg-accent/10 border border-rule flex items-center justify-center text-lg overflow-hidden flex-shrink-0">
                           {p.avatar_url ? (
                             <img src={ikAvatar(p.avatar_url, 56)} alt="" className="w-full h-full object-cover" />
                           ) : (
@@ -184,14 +184,14 @@ export default function FriendsPage() {
                           )}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-white truncate group-hover:text-pink-200 transition">
+                          <p className="font-semibold text-ink truncate group-hover:text-accent transition">
                             {p.display_name || (p.username ? `@${p.username}` : 'GlowLog User')}
                           </p>
-                          {p.username && <p className="text-[11px] text-gray-500 truncate">@{p.username}</p>}
+                          {p.username && <p className="text-[11px] text-ink-mute truncate">@{p.username}</p>}
                           {p.concerns?.length > 0 && (
                             <div className="flex flex-wrap gap-1 mt-1">
                               {p.concerns.slice(0, 3).map(c => (
-                                <span key={c} className="text-[10px] text-gray-400 bg-white/5 border border-white/10 px-1.5 py-0.5 rounded-full">{c}</span>
+                                <span key={c} className="text-[10px] text-ink-mute bg-card border border-rule px-1.5 py-0.5 rounded-full">{c}</span>
                               ))}
                             </div>
                           )}
@@ -200,7 +200,7 @@ export default function FriendsPage() {
                       {isAlreadyFollowing ? (
                         <button
                           onClick={() => unfollow(p.user_id)}
-                          className="text-xs px-3 py-1.5 rounded-full border border-white/15 text-gray-300 hover:border-rose-500/40 hover:text-rose-300 transition flex-shrink-0"
+                          className="text-xs px-3 py-1.5 rounded-full border border-rule text-ink hover:border-warn hover:text-warn transition flex-shrink-0"
                         >
                           Following
                         </button>
@@ -208,7 +208,7 @@ export default function FriendsPage() {
                         <button
                           onClick={() => followUser(p.user_id)}
                           disabled={isBusy}
-                          className="text-xs px-3 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold hover:opacity-90 transition disabled:opacity-50 flex-shrink-0"
+                          className="text-xs px-3 py-1.5 rounded-full bg-accent text-paper font-semibold hover:opacity-90 transition disabled:opacity-50 flex-shrink-0"
                         >
                           {isBusy ? '...' : '+ Follow'}
                         </button>
@@ -218,18 +218,18 @@ export default function FriendsPage() {
                 })}
               </ul>
             )}
-            {followError && <p className="text-xs text-rose-300 mt-3">{followError}</p>}
+            {followError && <p className="text-xs text-warn mt-3">{followError}</p>}
           </div>
         )}
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-white/5 border border-white/10 rounded-full p-1 mb-6 w-fit">
+        <div className="flex gap-1 bg-card border border-rule rounded-full p-1 mb-6 w-fit">
           <button
             onClick={() => setTab('following')}
             className={`px-5 py-1.5 rounded-full text-sm font-medium transition ${
               tab === 'following'
-                ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md shadow-pink-500/20'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-accent text-paper shadow-md '
+                : 'text-ink-mute hover:text-ink'
             }`}
           >
             Following {!loading && `(${following.length})`}
@@ -238,8 +238,8 @@ export default function FriendsPage() {
             onClick={() => setTab('followers')}
             className={`px-5 py-1.5 rounded-full text-sm font-medium transition ${
               tab === 'followers'
-                ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md shadow-pink-500/20'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-accent text-paper shadow-md '
+                : 'text-ink-mute hover:text-ink'
             }`}
           >
             Followers {!loading && `(${followers.length})`}
@@ -247,18 +247,18 @@ export default function FriendsPage() {
         </div>
 
         {loading ? (
-          <p className="text-gray-500">Loading...</p>
+          <p className="text-ink-mute">Loading...</p>
         ) : list.length === 0 ? (
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-10 text-center">
-            <p className="text-gray-300 mb-2 font-semibold">
+          <div className="bg-card border border-rule rounded-card p-10 text-center">
+            <p className="text-ink mb-2 font-semibold">
               {tab === 'following' ? "You're not following anyone yet" : "No followers yet"}
             </p>
-            <p className="text-gray-500 text-sm mb-6">
+            <p className="text-ink-mute text-sm mb-6">
               {tab === 'following' ? 'Search above to find people to follow.' : 'Share your profile link so others can find you.'}
             </p>
             <button
               onClick={focusSearch}
-              className="inline-block bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/20"
+              className="inline-block bg-accent text-paper font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg"
             >
               🔎 Find people
             </button>
@@ -266,12 +266,12 @@ export default function FriendsPage() {
         ) : (
           <ul className="flex flex-col gap-3">
             {list.map(p => (
-              <li key={p.user_id} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between gap-4">
+              <li key={p.user_id} className="bg-card border border-rule rounded-card p-4 flex items-center justify-between gap-4">
                 <a
                   href={`/u/${p.username || p.user_id}`}
                   className="flex items-center gap-3 min-w-0 flex-1"
                 >
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-xl flex-shrink-0 overflow-hidden">
+                  <div className="w-12 h-12 rounded-full bg-accent/10 border border-rule flex items-center justify-center text-xl flex-shrink-0 overflow-hidden">
                     {p.avatar_url ? (
                       <img src={ikAvatar(p.avatar_url, 56)} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -279,15 +279,15 @@ export default function FriendsPage() {
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="font-semibold text-white truncate">{p.display_name || (p.username ? `@${p.username}` : 'GlowLog User')}</p>
-                    {p.username && <p className="text-xs text-gray-500">@{p.username}</p>}
+                    <p className="font-semibold text-ink truncate">{p.display_name || (p.username ? `@${p.username}` : 'GlowLog User')}</p>
+                    {p.username && <p className="text-xs text-ink-mute">@{p.username}</p>}
                   </div>
                 </a>
 
                 {tab === 'following' ? (
                   <button
                     onClick={() => unfollow(p.user_id)}
-                    className="text-xs px-4 py-1.5 rounded-full border border-white/15 text-gray-400 hover:border-rose-500/40 hover:text-rose-300 transition flex-shrink-0"
+                    className="text-xs px-4 py-1.5 rounded-full border border-rule text-ink-mute hover:border-warn hover:text-warn transition flex-shrink-0"
                   >
                     Unfollow
                   </button>
@@ -296,7 +296,7 @@ export default function FriendsPage() {
                     <button
                       onClick={() => followUser(p.user_id)}
                       disabled={!!followBusy[p.user_id]}
-                      className="text-xs px-4 py-1.5 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold hover:opacity-90 transition disabled:opacity-50 flex-shrink-0"
+                      className="text-xs px-4 py-1.5 rounded-full bg-accent text-paper font-semibold hover:opacity-90 transition disabled:opacity-50 flex-shrink-0"
                     >
                       {followBusy[p.user_id] ? '...' : 'Follow back'}
                     </button>
@@ -308,11 +308,11 @@ export default function FriendsPage() {
         )}
 
         <div className="mt-8 text-center">
-          <p className="text-gray-600 text-sm">Share your profile:</p>
+          <p className="text-ink-mute text-sm">Share your profile:</p>
           {myProfile?.username ? (
-            <p className="text-pink-400 text-sm mt-1 break-all">glowlog-neon.vercel.app/u/{myProfile.username}</p>
+            <p className="text-accent text-sm mt-1 break-all">glowlog-neon.vercel.app/u/{myProfile.username}</p>
           ) : (
-            <a href="/profile" className="text-xs text-gray-500 hover:text-gray-300 transition mt-1 inline-block">
+            <a href="/profile" className="text-xs text-ink-mute hover:text-ink transition mt-1 inline-block">
               Set your username in profile settings →
             </a>
           )}

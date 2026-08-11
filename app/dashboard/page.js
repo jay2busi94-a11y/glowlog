@@ -72,17 +72,17 @@ const CONCERN_FIXES = {
 
 function StepInfoPanel({ info }) {
   return (
-    <div className="mt-2.5 bg-white/[0.03] border border-white/10 rounded-xl p-3 text-xs">
-      <p className="text-gray-300 mb-2 leading-relaxed">{info.what}</p>
-      <p className="text-pink-300/80 text-[11px] uppercase tracking-wide mb-1">When</p>
-      <p className="text-gray-400 mb-2.5 leading-relaxed">{info.when}</p>
+    <div className="mt-2.5 bg-card border border-rule rounded-xl p-3 text-xs">
+      <p className="text-ink mb-2 leading-relaxed">{info.what}</p>
+      <p className="text-ink-mute text-[11px] uppercase tracking-wide mb-1">When</p>
+      <p className="text-ink-mute mb-2.5 leading-relaxed">{info.when}</p>
       {info.tips?.length > 0 && (
         <>
-          <p className="text-pink-300/80 text-[11px] uppercase tracking-wide mb-1">Tips</p>
+          <p className="text-ink-mute text-[11px] uppercase tracking-wide mb-1">Tips</p>
           <ul className="flex flex-col gap-1">
             {info.tips.map((t, j) => (
-              <li key={j} className="text-gray-400 flex gap-1.5 leading-relaxed">
-                <span className="text-pink-300/60 flex-shrink-0">•</span>
+              <li key={j} className="text-ink-mute flex gap-1.5 leading-relaxed">
+                <span className="text-accent flex-shrink-0">•</span>
                 <span>{t}</span>
               </li>
             ))}
@@ -97,14 +97,14 @@ function RoutineCard({ routine, accent, products, done, onToggle, onPickProduct,
   const productById = new Map(products.map(p => [p.id, p]))
   const [openInfo, setOpenInfo] = useState(null) // index of expanded step's info, or null
   return (
-    <div className={`bg-white/5 border ${accent.ring} rounded-2xl p-6`}>
+    <div className={`bg-card border ${accent.ring} rounded-card p-6`}>
       <div className="flex items-center justify-between mb-4">
         <h2 className={`text-lg font-semibold ${accent.head}`}>{routine.emoji || '🧴'} {routine.name}</h2>
-        <span className="text-xs text-gray-500">{done.length}/{routine.steps.length} done</span>
+        <span className="text-xs text-ink-mute">{done.length}/{routine.steps.length} done</span>
       </div>
 
       {routine.steps.length === 0 ? (
-        <p className="text-sm text-gray-500">No steps yet — add some on the Routine page.</p>
+        <p className="text-sm text-ink-mute">No steps yet — add some on the Routine page.</p>
       ) : (
         <>
           <ul className="flex flex-col gap-3">
@@ -126,7 +126,7 @@ function RoutineCard({ routine, accent, products, done, onToggle, onPickProduct,
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => onToggle(routine.id, step.name)}
-                        className={`text-left flex-1 min-w-0 ${isDone ? 'text-gray-500 line-through' : 'text-gray-200'} hover:text-white transition truncate`}
+                        className={`text-left flex-1 min-w-0 ${isDone ? 'text-ink-mute line-through' : 'text-ink'} hover:text-ink transition truncate`}
                       >
                         {step.name}
                       </button>
@@ -135,8 +135,8 @@ function RoutineCard({ routine, accent, products, done, onToggle, onPickProduct,
                           onClick={() => setOpenInfo(infoOpen ? null : i)}
                           className={`flex-shrink-0 w-5 h-5 rounded-full border text-[10px] font-semibold transition ${
                             infoOpen
-                              ? 'bg-white/15 border-white/30 text-white'
-                              : 'border-white/15 text-gray-500 hover:text-white hover:border-white/30'
+                              ? 'bg-card border-rule text-ink'
+                              : 'border-rule text-ink-mute hover:text-ink hover:border-rule'
                           }`}
                           aria-label={`Info about ${step.name}`}
                           title={`What is ${step.name}?`}
@@ -149,19 +149,19 @@ function RoutineCard({ routine, accent, products, done, onToggle, onPickProduct,
                       onClick={() => onPickProduct(routine.id, i)}
                       className={`mt-1 flex items-center gap-1.5 text-xs transition group ${
                         linked
-                          ? `${isDone ? 'text-gray-600' : 'text-gray-400'} hover:text-white`
-                          : 'text-gray-600 hover:text-gray-300'
+                          ? `${isDone ? 'text-ink-mute opacity-60' : 'text-ink-mute'} hover:text-ink`
+                          : 'text-ink-mute hover:text-ink'
                       }`}
                     >
                       {linked ? (
                         <>
                           <span className={`w-1.5 h-1.5 rounded-full ${accent.head.replace('text-', 'bg-')} opacity-60 group-hover:opacity-100 transition`} />
                           <span className="truncate">{productLabel(linked)}</span>
-                          <span className="opacity-0 group-hover:opacity-100 transition text-gray-500 text-[10px]">change</span>
+                          <span className="opacity-0 group-hover:opacity-100 transition text-ink-mute text-[10px]">change</span>
                         </>
                       ) : (
                         <>
-                          <span className="text-gray-700">+</span>
+                          <span className="text-ink-mute">+</span>
                           <span>Add product</span>
                         </>
                       )}
@@ -172,11 +172,11 @@ function RoutineCard({ routine, accent, products, done, onToggle, onPickProduct,
               )
             })}
           </ul>
-          <div className="flex gap-4 mt-4 pt-3 border-t border-white/5 text-xs">
+          <div className="flex gap-4 mt-4 pt-3 border-t border-rule text-xs">
             <button onClick={() => onCompleteAll(routine.id, routine.steps.map(s => s.name))} className={`${accent.link} transition`}>
               Complete all
             </button>
-            <button onClick={() => onClearAll(routine.id)} className="text-gray-500 hover:text-gray-300 transition">
+            <button onClick={() => onClearAll(routine.id)} className="text-ink-mute hover:text-ink transition">
               Clear all
             </button>
           </div>
@@ -201,21 +201,21 @@ function StepProductPicker({ open, step, products, onPick, onClose }) {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative bg-[#0e0e0e] border border-white/10 rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl shadow-pink-500/10 overflow-hidden"
+        className="relative bg-card border border-rule rounded-card w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl overflow-hidden"
       >
-        <div className="p-5 border-b border-white/10">
-          <p className="text-xs uppercase tracking-wide text-gray-500">Pick a product for</p>
-          <h3 className="text-lg font-semibold text-white mt-0.5">{step?.name}</h3>
+        <div className="p-5 border-b border-rule">
+          <p className="text-xs uppercase tracking-wide text-ink-mute">Pick a product for</p>
+          <h3 className="text-lg font-semibold text-ink mt-0.5">{step?.name}</h3>
         </div>
 
         <div className="overflow-y-auto p-3 flex-1">
           {products.length === 0 ? (
             <div className="p-6 text-center">
-              <p className="text-sm text-gray-300 mb-1">No products in your catalog yet</p>
-              <p className="text-xs text-gray-500 mb-4">Add your cleansers, serums, and creams so you can link them to your routine.</p>
+              <p className="text-sm text-ink mb-1">No products in your catalog yet</p>
+              <p className="text-xs text-ink-mute mb-4">Add your cleansers, serums, and creams so you can link them to your routine.</p>
               <a
                 href="/catalog"
-                className="inline-block bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-full text-xs hover:opacity-90 transition shadow-lg shadow-pink-500/20"
+                className="inline-block bg-accent text-paper font-semibold px-5 py-2 rounded-full text-xs hover:opacity-90 transition shadow-lg"
               >
                 + Add your first product
               </a>
@@ -223,13 +223,13 @@ function StepProductPicker({ open, step, products, onPick, onClose }) {
           ) : (
             <>
               {sameCategory.length > 0 && (
-                <p className="text-[10px] uppercase tracking-wide text-pink-300/70 px-2 py-2">Suggested</p>
+                <p className="text-[10px] uppercase tracking-wide text-ink-mute px-2 py-2">Suggested</p>
               )}
               {sameCategory.map(p => (
                 <ProductRow key={p.id} product={p} active={p.id === currentId} onPick={onPick} />
               ))}
               {sameCategory.length > 0 && others.length > 0 && (
-                <p className="text-[10px] uppercase tracking-wide text-gray-500 px-2 py-2 mt-1">Other products</p>
+                <p className="text-[10px] uppercase tracking-wide text-ink-mute px-2 py-2 mt-1">Other products</p>
               )}
               {others.map(p => (
                 <ProductRow key={p.id} product={p} active={p.id === currentId} onPick={onPick} />
@@ -238,20 +238,20 @@ function StepProductPicker({ open, step, products, onPick, onClose }) {
           )}
         </div>
 
-        <div className="border-t border-white/10 p-3 flex items-center justify-between gap-3">
+        <div className="border-t border-rule p-3 flex items-center justify-between gap-3">
           {currentId ? (
             <button
               onClick={() => onPick(null)}
-              className="text-xs text-rose-300 hover:text-rose-200 transition px-3 py-2"
+              className="text-xs text-warn hover:text-warn transition px-3 py-2"
             >
               Remove product
             </button>
           ) : <span />}
           <div className="flex items-center gap-3">
-            <a href="/catalog" className="text-xs text-gray-400 hover:text-white transition">
+            <a href="/catalog" className="text-xs text-ink-mute hover:text-ink transition">
               Manage catalog →
             </a>
-            <button onClick={onClose} className="text-xs text-gray-400 hover:text-white transition px-3 py-2">
+            <button onClick={onClose} className="text-xs text-ink-mute hover:text-ink transition px-3 py-2">
               Close
             </button>
           </div>
@@ -267,30 +267,30 @@ function ProductRow({ product, active, onPick }) {
     <button
       onClick={() => onPick(product.id)}
       className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${
-        active ? 'bg-pink-500/10 border border-pink-500/30' : 'hover:bg-white/5 border border-transparent'
+        active ? 'bg-accent/10 border border-accent' : 'hover:bg-card border border-transparent'
       }`}
     >
-      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border border-white/10">
+      <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 border border-rule">
         {product.photo_url ? (
           <img src={ikProductThumb(product.photo_url)} alt="" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-pink-500/20 via-purple-500/15 to-amber-400/10 flex items-center justify-center">
-            <span className="text-xs font-bold bg-gradient-to-r from-pink-200 via-purple-200 to-amber-200 bg-clip-text text-transparent">
+          <div className="w-full h-full bg-accent/10 flex items-center justify-center">
+            <span className="text-xs font-bold text-ink">
               {initials}
             </span>
           </div>
         )}
       </div>
       <div className="min-w-0 flex-1">
-        {product.brand && <p className="text-[10px] uppercase tracking-wide text-pink-300/80">{product.brand}</p>}
-        <p className={`text-sm truncate ${active ? 'text-white font-semibold' : 'text-gray-200'}`}>{product.name}</p>
+        {product.brand && <p className="text-[10px] uppercase tracking-wide text-ink-mute">{product.brand}</p>}
+        <p className={`text-sm truncate ${active ? 'text-ink font-semibold' : 'text-ink'}`}>{product.name}</p>
       </div>
       {product.category && (
-        <span className="flex-shrink-0 text-[10px] uppercase tracking-wide bg-purple-500/15 border border-purple-500/30 text-purple-200 px-2 py-1 rounded-full">
+        <span className="flex-shrink-0 text-[10px] uppercase tracking-wide bg-accent/10 border border-accent text-ink-mute px-2 py-1 rounded-full">
           {product.category}
         </span>
       )}
-      {active && <span className="text-pink-300 text-sm flex-shrink-0">✓</span>}
+      {active && <span className="text-accent text-sm flex-shrink-0">✓</span>}
     </button>
   )
 }
@@ -581,8 +581,8 @@ ${closer}`
   const streakLabel = streakMilestoneLabel(currentStreak)
 
   return (
-    <main className="min-h-screen bg-[#080808] text-white px-4 app-page-pad-bottom overflow-hidden">
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-pink-500/10 rounded-full blur-[120px] pointer-events-none" />
+    <main className="min-h-screen bg-paper text-ink px-4 app-page-pad-bottom overflow-hidden">
+      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
       <AppNavbar />
 
       <div className="relative z-10 max-w-4xl mx-auto app-page-pad-top">
@@ -590,21 +590,21 @@ ${closer}`
         {/* Welcome */}
         <div className="mb-10">
           <h1 className="text-4xl font-bold mb-2">{greeting}, {userName} 👋</h1>
-          <p className="text-gray-400">Here's your skincare routine for today.</p>
+          <p className="text-ink-mute">Here's your skincare routine for today.</p>
           {currentStreak > 0 && (
-            <div className={`mt-4 inline-flex items-center gap-3 rounded-2xl px-4 py-2.5 border ${
+            <div className={`mt-4 inline-flex items-center gap-3 rounded-card px-4 py-2.5 border ${
               currentStreak >= 7
-                ? 'bg-gradient-to-r from-amber-400/15 via-pink-500/15 to-purple-500/15 border-amber-300/40 shadow-lg shadow-pink-500/10'
-                : 'bg-white/5 border-white/10'
+                ? 'bg-accent/10 border-accent'
+                : 'bg-card border-rule'
             }`}>
               <span className="text-2xl">🔥</span>
               <div>
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-ink">
                   {currentStreak} {currentStreak === 1 ? 'day' : 'days'} in a row
                 </p>
                 {streakLabel && (
                   <p className={`text-[10px] uppercase tracking-wider ${
-                    currentStreak >= 7 ? 'text-amber-200' : 'text-gray-500'
+                    currentStreak >= 7 ? 'text-ink' : 'text-ink-mute'
                   }`}>{streakLabel}</p>
                 )}
               </div>
@@ -630,16 +630,16 @@ ${closer}`
         </div>
 
         {/* Today's Log */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+        <div className="bg-card border border-rule rounded-card p-6 mb-6">
           <h2 className="text-lg font-semibold mb-1">📓 Log Today's Skin</h2>
-          <p className="text-gray-400 text-sm mb-5">How does your skin feel today?</p>
+          <p className="text-ink-mute text-sm mb-5">How does your skin feel today?</p>
 
           <div className="flex gap-3 mb-5 flex-wrap">
             {SKIN_RATINGS.map(r => (
               <button
                 key={r.value}
                 onClick={() => setSkinRating(skinRating === r.value ? null : r.value)}
-                className={`flex flex-col items-center gap-1 px-4 py-3 rounded-xl border transition ${skinRating === r.value ? 'border-pink-500/60 bg-pink-500/10 text-pink-300' : 'border-white/10 text-gray-400 hover:border-white/20'}`}
+                className={`flex flex-col items-center gap-1 px-4 py-3 rounded-xl border transition ${skinRating === r.value ? 'border-accent bg-accent/10 text-accent' : 'border-rule text-ink-mute hover:border-rule'}`}
               >
                 <span className="text-2xl">{r.emoji}</span>
                 <span className="text-xs">{r.label}</span>
@@ -652,7 +652,7 @@ ${closer}`
             onChange={e => setNote(e.target.value)}
             placeholder="Any notes? (new product, reaction, etc.)"
             rows={2}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition resize-none mb-4"
+            className="w-full bg-card border border-rule rounded-xl px-4 py-3 text-ink placeholder-ink-mute text-sm focus:outline-none focus:border-accent transition resize-none mb-4"
           />
 
           <SkinPhotoPicker
@@ -664,14 +664,14 @@ ${closer}`
           <button
             onClick={handleSave}
             disabled={saving || !skinRating}
-            className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+            className="bg-accent text-paper font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg"
           >
             {saving ? 'Saving...' : saved ? '✓ Saved!' : todayLogged ? 'Update Log' : "Save Today's Log"}
           </button>
         </div>
 
         {/* Fix My Skin */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+        <div className="bg-card border border-rule rounded-card p-6">
           <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
             <h2 className="text-lg font-semibold">🔍 Fix My Skin</h2>
             {!premium && (
@@ -679,8 +679,8 @@ ${closer}`
                 onClick={() => atLimit && setShowAiUpgrade(true)}
                 className={`text-[11px] px-2.5 py-1 rounded-full border transition ${
                   atLimit
-                    ? 'bg-amber-500/10 border-amber-400/40 text-amber-200 hover:bg-amber-500/15'
-                    : 'bg-white/5 border-white/10 text-gray-400 cursor-default'
+                    ? 'bg-card border-rule text-ink hover:bg-card'
+                    : 'bg-card border-rule text-ink-mute cursor-default'
                 }`}
                 title={atLimit ? 'Daily limit reached — tap to upgrade' : `${aiCount}/${FREE_AI_LIMIT} AI replies used today`}
               >
@@ -688,7 +688,7 @@ ${closer}`
               </button>
             )}
           </div>
-          <p className="text-gray-400 text-sm mb-4">What's your main skin concern right now?</p>
+          <p className="text-ink-mute text-sm mb-4">What's your main skin concern right now?</p>
           <div className="flex flex-wrap gap-3">
             {CONCERNS.map((concern) => {
               const active = activeConcern === concern
@@ -696,7 +696,7 @@ ${closer}`
                 <button
                   key={concern}
                   onClick={() => selectConcern(concern)}
-                  className={`border text-sm px-4 py-2 rounded-full transition ${active ? 'border-pink-500/60 bg-pink-500/10 text-pink-300' : 'border-white/10 text-gray-300 hover:border-pink-500/40 hover:text-pink-300 hover:bg-pink-500/10'}`}
+                  className={`border text-sm px-4 py-2 rounded-full transition ${active ? 'border-accent bg-accent/10 text-accent' : 'border-rule text-ink hover:border-accent hover:text-accent hover:bg-accent/10'}`}
                 >
                   {concern}
                 </button>
@@ -707,9 +707,9 @@ ${closer}`
           {/* Custom question — alternative to picking a concern */}
           <div className="mt-5">
             <div className="flex items-center gap-3 mb-2">
-              <span className="h-px flex-1 bg-white/10" />
-              <span className="text-[10px] uppercase tracking-wider text-gray-500">Or ask anything</span>
-              <span className="h-px flex-1 bg-white/10" />
+              <span className="h-px flex-1 bg-card" />
+              <span className="text-[10px] uppercase tracking-wider text-ink-mute">Or ask anything</span>
+              <span className="h-px flex-1 bg-card" />
             </div>
             <form onSubmit={askCustom} className="flex gap-2 flex-wrap sm:flex-nowrap">
               <input
@@ -718,43 +718,43 @@ ${closer}`
                 placeholder="e.g. Can I layer retinol with vitamin C?"
                 maxLength={400}
                 disabled={aiLoading}
-                className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition disabled:opacity-50"
+                className="flex-1 min-w-0 bg-card border border-rule rounded-full px-4 py-2 text-ink placeholder-ink-mute text-sm focus:outline-none focus:border-accent transition disabled:opacity-50"
               />
               <button
                 type="submit"
                 disabled={!customAsk.trim() || aiLoading}
-                className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-md shadow-pink-500/20 whitespace-nowrap"
+                className="bg-accent text-paper font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-md whitespace-nowrap"
               >
                 {aiLoading ? '✨ Thinking...' : '✨ Ask AI'}
               </button>
             </form>
-            <p className="text-[10px] text-gray-600 mt-2">
+            <p className="text-[10px] text-ink-mute mt-2">
               Uses your profile + today's log for context, just like the concern flow.
             </p>
           </div>
 
           {activeConcern && (
-            <div className="mt-6 border-t border-white/10 pt-6">
-              <h3 className="text-base font-semibold text-pink-300 mb-1">{activeConcern}</h3>
-              <p className="text-gray-400 text-sm mb-4">{CONCERN_FIXES[activeConcern].blurb}</p>
+            <div className="mt-6 border-t border-rule pt-6">
+              <h3 className="text-base font-semibold text-ink mb-1">{activeConcern}</h3>
+              <p className="text-ink-mute text-sm mb-4">{CONCERN_FIXES[activeConcern].blurb}</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                 <div>
-                  <p className="text-xs font-semibold text-green-300 uppercase tracking-wide mb-2">✓ Look for</p>
+                  <p className="text-xs font-semibold text-ok uppercase tracking-wide mb-2">✓ Look for</p>
                   <ul className="flex flex-col gap-1.5">
                     {CONCERN_FIXES[activeConcern].lookFor.map((item) => (
-                      <li key={item} className="text-sm text-gray-300 flex gap-2">
-                        <span className="text-green-400 flex-shrink-0">•</span>{item}
+                      <li key={item} className="text-sm text-ink flex gap-2">
+                        <span className="text-ok flex-shrink-0">•</span>{item}
                       </li>
                     ))}
                   </ul>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-rose-300 uppercase tracking-wide mb-2">✕ Avoid</p>
+                  <p className="text-xs font-semibold text-warn uppercase tracking-wide mb-2">✕ Avoid</p>
                   <ul className="flex flex-col gap-1.5">
                     {CONCERN_FIXES[activeConcern].avoid.map((item) => (
-                      <li key={item} className="text-sm text-gray-300 flex gap-2">
-                        <span className="text-rose-400 flex-shrink-0">•</span>{item}
+                      <li key={item} className="text-sm text-ink flex gap-2">
+                        <span className="text-warn flex-shrink-0">•</span>{item}
                       </li>
                     ))}
                   </ul>
@@ -765,7 +765,7 @@ ${closer}`
                 <button
                   onClick={startAdvice}
                   disabled={aiLoading}
-                  className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+                  className="bg-accent text-paper font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg"
                 >
                   {aiLoading ? '✨ Thinking...' : '✨ Get personalized advice'}
                 </button>
@@ -775,11 +775,11 @@ ${closer}`
 
           {/* Chat panel — shows for both the concern flow and custom questions */}
           {chat.length > 0 && (
-            <div className="mt-6 border-t border-white/10 pt-6">
+            <div className="mt-6 border-t border-rule pt-6">
               {!activeConcern && (
-                <h3 className="text-base font-semibold text-pink-300 mb-3">Your question</h3>
+                <h3 className="text-base font-semibold text-ink mb-3">Your question</h3>
               )}
-              <div className="bg-white/5 border border-purple-500/20 rounded-xl p-4">
+              <div className="bg-card border border-accent rounded-xl p-4">
                 {/* Conversation — skip index 0 (the hidden context message) */}
                 <div className="flex flex-col gap-3">
                   {chat.slice(1).map((m, i) => (
@@ -787,24 +787,24 @@ ${closer}`
                       key={i}
                       className={
                         m.role === 'user'
-                          ? 'self-end max-w-[85%] bg-pink-500/20 border border-pink-500/30 rounded-2xl rounded-br-sm px-3.5 py-2'
-                          : 'self-start max-w-[90%] bg-white/5 border border-white/10 rounded-2xl rounded-bl-sm px-3.5 py-2.5'
+                          ? 'self-end max-w-[85%] bg-accent/10 border border-accent rounded-card rounded-br-sm px-3.5 py-2'
+                          : 'self-start max-w-[90%] bg-card border border-rule rounded-card rounded-bl-sm px-3.5 py-2.5'
                       }
                     >
-                      <p className="text-sm text-gray-100 whitespace-pre-wrap leading-relaxed">{m.content}</p>
+                      <p className="text-sm text-ink whitespace-pre-wrap leading-relaxed">{m.content}</p>
                     </div>
                   ))}
                   {/* Show the user's original custom question (index 0 was sent as context — extract a clean version). */}
                   {chat.length === 1 && !activeConcern && aiLoading && (
-                    <div className="self-end max-w-[85%] bg-pink-500/20 border border-pink-500/30 rounded-2xl rounded-br-sm px-3.5 py-2">
-                      <p className="text-sm text-gray-100 whitespace-pre-wrap leading-relaxed opacity-80">
+                    <div className="self-end max-w-[85%] bg-accent/10 border border-accent rounded-card rounded-br-sm px-3.5 py-2">
+                      <p className="text-sm text-ink whitespace-pre-wrap leading-relaxed opacity-80">
                         {(chat[0]?.content || '').split('\n')[0].replace(/^My question:\s*/, '')}
                       </p>
                     </div>
                   )}
                   {aiLoading && (
-                    <div className="self-start bg-white/5 border border-white/10 rounded-2xl rounded-bl-sm px-3.5 py-2.5">
-                      <p className="text-sm text-gray-400">✨ Thinking...</p>
+                    <div className="self-start bg-card border border-rule rounded-card rounded-bl-sm px-3.5 py-2.5">
+                      <p className="text-sm text-ink-mute">✨ Thinking...</p>
                     </div>
                   )}
                 </div>
@@ -815,24 +815,24 @@ ${closer}`
                     onChange={e => setChatInput(e.target.value)}
                     placeholder="Ask a follow-up..."
                     disabled={aiLoading}
-                    className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition disabled:opacity-50"
+                    className="flex-1 bg-card border border-rule rounded-full px-4 py-2 text-ink placeholder-ink-mute text-sm focus:outline-none focus:border-accent transition disabled:opacity-50"
                   />
                   <button
                     type="submit"
                     disabled={aiLoading || !chatInput.trim()}
-                    className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40"
+                    className="bg-accent text-paper font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40"
                   >
                     Send
                   </button>
                 </form>
 
-                <p className="mt-3 text-xs text-gray-500">✨ Personalized by Claude — general guidance, not medical advice.</p>
+                <p className="mt-3 text-xs text-ink-mute">✨ Personalized by Claude — general guidance, not medical advice.</p>
               </div>
             </div>
           )}
 
           {aiError && (
-            <p className="mt-4 text-sm text-rose-400">{aiError}</p>
+            <p className="mt-4 text-sm text-warn">{aiError}</p>
           )}
         </div>
 
@@ -857,25 +857,25 @@ function AiUpgradeNudge({ onClose }) {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative bg-[#0e0e0e] border border-pink-500/30 rounded-2xl w-full max-w-sm p-6 shadow-2xl shadow-pink-500/20"
+        className="relative bg-card border border-accent rounded-card w-full max-w-sm p-6 shadow-2xl"
       >
-        <span className="text-[10px] uppercase tracking-wider bg-gradient-to-r from-amber-400/30 to-pink-400/30 border border-amber-300/40 text-amber-200 px-2 py-0.5 rounded-full font-semibold">
+        <span className="text-[10px] uppercase tracking-wider bg-accent/10 border border-rule text-ink px-2 py-0.5 rounded-full font-semibold">
           ✦ Premium
         </span>
-        <h3 className="text-xl font-bold mt-3 mb-2 bg-gradient-to-r from-white via-pink-200 to-purple-300 bg-clip-text text-transparent">
+        <h3 className="text-xl font-bold mt-3 mb-2 text-ink">
           You've hit today's AI limit
         </h3>
-        <p className="text-sm text-gray-400 mb-5">
+        <p className="text-sm text-ink-mute mb-5">
           Free is capped at {FREE_AI_LIMIT} Fix My Skin replies per day. Premium uncaps it — and unlocks longer progress views too.
         </p>
         <div className="flex items-center gap-3">
           <a
             href="/profile"
-            className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/20"
+            className="bg-accent text-paper font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition shadow-lg"
           >
             Upgrade
           </a>
-          <button onClick={onClose} className="text-sm text-gray-400 hover:text-white transition">
+          <button onClick={onClose} className="text-sm text-ink-mute hover:text-ink transition">
             Maybe later
           </button>
         </div>
@@ -915,25 +915,25 @@ function SkinPhotoPicker({ photoUrl, onChange, userId }) {
 
   return (
     <div className="mb-4">
-      <p className="text-xs text-gray-400 mb-2">Today's photo <span className="text-gray-600">(optional)</span></p>
+      <p className="text-xs text-ink-mute mb-2">Today's photo <span className="text-ink-mute">(optional)</span></p>
       {photoUrl ? (
         <div className="flex items-start gap-4">
-          <div className="w-28 h-28 rounded-2xl overflow-hidden border border-white/10 bg-white/5 flex-shrink-0">
+          <div className="w-28 h-28 rounded-card overflow-hidden border border-rule bg-card flex-shrink-0">
             <img src={photoUrl} alt="Today's skin photo" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col gap-2 mt-1 min-w-0">
-            <label className="cursor-pointer text-xs text-pink-300 hover:text-pink-200 transition">
+            <label className="cursor-pointer text-xs text-accent hover:text-accent transition">
               {uploading ? 'Uploading...' : 'Replace photo'}
               <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
             </label>
-            <label className="cursor-pointer text-xs text-pink-300 hover:text-pink-200 transition">
+            <label className="cursor-pointer text-xs text-accent hover:text-accent transition">
               {uploading ? '...' : '📷 Take new selfie'}
               <input type="file" accept="image/*" capture="user" onChange={handleFile} className="hidden" disabled={uploading} />
             </label>
             <button
               type="button"
               onClick={() => onChange('')}
-              className="text-xs text-gray-500 hover:text-rose-300 transition text-left"
+              className="text-xs text-ink-mute hover:text-warn transition text-left"
               disabled={uploading}
             >
               Remove photo
@@ -942,15 +942,15 @@ function SkinPhotoPicker({ photoUrl, onChange, userId }) {
         </div>
       ) : (
         <div className="flex flex-wrap gap-3">
-          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-2xl py-5 text-sm transition ${
-            uploading ? 'border-white/10 text-gray-500' : 'border-white/20 text-gray-400 hover:border-pink-500/40 hover:text-white'
+          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-card py-5 text-sm transition ${
+            uploading ? 'border-rule text-ink-mute' : 'border-rule text-ink-mute hover:border-accent hover:text-ink'
           }`}>
             <span className="text-lg">🖼️</span>
             <span>{uploading ? 'Uploading...' : 'Choose photo'}</span>
             <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
           </label>
-          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-2xl py-5 text-sm transition ${
-            uploading ? 'border-white/10 text-gray-500' : 'border-white/20 text-gray-400 hover:border-pink-500/40 hover:text-white'
+          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-card py-5 text-sm transition ${
+            uploading ? 'border-rule text-ink-mute' : 'border-rule text-ink-mute hover:border-accent hover:text-ink'
           }`}>
             <span className="text-lg">📷</span>
             <span>{uploading ? 'Uploading...' : 'Take selfie'}</span>
@@ -958,7 +958,7 @@ function SkinPhotoPicker({ photoUrl, onChange, userId }) {
           </label>
         </div>
       )}
-      {error && <p className="text-xs text-rose-300 mt-2">{error}</p>}
+      {error && <p className="text-xs text-warn mt-2">{error}</p>}
     </div>
   )
 }

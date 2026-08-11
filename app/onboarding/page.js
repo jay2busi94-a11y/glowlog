@@ -104,22 +104,22 @@ export default function Onboarding() {
   }
 
   return (
-    <main className="min-h-screen bg-[#080808] text-white px-4 py-12 safe-pad-top overflow-hidden" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 3rem)' }}>
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-pink-500/15 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-150px] right-[-100px] w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
+    <main className="min-h-screen bg-paper text-ink px-4 py-12 safe-pad-top overflow-hidden" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 3rem)' }}>
+      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-150px] right-[-100px] w-[400px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="relative z-10 max-w-2xl mx-auto">
 
         {/* Brand + progress */}
         <div className="flex items-center justify-between mb-10">
-          <span className="text-xl font-bold bg-gradient-to-r from-white via-pink-200 to-purple-300 bg-clip-text text-transparent">
+          <span className="text-xl font-bold text-ink">
             GlowLog
           </span>
-          <span className="text-xs text-gray-500">Step {stepIdx + 1} of {STEPS.length}</span>
+          <span className="text-xs text-ink-mute">Step {stepIdx + 1} of {STEPS.length}</span>
         </div>
-        <div className="h-1 bg-white/5 rounded-full mb-10 overflow-hidden">
+        <div className="h-1 bg-card rounded-full mb-10 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-pink-500 to-purple-500 transition-all duration-300"
+            className="h-full bg-accent transition-all duration-300"
             style={{ width: `${((stepIdx + 1) / STEPS.length) * 100}%` }}
           />
         </div>
@@ -127,7 +127,7 @@ export default function Onboarding() {
         {/* Step header */}
         <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold mb-2">{step.title}</h1>
-          <p className="text-gray-400">{step.subtitle}</p>
+          <p className="text-ink-mute">{step.subtitle}</p>
         </div>
 
         {/* Step body */}
@@ -139,16 +139,16 @@ export default function Onboarding() {
                 <button
                   key={t.key}
                   onClick={() => setSkinType(t.key)}
-                  className={`flex items-center gap-3 text-left p-4 rounded-2xl border transition ${
+                  className={`flex items-center gap-3 text-left p-4 rounded-card border transition ${
                     active
-                      ? 'bg-pink-500/10 border-pink-500/50 shadow-md shadow-pink-500/10'
-                      : 'bg-white/5 border-white/10 hover:border-white/30'
+                      ? 'bg-accent/10 border-accent shadow-md '
+                      : 'bg-card border-rule hover:border-rule'
                   }`}
                 >
                   <span className="text-3xl flex-shrink-0">{t.emoji}</span>
                   <div className="min-w-0">
-                    <p className={`font-semibold ${active ? 'text-white' : 'text-gray-200'}`}>{t.label}</p>
-                    <p className="text-xs text-gray-400">{t.body}</p>
+                    <p className={`font-semibold ${active ? 'text-ink' : 'text-ink-mute'}`}>{t.label}</p>
+                    <p className="text-xs text-ink-mute">{t.body}</p>
                   </div>
                 </button>
               )
@@ -166,8 +166,8 @@ export default function Onboarding() {
                   onClick={() => toggleConcern(c)}
                   className={`text-sm px-4 py-2.5 rounded-full border transition ${
                     active
-                      ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 border-pink-500/40 text-white'
-                      : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'
+                      ? 'bg-accent/10 border-accent text-ink'
+                      : 'bg-card border-rule text-ink-mute hover:text-ink hover:border-rule'
                   }`}
                 >
                   {active ? '✓ ' : ''}{c}
@@ -185,10 +185,10 @@ export default function Onboarding() {
                 <button
                   key={r.key}
                   onClick={() => setAgeRange(r.key)}
-                  className={`p-4 rounded-2xl border transition text-sm font-semibold ${
+                  className={`p-4 rounded-card border transition text-sm font-semibold ${
                     active
-                      ? 'bg-pink-500/10 border-pink-500/50 text-white shadow-md shadow-pink-500/10'
-                      : 'bg-white/5 border-white/10 text-gray-300 hover:border-white/30'
+                      ? 'bg-accent/10 border-accent text-ink shadow-md '
+                      : 'bg-card border-rule text-ink hover:border-rule'
                   }`}
                 >
                   {r.label}
@@ -206,16 +206,16 @@ export default function Onboarding() {
                 <button
                   key={e.key}
                   onClick={() => setExperience(e.key)}
-                  className={`flex items-center gap-4 text-left p-4 rounded-2xl border transition ${
+                  className={`flex items-center gap-4 text-left p-4 rounded-card border transition ${
                     active
-                      ? 'bg-pink-500/10 border-pink-500/50 shadow-md shadow-pink-500/10'
-                      : 'bg-white/5 border-white/10 hover:border-white/30'
+                      ? 'bg-accent/10 border-accent shadow-md '
+                      : 'bg-card border-rule hover:border-rule'
                   }`}
                 >
                   <span className="text-3xl flex-shrink-0">{e.emoji}</span>
                   <div className="min-w-0">
-                    <p className={`font-semibold ${active ? 'text-white' : 'text-gray-200'}`}>{e.label}</p>
-                    <p className="text-xs text-gray-400">{e.body}</p>
+                    <p className={`font-semibold ${active ? 'text-ink' : 'text-ink-mute'}`}>{e.label}</p>
+                    <p className="text-xs text-ink-mute">{e.body}</p>
                   </div>
                 </button>
               )
@@ -228,7 +228,7 @@ export default function Onboarding() {
           <button
             onClick={() => setStepIdx(i => Math.max(0, i - 1))}
             disabled={stepIdx === 0 || saving}
-            className="text-sm text-gray-400 hover:text-white transition disabled:opacity-30"
+            className="text-sm text-ink-mute hover:text-ink transition disabled:opacity-30"
           >
             ← Back
           </button>
@@ -236,7 +236,7 @@ export default function Onboarding() {
             <button
               onClick={finish}
               disabled={!canAdvance || saving}
-              className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+              className="bg-accent text-paper font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg"
             >
               {saving ? 'Building your routine...' : '✨ Build my starter routine'}
             </button>
@@ -244,15 +244,15 @@ export default function Onboarding() {
             <button
               onClick={() => setStepIdx(i => Math.min(STEPS.length - 1, i + 1))}
               disabled={!canAdvance}
-              className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+              className="bg-accent text-paper font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg"
             >
               Next →
             </button>
           )}
         </div>
-        {error && <p className="text-xs text-rose-300 mt-3 text-right">{error}</p>}
+        {error && <p className="text-xs text-warn mt-3 text-right">{error}</p>}
 
-        <p className="text-xs text-gray-600 text-center mt-10">
+        <p className="text-xs text-ink-mute text-center mt-10">
           We use these answers to seed your routine — you can change everything later on the Routine page.
         </p>
 

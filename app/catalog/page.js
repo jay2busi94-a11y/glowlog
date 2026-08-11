@@ -234,8 +234,8 @@ export default function Catalog() {
   }
 
   return (
-    <main className="min-h-screen bg-[#080808] text-white px-4 app-page-pad-bottom overflow-hidden">
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
+    <main className="min-h-screen bg-paper text-ink px-4 app-page-pad-bottom overflow-hidden">
+      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
       <AppNavbar />
 
       <div className="relative z-10 max-w-4xl mx-auto app-page-pad-top">
@@ -243,7 +243,7 @@ export default function Catalog() {
         <div className="flex items-end justify-between gap-4 mb-6 flex-wrap">
           <div>
             <h1 className="text-4xl font-bold mb-2">Your Catalog 🧴</h1>
-            <p className="text-gray-400">Track every product you own. Link them to routine steps to remember what works.</p>
+            <p className="text-ink-mute">Track every product you own. Link them to routine steps to remember what works.</p>
           </div>
           {editing === null && (
             <div className="flex items-center gap-2 flex-wrap">
@@ -251,8 +251,8 @@ export default function Catalog() {
                 onClick={() => setBatchOpen(v => !v)}
                 className={`border text-sm px-4 py-2.5 rounded-full transition flex items-center gap-2 ${
                   batchOpen
-                    ? 'bg-white/10 border-white/20 text-white'
-                    : 'border-sky-500/30 text-sky-200 hover:bg-sky-500/10 hover:border-sky-500/50'
+                    ? 'bg-card border-rule text-ink'
+                    : 'border-accent text-accent hover:bg-accent/10 hover:border-accent'
                 }`}
               >
                 <span>📦</span>
@@ -262,8 +262,8 @@ export default function Catalog() {
                 onClick={() => setShelfOpen(v => !v)}
                 className={`border text-sm px-4 py-2.5 rounded-full transition flex items-center gap-2 ${
                   shelfOpen
-                    ? 'bg-white/10 border-white/20 text-white'
-                    : 'border-purple-500/30 text-purple-200 hover:bg-purple-500/10 hover:border-purple-500/50'
+                    ? 'bg-card border-rule text-ink'
+                    : 'border-accent text-accent hover:bg-accent/10 hover:border-accent'
                 }`}
               >
                 <span>📸</span>
@@ -273,8 +273,8 @@ export default function Catalog() {
                 onClick={() => setIngredientsOpen(v => !v)}
                 className={`border text-sm px-4 py-2.5 rounded-full transition flex items-center gap-2 ${
                   ingredientsOpen
-                    ? 'bg-white/10 border-white/20 text-white'
-                    : 'border-amber-400/30 text-amber-200 hover:bg-amber-400/10 hover:border-amber-400/50'
+                    ? 'bg-card border-rule text-ink'
+                    : 'border-rule text-ink hover:bg-card hover:border-rule'
                 }`}
               >
                 <span>🔍</span>
@@ -284,8 +284,8 @@ export default function Catalog() {
                 onClick={() => setSuggestOpen(v => !v)}
                 className={`border text-sm px-4 py-2.5 rounded-full transition flex items-center gap-2 ${
                   suggestOpen
-                    ? 'bg-white/10 border-white/20 text-white'
-                    : 'border-pink-500/30 text-pink-200 hover:bg-pink-500/10 hover:border-pink-500/50'
+                    ? 'bg-card border-rule text-ink'
+                    : 'border-accent text-accent hover:bg-accent/10 hover:border-accent'
                 }`}
               >
                 <span>✨</span>
@@ -293,7 +293,7 @@ export default function Catalog() {
               </button>
               <button
                 onClick={startNew}
-                className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/20"
+                className="bg-accent text-paper font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg"
               >
                 + Add product
               </button>
@@ -306,28 +306,28 @@ export default function Catalog() {
           <div className="grid grid-cols-3 gap-3 mb-6">
             <button
               onClick={() => setShowUnusedOnly(false)}
-              className={`text-left bg-white/5 border rounded-2xl p-4 transition ${
-                !showUnusedOnly ? 'border-pink-500/40' : 'border-white/10 hover:border-white/20'
+              className={`text-left bg-card border rounded-card p-4 transition ${
+                !showUnusedOnly ? 'border-accent' : 'border-rule hover:border-rule'
               }`}
             >
-              <p className="text-2xl font-bold text-white">{products.length}</p>
-              <p className="text-xs text-gray-500">Owned</p>
+              <p className="text-2xl font-bold text-ink">{products.length}</p>
+              <p className="text-xs text-ink-mute">Owned</p>
             </button>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-              <p className="text-2xl font-bold text-emerald-300">{inUseCount}</p>
-              <p className="text-xs text-gray-500">In active use</p>
+            <div className="bg-card border border-rule rounded-card p-4">
+              <p className="text-2xl font-bold text-ok">{inUseCount}</p>
+              <p className="text-xs text-ink-mute">In active use</p>
             </div>
             <button
               onClick={() => setShowUnusedOnly(true)}
               disabled={unusedCount === 0}
-              className={`text-left bg-white/5 border rounded-2xl p-4 transition disabled:opacity-50 ${
-                showUnusedOnly ? 'border-amber-400/40' : 'border-white/10 hover:border-white/20'
+              className={`text-left bg-card border rounded-card p-4 transition disabled:opacity-50 ${
+                showUnusedOnly ? 'border-rule' : 'border-rule hover:border-rule'
               }`}
             >
-              <p className="text-2xl font-bold text-amber-300">{unusedCount}</p>
-              <p className="text-xs text-gray-500 flex items-center gap-1">
+              <p className="text-2xl font-bold text-ink">{unusedCount}</p>
+              <p className="text-xs text-ink-mute flex items-center gap-1">
                 Unused
-                {showUnusedOnly && <span className="text-amber-300">· filtering</span>}
+                {showUnusedOnly && <span className="text-ink">· filtering</span>}
               </p>
             </button>
           </div>
@@ -423,14 +423,14 @@ export default function Catalog() {
         )}
 
         {loading ? (
-          <p className="text-gray-500">Loading your catalog...</p>
+          <p className="text-ink-mute">Loading your catalog...</p>
         ) : products.length === 0 && editing === null ? (
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-10 text-center">
-            <p className="text-gray-300 mb-2">No products yet ✨</p>
-            <p className="text-gray-500 text-sm mb-6">Add the cleansers, serums, and creams you actually use, and you'll be able to link them to your routine.</p>
+          <div className="bg-card border border-rule rounded-card p-10 text-center">
+            <p className="text-ink mb-2">No products yet ✨</p>
+            <p className="text-ink-mute text-sm mb-6">Add the cleansers, serums, and creams you actually use, and you'll be able to link them to your routine.</p>
             <button
               onClick={startNew}
-              className="inline-block bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/20"
+              className="inline-block bg-accent text-paper font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg"
             >
               + Add your first product
             </button>
@@ -445,8 +445,8 @@ export default function Catalog() {
                     onClick={() => setFilter(c)}
                     className={`text-xs px-3 py-1.5 rounded-full transition border ${
                       filter === c
-                        ? 'bg-white/15 border-white/30 text-white'
-                        : 'border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                        ? 'bg-card border-rule text-ink'
+                        : 'border-rule text-ink-mute hover:text-ink hover:border-rule'
                     }`}
                   >
                     {c}
@@ -459,35 +459,35 @@ export default function Catalog() {
               {visible.map(p => {
                 const inUse = linkedProductIds.has(p.id)
                 return (
-                  <li key={p.id} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden flex flex-col">
+                  <li key={p.id} className="bg-card border border-rule rounded-card overflow-hidden flex flex-col">
                     <ProductPhoto product={p} />
                     <div className="p-5 flex flex-col gap-2 flex-1">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          {p.brand && <p className="text-xs uppercase tracking-wide text-pink-300/80">{p.brand}</p>}
-                          <p className="text-base font-semibold text-white break-words">{p.name}</p>
+                          {p.brand && <p className="text-xs uppercase tracking-wide text-ink-mute">{p.brand}</p>}
+                          <p className="text-base font-semibold text-ink break-words">{p.name}</p>
                         </div>
                         {p.category && (
-                          <span className="flex-shrink-0 text-[10px] uppercase tracking-wide bg-purple-500/15 border border-purple-500/30 text-purple-200 px-2 py-1 rounded-full">
+                          <span className="flex-shrink-0 text-[10px] uppercase tracking-wide bg-accent/10 border border-accent text-ink-mute px-2 py-1 rounded-full">
                             {p.category}
                           </span>
                         )}
                       </div>
                       {!inUse && (
-                        <p className="text-[10px] uppercase tracking-wider text-amber-300/80">Not in any routine yet</p>
+                        <p className="text-[10px] uppercase tracking-wider text-ink">Not in any routine yet</p>
                       )}
-                      {p.notes && <p className="text-sm text-gray-400 break-words whitespace-pre-wrap line-clamp-2">{p.notes}</p>}
+                      {p.notes && <p className="text-sm text-ink-mute break-words whitespace-pre-wrap line-clamp-2">{p.notes}</p>}
                       <button
                         onClick={() => setOpenProductId(p.id)}
-                        className="self-start mt-1 text-xs bg-white/5 border border-white/15 text-gray-200 hover:border-pink-500/40 hover:text-white px-3 py-1.5 rounded-full transition"
+                        className="self-start mt-1 text-xs bg-card border border-rule text-ink hover:border-accent hover:text-ink px-3 py-1.5 rounded-full transition"
                       >
                         How to use →
                       </button>
-                      <div className="flex gap-3 mt-auto pt-3 border-t border-white/5 text-xs">
-                        <button onClick={() => startEdit(p)} className="text-pink-300 hover:text-pink-200 transition">
+                      <div className="flex gap-3 mt-auto pt-3 border-t border-rule text-xs">
+                        <button onClick={() => startEdit(p)} className="text-accent hover:text-accent transition">
                           Edit
                         </button>
-                        <button onClick={() => remove(p.id)} className="text-gray-500 hover:text-rose-400 transition">
+                        <button onClick={() => remove(p.id)} className="text-ink-mute hover:text-warn transition">
                           Delete
                         </button>
                       </div>
@@ -498,7 +498,7 @@ export default function Catalog() {
             </ul>
 
             {visible.length === 0 && (
-              <p className="text-sm text-gray-500 text-center mt-6">No products in {filter}.</p>
+              <p className="text-sm text-ink-mute text-center mt-6">No products in {filter}.</p>
             )}
           </>
         )}
@@ -526,8 +526,8 @@ function ProductForm({ draft, setDraft, saving, onSave, onCancel, isNew, user, v
   }
 
   return (
-    <div className="bg-white/5 border border-pink-500/20 rounded-2xl p-6 mb-8">
-      <h2 className="text-lg font-semibold mb-4 text-pink-300">{isNew ? 'Add product' : 'Edit product'}</h2>
+    <div className="bg-card border border-accent rounded-card p-6 mb-8">
+      <h2 className="text-lg font-semibold mb-4 text-ink">{isNew ? 'Add product' : 'Edit product'}</h2>
       <PhotoPicker
         photoUrl={draft.photo_url}
         onChange={setPhotoUrl}
@@ -541,45 +541,45 @@ function ProductForm({ draft, setDraft, saving, onSave, onCancel, isNew, user, v
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-gray-400">Brand</span>
+          <span className="text-xs text-ink-mute">Brand</span>
           <input
             value={draft.brand}
             onChange={set('brand')}
             placeholder="CeraVe, The Ordinary..."
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition"
+            className="bg-card border border-rule rounded-xl px-4 py-2 text-ink placeholder-ink-mute text-sm focus:outline-none focus:border-accent transition"
           />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-xs text-gray-400">Product name <span className="text-rose-400">*</span></span>
+          <span className="text-xs text-ink-mute">Product name <span className="text-warn">*</span></span>
           <input
             value={draft.name}
             onChange={set('name')}
             placeholder="Hydrating Cleanser"
             required
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition"
+            className="bg-card border border-rule rounded-xl px-4 py-2 text-ink placeholder-ink-mute text-sm focus:outline-none focus:border-accent transition"
           />
         </label>
         <label className="flex flex-col gap-1 sm:col-span-2">
-          <span className="text-xs text-gray-400">Category / usage</span>
+          <span className="text-xs text-ink-mute">Category / usage</span>
           <select
             value={draft.category}
             onChange={set('category')}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-pink-500/30 transition"
+            className="bg-card border border-rule rounded-xl px-4 py-2 text-ink text-sm focus:outline-none focus:border-accent transition"
           >
-            <option value="" className="bg-[#080808]">— pick one —</option>
+            <option value="" className="bg-paper">— pick one —</option>
             {PRODUCT_CATEGORIES.map(c => (
-              <option key={c} value={c} className="bg-[#080808]">{c}</option>
+              <option key={c} value={c} className="bg-paper">{c}</option>
             ))}
           </select>
         </label>
         <label className="flex flex-col gap-1 sm:col-span-2">
-          <span className="text-xs text-gray-400">Notes</span>
+          <span className="text-xs text-ink-mute">Notes</span>
           <textarea
             value={draft.notes}
             onChange={set('notes')}
             placeholder="How it feels, what it's for, ingredients to remember..."
             rows={3}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition resize-none"
+            className="bg-card border border-rule rounded-xl px-4 py-2 text-ink placeholder-ink-mute text-sm focus:outline-none focus:border-accent transition resize-none"
           />
         </label>
       </div>
@@ -587,11 +587,11 @@ function ProductForm({ draft, setDraft, saving, onSave, onCancel, isNew, user, v
         <button
           onClick={onSave}
           disabled={saving || !draft.name.trim()}
-          className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-6 py-2 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+          className="bg-accent text-paper font-semibold px-6 py-2 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg"
         >
           {saving ? 'Saving...' : isNew ? 'Add product' : 'Save changes'}
         </button>
-        <button onClick={onCancel} className="text-sm text-gray-400 hover:text-white transition">
+        <button onClick={onCancel} className="text-sm text-ink-mute hover:text-ink transition">
           Cancel
         </button>
       </div>
@@ -689,32 +689,32 @@ function BatchScanPanel({ user, premium, visionCount, atLimit, onClose, onInsert
   const readyCount = items.filter(it => (it.status === 'ready' || it.status === 'edited') && it.name.trim()).length
 
   return (
-    <div className="relative bg-gradient-to-br from-sky-500/10 via-cyan-500/10 to-blue-500/5 border border-sky-500/30 rounded-2xl p-6 mb-8 overflow-hidden">
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-sky-500/20 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative bg-accent/10 border border-accent rounded-card p-6 mb-8 overflow-hidden">
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
       <div className="relative">
         <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
           <div>
-            <h2 className="text-xl font-bold bg-gradient-to-r from-white via-sky-200 to-cyan-200 bg-clip-text text-transparent">
+            <h2 className="text-xl font-bold text-ink">
               📦 Batch scan
             </h2>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-ink-mute mt-1">
               Snap one product after another. We scan each as you go — review and save them all at the end.
             </p>
           </div>
-          <button onClick={onClose} className="text-xs text-gray-500 hover:text-white transition">Close</button>
+          <button onClick={onClose} className="text-xs text-ink-mute hover:text-ink transition">Close</button>
         </div>
 
         {/* Primary action — keeps the camera button big and obvious */}
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <label className={`cursor-pointer flex items-center justify-center gap-2 border rounded-2xl py-5 text-sm font-semibold transition ${
-            busy || atLimit ? 'border-white/10 text-gray-500' : 'border-sky-400/40 bg-sky-500/10 text-sky-100 hover:bg-sky-500/15 hover:border-sky-400/60'
+          <label className={`cursor-pointer flex items-center justify-center gap-2 border rounded-card py-5 text-sm font-semibold transition ${
+            busy || atLimit ? 'border-rule text-ink-mute' : 'border-accent bg-accent/10 text-accent hover:bg-accent/10 hover:border-accent'
           }`}>
             <span className="text-2xl">📷</span>
             <span>{busy ? 'Scanning...' : atLimit ? '✦ Limit hit' : 'Snap next product'}</span>
             <input type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" disabled={busy || atLimit} />
           </label>
-          <label className={`cursor-pointer flex items-center justify-center gap-2 border border-dashed rounded-2xl py-5 text-sm transition ${
-            busy || atLimit ? 'border-white/10 text-gray-500' : 'border-white/20 text-gray-400 hover:border-sky-400/40 hover:text-white'
+          <label className={`cursor-pointer flex items-center justify-center gap-2 border border-dashed rounded-card py-5 text-sm transition ${
+            busy || atLimit ? 'border-rule text-ink-mute' : 'border-rule text-ink-mute hover:border-accent hover:text-ink'
           }`}>
             <span className="text-2xl">🖼️</span>
             <span>{busy ? '...' : 'Or pick from library'}</span>
@@ -724,16 +724,16 @@ function BatchScanPanel({ user, premium, visionCount, atLimit, onClose, onInsert
 
         <div className="flex items-center gap-3 mt-3 flex-wrap text-xs">
           {!premium && (
-            <p className="text-gray-500">{Math.max(0, FREE_VISION_LIMIT - visionCount)} / {FREE_VISION_LIMIT} AI scans left today</p>
+            <p className="text-ink-mute">{Math.max(0, FREE_VISION_LIMIT - visionCount)} / {FREE_VISION_LIMIT} AI scans left today</p>
           )}
           {items.length > 0 && (
-            <p className="text-gray-500">
+            <p className="text-ink-mute">
               {items.length} {items.length === 1 ? 'item' : 'items'} scanned · {readyCount} ready to save
             </p>
           )}
         </div>
 
-        {error && <p className="text-xs text-rose-300 mt-3">{error}</p>}
+        {error && <p className="text-xs text-warn mt-3">{error}</p>}
 
         {/* Scanned items list */}
         {items.length > 0 && (
@@ -754,13 +754,13 @@ function BatchScanPanel({ user, premium, visionCount, atLimit, onClose, onInsert
           <button
             onClick={commitAll}
             disabled={committing}
-            className="mt-6 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+            className="mt-6 bg-accent text-paper font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg"
           >
             {committing ? 'Saving...' : `+ Save ${readyCount} to my catalog`}
           </button>
         )}
         {savedCount > 0 && (
-          <p className="text-sm text-emerald-300 mt-3">
+          <p className="text-sm text-ok mt-3">
             ✓ Added {savedCount} {savedCount === 1 ? 'product' : 'products'}. Keep snapping or close the panel.
           </p>
         )}
@@ -775,19 +775,19 @@ function BatchScanRow({ item, onChange, onRemove }) {
   const isSaved = item.status === 'saved'
 
   return (
-    <li className={`bg-white/5 border rounded-2xl p-3 flex gap-3 ${
-      isFailed ? 'border-rose-400/30' : isSaved ? 'border-emerald-400/30' : 'border-white/10'
+    <li className={`bg-card border rounded-card p-3 flex gap-3 ${
+      isFailed ? 'border-warn' : isSaved ? 'border-ok' : 'border-rule'
     }`}>
-      <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-white/5 border border-white/10">
+      <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-card border border-rule">
         <img src={item.photoUrl} alt="" className="w-full h-full object-cover" />
       </div>
       <div className="flex-1 min-w-0">
         {isSaving ? (
-          <p className="text-xs text-gray-400 mt-6">✨ Reading label...</p>
+          <p className="text-xs text-ink-mute mt-6">✨ Reading label...</p>
         ) : isFailed ? (
           <div>
-            <p className="text-xs text-rose-300">Scan failed: {item.error}</p>
-            <button onClick={onRemove} className="text-xs text-gray-500 hover:text-rose-300 transition mt-2">Remove</button>
+            <p className="text-xs text-warn">Scan failed: {item.error}</p>
+            <button onClick={onRemove} className="text-xs text-ink-mute hover:text-warn transition mt-2">Remove</button>
           </div>
         ) : (
           <div className="flex flex-col gap-1.5">
@@ -797,17 +797,17 @@ function BatchScanRow({ item, onChange, onRemove }) {
                 onChange={e => onChange({ brand: e.target.value })}
                 placeholder="Brand"
                 disabled={isSaved}
-                className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-pink-500/30 disabled:opacity-60"
+                className="flex-1 min-w-0 bg-card border border-rule rounded-lg px-2 py-1 text-xs text-ink placeholder-ink-mute focus:outline-none focus:border-accent disabled:opacity-60"
               />
               <select
                 value={item.category}
                 onChange={e => onChange({ category: e.target.value })}
                 disabled={isSaved}
-                className="w-28 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-pink-500/30 disabled:opacity-60"
+                className="w-28 bg-card border border-rule rounded-lg px-2 py-1 text-xs text-ink focus:outline-none focus:border-accent disabled:opacity-60"
               >
-                <option value="" className="bg-[#080808]">—</option>
+                <option value="" className="bg-paper">—</option>
                 {PRODUCT_CATEGORIES.map(c => (
-                  <option key={c} value={c} className="bg-[#080808]">{c}</option>
+                  <option key={c} value={c} className="bg-paper">{c}</option>
                 ))}
               </select>
             </div>
@@ -816,7 +816,7 @@ function BatchScanRow({ item, onChange, onRemove }) {
               onChange={e => onChange({ name: e.target.value })}
               placeholder="Product name"
               disabled={isSaved}
-              className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-pink-500/30 disabled:opacity-60"
+              className="bg-card border border-rule rounded-lg px-2 py-1 text-xs text-ink placeholder-ink-mute focus:outline-none focus:border-accent disabled:opacity-60"
             />
             <textarea
               value={item.notes}
@@ -824,14 +824,14 @@ function BatchScanRow({ item, onChange, onRemove }) {
               placeholder="Notes / ingredients"
               rows={1}
               disabled={isSaved}
-              className="bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-pink-500/30 resize-none disabled:opacity-60"
+              className="bg-card border border-rule rounded-lg px-2 py-1 text-xs text-ink placeholder-ink-mute focus:outline-none focus:border-accent resize-none disabled:opacity-60"
             />
             <div className="flex items-center justify-between gap-2 mt-0.5">
-              <span className="text-[10px] text-gray-500">
+              <span className="text-[10px] text-ink-mute">
                 {isSaved ? '✓ Saved' : item.confidence === 'high' ? 'High confidence' : item.confidence === 'medium' ? 'Edit before saving' : 'Low confidence — check fields'}
               </span>
               {!isSaved && (
-                <button onClick={onRemove} className="text-[10px] text-gray-500 hover:text-rose-300 transition">Remove</button>
+                <button onClick={onRemove} className="text-[10px] text-ink-mute hover:text-warn transition">Remove</button>
               )}
             </div>
           </div>
@@ -901,17 +901,17 @@ function ShelfScanPanel({ user, premium, visionCount, atLimit, existingProducts,
   const selectedCount = Object.values(selected).filter(Boolean).length
 
   return (
-    <div className="relative bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-fuchsia-500/5 border border-purple-500/30 rounded-2xl p-6 mb-8 overflow-hidden">
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative bg-accent/10 border border-accent rounded-card p-6 mb-8 overflow-hidden">
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
       <div className="relative">
         <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
           <div>
-            <h2 className="text-xl font-bold bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
+            <h2 className="text-xl font-bold text-ink">
               📸 Scan my shelf
             </h2>
-            <p className="text-sm text-gray-400 mt-1">Take a wide photo of your products and we'll add them all at once.</p>
+            <p className="text-sm text-ink-mute mt-1">Take a wide photo of your products and we'll add them all at once.</p>
           </div>
-          <button onClick={onClose} className="text-xs text-gray-500 hover:text-white transition">Close</button>
+          <button onClick={onClose} className="text-xs text-ink-mute hover:text-ink transition">Close</button>
         </div>
 
         <div className="mt-5">
@@ -920,24 +920,24 @@ function ShelfScanPanel({ user, premium, visionCount, atLimit, existingProducts,
 
         <div className="flex items-center gap-3 mt-3 flex-wrap">
           {atLimit ? (
-            <a href="/profile" className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/20">
+            <a href="/profile" className="bg-accent text-paper font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg">
               ✦ Daily limit hit — Upgrade
             </a>
           ) : (
             <button
               onClick={scan}
               disabled={scanning || !photoUrl}
-              className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+              className="bg-accent text-paper font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg"
             >
               {scanning ? 'Reading shelf...' : results.length ? '↻ Scan again' : '✨ Identify products'}
             </button>
           )}
           {!premium && (
-            <p className="text-xs text-gray-500">{Math.max(0, FREE_VISION_LIMIT - visionCount)} / {FREE_VISION_LIMIT} AI scans left today</p>
+            <p className="text-xs text-ink-mute">{Math.max(0, FREE_VISION_LIMIT - visionCount)} / {FREE_VISION_LIMIT} AI scans left today</p>
           )}
         </div>
 
-        {error && <p className="text-xs text-rose-300 mt-3">{error}</p>}
+        {error && <p className="text-xs text-warn mt-3">{error}</p>}
 
         {results.length > 0 && (
           <>
@@ -946,20 +946,20 @@ function ShelfScanPanel({ user, premium, visionCount, atLimit, existingProducts,
                 const key = `${p.brand.toLowerCase()}|${p.name.toLowerCase()}`
                 const inCatalog = existingSet.has(key)
                 return (
-                  <li key={i} className={`bg-white/5 border rounded-2xl p-4 transition ${selected[i] ? 'border-pink-500/40' : 'border-white/10'}`}>
+                  <li key={i} className={`bg-card border rounded-card p-4 transition ${selected[i] ? 'border-accent' : 'border-rule'}`}>
                     <label className="flex items-start gap-3 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={!!selected[i]}
                         onChange={e => setSelected(s => ({ ...s, [i]: e.target.checked }))}
                         disabled={inCatalog}
-                        className="mt-1 accent-pink-500"
+                        className="mt-1 accent-accent"
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] uppercase tracking-wide text-pink-300/80">{p.brand}</p>
-                        <p className="text-sm font-semibold text-white break-words">{p.name}</p>
-                        <p className="text-[10px] text-gray-500 mt-1">{p.category}</p>
-                        {inCatalog && <p className="text-[10px] text-emerald-300 mt-1">Already in your catalog</p>}
+                        <p className="text-[10px] uppercase tracking-wide text-ink-mute">{p.brand}</p>
+                        <p className="text-sm font-semibold text-ink break-words">{p.name}</p>
+                        <p className="text-[10px] text-ink-mute mt-1">{p.category}</p>
+                        {inCatalog && <p className="text-[10px] text-ok mt-1">Already in your catalog</p>}
                       </div>
                     </label>
                   </li>
@@ -968,12 +968,12 @@ function ShelfScanPanel({ user, premium, visionCount, atLimit, existingProducts,
             </ul>
 
             {done > 0 ? (
-              <p className="text-sm text-emerald-300 mt-5">✓ Added {done} {done === 1 ? 'product' : 'products'} to your catalog.</p>
+              <p className="text-sm text-ok mt-5">✓ Added {done} {done === 1 ? 'product' : 'products'} to your catalog.</p>
             ) : (
               <button
                 onClick={addSelected}
                 disabled={adding || selectedCount === 0}
-                className="mt-5 bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+                className="mt-5 bg-accent text-paper font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg"
               >
                 {adding ? 'Adding...' : `+ Add ${selectedCount} to my catalog`}
               </button>
@@ -1018,28 +1018,28 @@ function IngredientCheckPanel({ user, profile, premium, visionCount, atLimit, on
   const warnings = analysis?.ingredients.filter(i => i.status === 'warning') || []
   const neutrals = analysis?.ingredients.filter(i => i.status === 'neutral') || []
   const verdictMeta = {
-    great_match: { label: 'Great match', color: 'from-emerald-400/30 to-emerald-500/20 border-emerald-400/40 text-emerald-200' },
-    okay: { label: 'Worth considering', color: 'from-amber-400/30 to-amber-500/20 border-amber-400/40 text-amber-200' },
-    risky: { label: 'Be careful', color: 'from-rose-400/30 to-rose-500/20 border-rose-400/40 text-rose-200' },
+    great_match: { label: 'Great match', color: 'bg-ok/10 border-ok text-ok' },
+    okay: { label: 'Worth considering', color: 'bg-card border-rule text-ink' },
+    risky: { label: 'Be careful', color: 'bg-warn/10 border-warn text-warn' },
   }
   const verdict = analysis && verdictMeta[analysis.verdict]
 
   return (
-    <div className="relative bg-gradient-to-br from-amber-400/10 via-pink-500/10 to-purple-500/5 border border-amber-400/30 rounded-2xl p-6 mb-8 overflow-hidden">
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative bg-accent/10 border border-rule rounded-card p-6 mb-8 overflow-hidden">
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-card rounded-full blur-3xl pointer-events-none" />
       <div className="relative">
         <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
           <div>
-            <h2 className="text-xl font-bold bg-gradient-to-r from-white via-amber-200 to-pink-200 bg-clip-text text-transparent">
+            <h2 className="text-xl font-bold text-ink">
               🔍 Check ingredients
             </h2>
-            <p className="text-sm text-gray-400 mt-1">Photograph the back-of-bottle ingredient list. We'll flag what's good or risky for your saved concerns.</p>
+            <p className="text-sm text-ink-mute mt-1">Photograph the back-of-bottle ingredient list. We'll flag what's good or risky for your saved concerns.</p>
           </div>
-          <button onClick={onClose} className="text-xs text-gray-500 hover:text-white transition">Close</button>
+          <button onClick={onClose} className="text-xs text-ink-mute hover:text-ink transition">Close</button>
         </div>
 
         {!profile?.concerns?.length && (
-          <p className="text-xs text-amber-200 bg-amber-500/10 border border-amber-300/30 rounded-lg p-3 mt-3">
+          <p className="text-xs text-ink bg-card border border-rule rounded-lg p-3 mt-3">
             You haven't set any concerns on your profile yet — the analysis will be generic. Set concerns on the <a href="/profile" className="underline">profile page</a> for tailored flags.
           </p>
         )}
@@ -1050,31 +1050,31 @@ function IngredientCheckPanel({ user, profile, premium, visionCount, atLimit, on
 
         <div className="flex items-center gap-3 mt-3 flex-wrap">
           {atLimit ? (
-            <a href="/profile" className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/20">
+            <a href="/profile" className="bg-accent text-paper font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg">
               ✦ Daily limit hit — Upgrade
             </a>
           ) : (
             <button
               onClick={check}
               disabled={scanning || !photoUrl}
-              className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+              className="bg-accent text-paper font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg"
             >
               {scanning ? 'Reading label...' : analysis ? '↻ Check again' : '🔍 Analyze ingredients'}
             </button>
           )}
           {!premium && (
-            <p className="text-xs text-gray-500">{Math.max(0, FREE_VISION_LIMIT - visionCount)} / {FREE_VISION_LIMIT} AI scans left today</p>
+            <p className="text-xs text-ink-mute">{Math.max(0, FREE_VISION_LIMIT - visionCount)} / {FREE_VISION_LIMIT} AI scans left today</p>
           )}
         </div>
 
-        {error && <p className="text-xs text-rose-300 mt-3">{error}</p>}
+        {error && <p className="text-xs text-warn mt-3">{error}</p>}
 
         {analysis && (
           <div className="mt-6 flex flex-col gap-4">
             {verdict && (
-              <div className={`bg-gradient-to-br ${verdict.color} border rounded-2xl p-4`}>
+              <div className={`${verdict.color} border rounded-card p-4`}>
                 <p className="text-[10px] uppercase tracking-wider font-bold mb-1">{verdict.label}</p>
-                <p className="text-sm text-white leading-relaxed">{analysis.summary}</p>
+                <p className="text-sm text-ink leading-relaxed">{analysis.summary}</p>
               </div>
             )}
 
@@ -1096,25 +1096,25 @@ function IngredientCheckPanel({ user, profile, premium, visionCount, atLimit, on
 
 function IngredientGroup({ title, color, items }) {
   const styles = {
-    emerald: 'border-emerald-400/30 bg-emerald-500/5',
-    rose: 'border-rose-400/30 bg-rose-500/5',
-    slate: 'border-white/10 bg-white/5',
+    emerald: 'border-ok bg-ok/10',
+    rose: 'border-warn bg-warn/10',
+    slate: 'border-rule bg-card',
   }[color]
   const dot = {
-    emerald: 'bg-emerald-400',
-    rose: 'bg-rose-400',
+    emerald: 'bg-ok/10',
+    rose: 'bg-warn/10',
     slate: 'bg-gray-400',
   }[color]
   return (
-    <div className={`border rounded-2xl p-4 ${styles}`}>
-      <p className="text-xs uppercase tracking-wide text-gray-400 mb-3">{title}</p>
+    <div className={`border rounded-card p-4 ${styles}`}>
+      <p className="text-xs uppercase tracking-wide text-ink-mute mb-3">{title}</p>
       <ul className="flex flex-col gap-2">
         {items.map((i, idx) => (
           <li key={idx} className="flex gap-3">
             <span className={`w-2 h-2 rounded-full ${dot} flex-shrink-0 mt-1.5`} />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-white">{i.name}</p>
-              {i.reason && <p className="text-xs text-gray-400 leading-relaxed mt-0.5">{i.reason}</p>}
+              <p className="text-sm font-semibold text-ink">{i.name}</p>
+              {i.reason && <p className="text-xs text-ink-mute leading-relaxed mt-0.5">{i.reason}</p>}
             </div>
           </li>
         ))}
@@ -1127,21 +1127,21 @@ function VisionUpgradeNudge({ onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <div onClick={(e) => e.stopPropagation()} className="relative bg-[#0e0e0e] border border-pink-500/30 rounded-2xl w-full max-w-sm p-6 shadow-2xl shadow-pink-500/20">
-        <span className="text-[10px] uppercase tracking-wider bg-gradient-to-r from-amber-400/30 to-pink-400/30 border border-amber-300/40 text-amber-200 px-2 py-0.5 rounded-full font-semibold">
+      <div onClick={(e) => e.stopPropagation()} className="relative bg-card border border-accent rounded-card w-full max-w-sm p-6 shadow-2xl">
+        <span className="text-[10px] uppercase tracking-wider bg-accent/10 border border-rule text-ink px-2 py-0.5 rounded-full font-semibold">
           ✦ Premium
         </span>
-        <h3 className="text-xl font-bold mt-3 mb-2 bg-gradient-to-r from-white via-pink-200 to-purple-300 bg-clip-text text-transparent">
+        <h3 className="text-xl font-bold mt-3 mb-2 text-ink">
           You've hit today's AI scan limit
         </h3>
-        <p className="text-sm text-gray-400 mb-5">
+        <p className="text-sm text-ink-mute mb-5">
           Free is capped at {FREE_VISION_LIMIT} AI photo scans per day (across label, shelf, and ingredient scans). Premium uncaps them all.
         </p>
         <div className="flex items-center gap-3">
-          <a href="/profile" className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/20">
+          <a href="/profile" className="bg-accent text-paper font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition shadow-lg">
             Upgrade
           </a>
-          <button onClick={onClose} className="text-sm text-gray-400 hover:text-white transition">
+          <button onClick={onClose} className="text-sm text-ink-mute hover:text-ink transition">
             Maybe later
           </button>
         </div>
@@ -1153,7 +1153,7 @@ function VisionUpgradeNudge({ onClose }) {
 function ProductPhoto({ product }) {
   if (product.photo_url) {
     return (
-      <div className="aspect-[4/3] w-full bg-white/5 border-b border-white/10 overflow-hidden">
+      <div className="aspect-[4/3] w-full bg-card border-b border-rule overflow-hidden">
         <img
           src={ikProductCard(product.photo_url)}
           alt={product.name}
@@ -1168,8 +1168,8 @@ function ProductPhoto({ product }) {
     (product.brand?.[0] || '') + (product.name?.[0] || '')
   ).toUpperCase() || '✨'
   return (
-    <div className="aspect-[4/3] w-full bg-gradient-to-br from-pink-500/15 via-purple-500/10 to-amber-400/5 border-b border-white/10 flex items-center justify-center">
-      <span className="text-5xl font-bold bg-gradient-to-r from-pink-200 via-purple-200 to-amber-200 bg-clip-text text-transparent">
+    <div className="aspect-[4/3] w-full bg-accent/10 border-b border-rule flex items-center justify-center">
+      <span className="text-5xl font-bold text-ink">
         {initials}
       </span>
     </div>
@@ -1229,13 +1229,13 @@ function PhotoPicker({ photoUrl, onChange, userId, scanEnabled, onScan, atLimit,
 
   return (
     <div className="mb-5">
-      <p className="text-xs text-gray-400 mb-2">Photo</p>
+      <p className="text-xs text-ink-mute mb-2">Photo</p>
       {photoUrl ? (
         <div className="flex items-start gap-4">
           <img
             src={photoUrl}
             alt="Product"
-            className="w-28 h-28 rounded-2xl object-cover border border-white/10 bg-white/5"
+            className="w-28 h-28 rounded-card object-cover border border-rule bg-card"
           />
           <div className="flex flex-col gap-2 mt-1 min-w-0">
             {scanEnabled && (
@@ -1243,43 +1243,43 @@ function PhotoPicker({ photoUrl, onChange, userId, scanEnabled, onScan, atLimit,
                 type="button"
                 onClick={scan}
                 disabled={scanning || uploading}
-                className="self-start bg-gradient-to-r from-pink-500 to-purple-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full hover:opacity-90 transition disabled:opacity-40 shadow-md shadow-pink-500/20"
+                className="self-start bg-accent text-paper text-xs font-semibold px-3 py-1.5 rounded-full hover:opacity-90 transition disabled:opacity-40 shadow-md"
               >
                 {scanning ? 'Reading label...' : atLimit ? '✦ Daily limit — Upgrade' : '✨ Scan label with AI'}
               </button>
             )}
-            <label className="cursor-pointer text-xs text-pink-300 hover:text-pink-200 transition">
+            <label className="cursor-pointer text-xs text-accent hover:text-accent transition">
               {uploading ? 'Uploading...' : 'Replace photo'}
               <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
             </label>
-            <label className="cursor-pointer text-xs text-pink-300 hover:text-pink-200 transition">
+            <label className="cursor-pointer text-xs text-accent hover:text-accent transition">
               {uploading ? '...' : '📷 Take new photo'}
               <input type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" disabled={uploading} />
             </label>
             <button
               type="button"
               onClick={() => onChange('')}
-              className="text-xs text-gray-500 hover:text-rose-300 transition text-left"
+              className="text-xs text-ink-mute hover:text-warn transition text-left"
               disabled={uploading}
             >
               Remove photo
             </button>
             {scanEnabled && !premium && (
-              <p className="text-[10px] text-gray-500">{Math.max(0, FREE_VISION_LIMIT - visionCount)} / {FREE_VISION_LIMIT} AI scans left today</p>
+              <p className="text-[10px] text-ink-mute">{Math.max(0, FREE_VISION_LIMIT - visionCount)} / {FREE_VISION_LIMIT} AI scans left today</p>
             )}
           </div>
         </div>
       ) : (
         <div className="flex flex-wrap gap-3">
-          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-2xl py-6 text-sm transition ${
-            uploading ? 'border-white/10 text-gray-500' : 'border-white/20 text-gray-400 hover:border-pink-500/40 hover:text-white'
+          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-card py-6 text-sm transition ${
+            uploading ? 'border-rule text-ink-mute' : 'border-rule text-ink-mute hover:border-accent hover:text-ink'
           }`}>
             <span className="text-lg">🖼️</span>
             <span>{uploading ? 'Uploading...' : 'Choose photo'}</span>
             <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
           </label>
-          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-2xl py-6 text-sm transition ${
-            uploading ? 'border-white/10 text-gray-500' : 'border-white/20 text-gray-400 hover:border-pink-500/40 hover:text-white'
+          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-card py-6 text-sm transition ${
+            uploading ? 'border-rule text-ink-mute' : 'border-rule text-ink-mute hover:border-accent hover:text-ink'
           }`}>
             <span className="text-lg">📷</span>
             <span>{uploading ? 'Uploading...' : 'Take photo'}</span>
@@ -1287,7 +1287,7 @@ function PhotoPicker({ photoUrl, onChange, userId, scanEnabled, onScan, atLimit,
           </label>
         </div>
       )}
-      {error && <p className="text-xs text-rose-300 mt-2">{error}</p>}
+      {error && <p className="text-xs text-warn mt-2">{error}</p>}
     </div>
   )
 }
@@ -1343,43 +1343,43 @@ function SuggestPanel({ profile, premium, suggestCount, atLimit, existingProduct
   }
 
   return (
-    <div className="relative bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-amber-400/5 border border-pink-500/30 rounded-2xl p-6 mb-8 overflow-hidden">
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-pink-500/20 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative bg-accent/10 border border-accent rounded-card p-6 mb-8 overflow-hidden">
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
       <div className="relative">
         <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
           <div>
-            <h2 className="text-xl font-bold bg-gradient-to-r from-white via-pink-200 to-purple-300 bg-clip-text text-transparent">
+            <h2 className="text-xl font-bold text-ink">
               ✨ Pick products for me
             </h2>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-ink-mute mt-1">
               We'll match real products to your skin type, age, and concerns from your profile.
             </p>
           </div>
-          <button onClick={onClose} className="text-xs text-gray-500 hover:text-white transition">Close</button>
+          <button onClick={onClose} className="text-xs text-ink-mute hover:text-ink transition">Close</button>
         </div>
 
         {!profile?.skin_type && !profile?.concerns?.length && (
-          <p className="text-xs text-amber-200 bg-amber-500/10 border border-amber-300/30 rounded-lg p-3 mt-3">
+          <p className="text-xs text-ink bg-card border border-rule rounded-lg p-3 mt-3">
             Heads up — your profile doesn't have a skin type or concerns yet, so suggestions will be generic. Set them on the <a href="/profile" className="underline">profile page</a> for better results.
           </p>
         )}
 
         {/* Budget pills */}
         <div className="mt-5">
-          <p className="text-xs uppercase tracking-wide text-pink-300/70 mb-2">Budget</p>
+          <p className="text-xs uppercase tracking-wide text-ink-mute mb-2">Budget</p>
           <div className="flex flex-wrap gap-2">
             {BUDGETS.map(b => (
               <button
                 key={b.key}
                 onClick={() => setBudget(b.key)}
-                className={`text-left px-4 py-2 rounded-2xl border transition ${
+                className={`text-left px-4 py-2 rounded-card border transition ${
                   budget === b.key
-                    ? 'bg-pink-500/15 border-pink-500/40 text-white'
-                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'
+                    ? 'bg-accent/10 border-accent text-ink'
+                    : 'bg-card border-rule text-ink-mute hover:text-ink hover:border-rule'
                 }`}
               >
                 <p className="text-sm font-semibold">{b.label}</p>
-                <p className="text-[10px] text-gray-500">{b.hint}</p>
+                <p className="text-[10px] text-ink-mute">{b.hint}</p>
               </button>
             ))}
           </div>
@@ -1390,7 +1390,7 @@ function SuggestPanel({ profile, premium, suggestCount, atLimit, existingProduct
           {atLimit ? (
             <a
               href="/profile"
-              className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg shadow-pink-500/20"
+              className="bg-accent text-paper font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition shadow-lg"
             >
               ✦ Daily limit hit — Upgrade
             </a>
@@ -1398,19 +1398,19 @@ function SuggestPanel({ profile, premium, suggestCount, atLimit, existingProduct
             <button
               onClick={fetchSuggestions}
               disabled={loading}
-              className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+              className="bg-accent text-paper font-semibold px-5 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg"
             >
               {loading ? 'Thinking...' : suggestions.length ? '↻ Try again' : '✨ Suggest 4 products'}
             </button>
           )}
           {!premium && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-ink-mute">
               {Math.max(0, FREE_SUGGEST_LIMIT - suggestCount)} / {FREE_SUGGEST_LIMIT} suggestions left today
             </p>
           )}
         </div>
 
-        {error && <p className="text-xs text-rose-300 mt-3">{error}</p>}
+        {error && <p className="text-xs text-warn mt-3">{error}</p>}
 
         {suggestions.length > 0 && (
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
@@ -1418,28 +1418,28 @@ function SuggestPanel({ profile, premium, suggestCount, atLimit, existingProduct
               const alreadyOwn = existingNames.has(`${(s.brand || '').toLowerCase()}|${(s.name || '').toLowerCase()}`)
               const added = !!addedIds[i]
               return (
-                <li key={i} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-2">
+                <li key={i} className="bg-card border border-rule rounded-card p-4 flex flex-col gap-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      {s.brand && <p className="text-[10px] uppercase tracking-wide text-pink-300/80">{s.brand}</p>}
-                      <p className="text-sm font-semibold text-white break-words">{s.name}</p>
+                      {s.brand && <p className="text-[10px] uppercase tracking-wide text-ink-mute">{s.brand}</p>}
+                      <p className="text-sm font-semibold text-ink break-words">{s.name}</p>
                     </div>
                     {s.category && (
-                      <span className="flex-shrink-0 text-[10px] uppercase tracking-wide bg-purple-500/15 border border-purple-500/30 text-purple-200 px-2 py-1 rounded-full">
+                      <span className="flex-shrink-0 text-[10px] uppercase tracking-wide bg-accent/10 border border-accent text-ink-mute px-2 py-1 rounded-full">
                         {s.category}
                       </span>
                     )}
                   </div>
-                  {s.why && <p className="text-xs text-gray-400 leading-relaxed">{s.why}</p>}
-                  <div className="mt-1 pt-3 border-t border-white/5">
+                  {s.why && <p className="text-xs text-ink-mute leading-relaxed">{s.why}</p>}
+                  <div className="mt-1 pt-3 border-t border-rule">
                     {added ? (
-                      <span className="text-xs text-emerald-300">✓ Added to your catalog</span>
+                      <span className="text-xs text-ok">✓ Added to your catalog</span>
                     ) : alreadyOwn ? (
-                      <span className="text-xs text-gray-500">Already in your catalog</span>
+                      <span className="text-xs text-ink-mute">Already in your catalog</span>
                     ) : (
                       <button
                         onClick={() => add(i, s)}
-                        className="text-xs text-pink-300 hover:text-pink-200 transition"
+                        className="text-xs text-accent hover:text-accent transition"
                       >
                         + Add to my catalog
                       </button>
@@ -1507,7 +1507,7 @@ function ProductDetailModal({
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative bg-[#0e0e0e] border border-white/10 rounded-2xl w-full max-w-lg my-auto overflow-hidden shadow-2xl shadow-pink-500/10"
+        className="relative bg-card border border-rule rounded-card w-full max-w-lg my-auto overflow-hidden shadow-2xl"
       >
         {/* Header w/ photo */}
         <div className="relative">
@@ -1516,15 +1516,15 @@ function ProductDetailModal({
               <img src={ikProductDetail(product.photo_url)} alt={product.name} className="w-full h-full object-cover" />
             </div>
           ) : (
-            <div className="aspect-[16/9] w-full bg-gradient-to-br from-pink-500/15 via-purple-500/10 to-amber-400/5 flex items-center justify-center">
-              <span className="text-6xl font-bold bg-gradient-to-r from-pink-200 via-purple-200 to-amber-200 bg-clip-text text-transparent">
+            <div className="aspect-[16/9] w-full bg-accent/10 flex items-center justify-center">
+              <span className="text-6xl font-bold text-ink">
                 {((product.brand?.[0] || '') + (product.name?.[0] || '')).toUpperCase() || '✨'}
               </span>
             </div>
           )}
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur text-white text-sm hover:bg-black/60 transition"
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur text-ink text-sm hover:bg-black/60 transition"
             aria-label="Close"
           >
             ✕
@@ -1533,10 +1533,10 @@ function ProductDetailModal({
 
         <div className="p-6 flex flex-col gap-5 max-h-[70vh] overflow-y-auto">
           <div>
-            {product.brand && <p className="text-xs uppercase tracking-wide text-pink-300/80">{product.brand}</p>}
-            <h2 className="text-xl font-bold text-white mt-0.5">{product.name}</h2>
+            {product.brand && <p className="text-xs uppercase tracking-wide text-ink-mute">{product.brand}</p>}
+            <h2 className="text-xl font-bold text-ink mt-0.5">{product.name}</h2>
             {product.category && (
-              <span className="inline-block mt-2 text-[10px] uppercase tracking-wide bg-purple-500/15 border border-purple-500/30 text-purple-200 px-2 py-1 rounded-full">
+              <span className="inline-block mt-2 text-[10px] uppercase tracking-wide bg-accent/10 border border-accent text-ink-mute px-2 py-1 rounded-full">
                 {product.category}
               </span>
             )}
@@ -1544,22 +1544,22 @@ function ProductDetailModal({
 
           {/* Where it's used */}
           <section>
-            <p className="text-[10px] uppercase tracking-wide text-pink-300/80 mb-2">Where you use it</p>
+            <p className="text-[10px] uppercase tracking-wide text-ink-mute mb-2">Where you use it</p>
             {usage.length > 0 ? (
               <ul className="flex flex-col gap-2">
                 {usage.map((u, i) => (
-                  <li key={i} className="flex items-center justify-between gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm">
-                    <span className="text-gray-200">{u.routineName} <span className="text-gray-500">·</span> <span className="text-gray-400">{u.stepName}</span></span>
+                  <li key={i} className="flex items-center justify-between gap-2 bg-card border border-rule rounded-xl px-3 py-2 text-sm">
+                    <span className="text-ink">{u.routineName} <span className="text-ink-mute">·</span> <span className="text-ink-mute">{u.stepName}</span></span>
                   </li>
                 ))}
                 <li>
-                  <button onClick={() => onUnlink(product)} className="text-xs text-gray-500 hover:text-rose-300 transition">
+                  <button onClick={() => onUnlink(product)} className="text-xs text-ink-mute hover:text-warn transition">
                     Remove from all routines
                   </button>
                 </li>
               </ul>
             ) : (
-              <p className="text-sm text-amber-300/90 bg-amber-500/5 border border-amber-300/20 rounded-xl px-3 py-2">
+              <p className="text-sm text-ink bg-card border border-rule rounded-xl px-3 py-2">
                 Not in any routine yet.
               </p>
             )}
@@ -1569,8 +1569,8 @@ function ProductDetailModal({
                 disabled={inMorning}
                 className={`text-xs px-3 py-1.5 rounded-full border transition ${
                   inMorning
-                    ? 'border-white/10 text-gray-500 cursor-default'
-                    : 'border-pink-500/30 text-pink-200 hover:bg-pink-500/10 hover:border-pink-500/50'
+                    ? 'border-rule text-ink-mute cursor-default'
+                    : 'border-accent text-accent hover:bg-accent/10 hover:border-accent'
                 }`}
               >
                 {inMorning ? '✓ In Morning' : '+ Add to Morning'}
@@ -1580,8 +1580,8 @@ function ProductDetailModal({
                 disabled={inNight}
                 className={`text-xs px-3 py-1.5 rounded-full border transition ${
                   inNight
-                    ? 'border-white/10 text-gray-500 cursor-default'
-                    : 'border-purple-500/30 text-purple-200 hover:bg-purple-500/10 hover:border-purple-500/50'
+                    ? 'border-rule text-ink-mute cursor-default'
+                    : 'border-accent text-accent hover:bg-accent/10 hover:border-accent'
                 }`}
               >
                 {inNight ? '✓ In Night' : '+ Add to Night'}
@@ -1592,18 +1592,18 @@ function ProductDetailModal({
           {/* AI personalized tip */}
           <section>
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[10px] uppercase tracking-wide text-pink-300/80">For you</p>
+              <p className="text-[10px] uppercase tracking-wide text-ink-mute">For you</p>
               {tip && !premium && (
-                <span className="text-[10px] text-gray-500">cached — no extra cost</span>
+                <span className="text-[10px] text-ink-mute">cached — no extra cost</span>
               )}
             </div>
             {tip ? (
-              <div className="bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-amber-400/5 border border-pink-500/20 rounded-xl p-4">
-                <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">{tip}</p>
+              <div className="bg-accent/10 border border-accent rounded-xl p-4">
+                <p className="text-sm text-ink leading-relaxed whitespace-pre-wrap">{tip}</p>
                 <button
                   onClick={generateTip}
                   disabled={tipLoading}
-                  className="mt-3 text-[11px] text-gray-500 hover:text-pink-200 transition disabled:opacity-50"
+                  className="mt-3 text-[11px] text-ink-mute hover:text-accent transition disabled:opacity-50"
                 >
                   {tipLoading ? 'Refreshing...' : '↻ Regenerate'}
                 </button>
@@ -1613,36 +1613,36 @@ function ProductDetailModal({
                 <button
                   onClick={generateTip}
                   disabled={tipLoading}
-                  className="bg-gradient-to-r from-pink-500 to-purple-500 text-white text-sm font-semibold px-4 py-2 rounded-full hover:opacity-90 transition disabled:opacity-40 shadow-md shadow-pink-500/20"
+                  className="bg-accent text-paper text-sm font-semibold px-4 py-2 rounded-full hover:opacity-90 transition disabled:opacity-40 shadow-md"
                 >
                   {tipLoading ? 'Thinking...' : suggestAtLimit ? '✦ Daily limit — Upgrade' : '✨ Get a personalized tip'}
                 </button>
-                <p className="text-[10px] text-gray-500 mt-2">
+                <p className="text-[10px] text-ink-mute mt-2">
                   Claude writes 2-3 sentences tailored to your concerns and skin type.
                 </p>
                 {!premium && (
-                  <p className="text-[10px] text-gray-500 mt-1">{Math.max(0, FREE_SUGGEST_LIMIT - suggestCount)} / {FREE_SUGGEST_LIMIT} AI tips left today</p>
+                  <p className="text-[10px] text-ink-mute mt-1">{Math.max(0, FREE_SUGGEST_LIMIT - suggestCount)} / {FREE_SUGGEST_LIMIT} AI tips left today</p>
                 )}
               </div>
             )}
-            {tipError && <p className="text-xs text-rose-300 mt-2">{tipError}</p>}
+            {tipError && <p className="text-xs text-warn mt-2">{tipError}</p>}
           </section>
 
           {/* What the category does */}
           {stepInfo && (
             <section>
-              <p className="text-[10px] uppercase tracking-wide text-pink-300/80 mb-2">What a {product.category.toLowerCase()} does</p>
-              <div className="bg-white/[0.03] border border-white/10 rounded-xl p-4 text-sm">
-                <p className="text-gray-300 mb-2 leading-relaxed">{stepInfo.what}</p>
-                <p className="text-pink-300/80 text-[10px] uppercase tracking-wide mb-1">When</p>
-                <p className="text-gray-400 leading-relaxed mb-2">{stepInfo.when}</p>
+              <p className="text-[10px] uppercase tracking-wide text-ink-mute mb-2">What a {product.category.toLowerCase()} does</p>
+              <div className="bg-card border border-rule rounded-xl p-4 text-sm">
+                <p className="text-ink mb-2 leading-relaxed">{stepInfo.what}</p>
+                <p className="text-ink-mute text-[10px] uppercase tracking-wide mb-1">When</p>
+                <p className="text-ink-mute leading-relaxed mb-2">{stepInfo.when}</p>
                 {stepInfo.tips?.length > 0 && (
                   <>
-                    <p className="text-pink-300/80 text-[10px] uppercase tracking-wide mb-1">Tips</p>
+                    <p className="text-ink-mute text-[10px] uppercase tracking-wide mb-1">Tips</p>
                     <ul className="flex flex-col gap-1">
                       {stepInfo.tips.map((t, j) => (
-                        <li key={j} className="text-gray-400 flex gap-1.5 leading-relaxed text-xs">
-                          <span className="text-pink-300/60 flex-shrink-0">•</span>
+                        <li key={j} className="text-ink-mute flex gap-1.5 leading-relaxed text-xs">
+                          <span className="text-accent flex-shrink-0">•</span>
                           <span>{t}</span>
                         </li>
                       ))}
@@ -1656,8 +1656,8 @@ function ProductDetailModal({
           {/* Notes */}
           {product.notes && (
             <section>
-              <p className="text-[10px] uppercase tracking-wide text-pink-300/80 mb-2">Your notes</p>
-              <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{product.notes}</p>
+              <p className="text-[10px] uppercase tracking-wide text-ink-mute mb-2">Your notes</p>
+              <p className="text-sm text-ink whitespace-pre-wrap leading-relaxed">{product.notes}</p>
             </section>
           )}
         </div>

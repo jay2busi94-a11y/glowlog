@@ -64,119 +64,119 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#080808] text-white px-4 app-page-pad-bottom overflow-hidden">
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-pink-500/10 rounded-full blur-[120px] pointer-events-none" />
+    <main className="min-h-screen bg-paper text-ink px-4 app-page-pad-bottom overflow-hidden">
+      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
       <AppNavbar />
 
       <div className="relative z-10 max-w-3xl mx-auto app-page-pad-top">
 
         <div className="mb-10">
           <h1 className="text-4xl font-bold mb-2">Settings ⚙️</h1>
-          <p className="text-gray-400">Tune how GlowLog works for you.</p>
+          <p className="text-ink-mute">Tune how GlowLog works for you.</p>
         </div>
 
         {loading ? (
-          <p className="text-gray-500">Loading...</p>
+          <p className="text-ink-mute">Loading...</p>
         ) : (
           <>
             {/* Routine builder mode */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
-              <p className="text-sm font-semibold text-pink-300 mb-1">Routine builder mode</p>
-              <p className="text-xs text-gray-500 mb-5">Pick how much control you want when editing your routines.</p>
+            <div className="bg-card border border-rule rounded-card p-6 mb-6">
+              <p className="text-sm font-semibold text-accent mb-1">Routine builder mode</p>
+              <p className="text-xs text-ink-mute mb-5">Pick how much control you want when editing your routines.</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   onClick={() => setMode(false)}
-                  className={`text-left p-5 rounded-2xl border transition ${
+                  className={`text-left p-5 rounded-card border transition ${
                     !advancedMode
-                      ? 'bg-pink-500/10 border-pink-500/50 shadow-md shadow-pink-500/10'
-                      : 'bg-white/5 border-white/10 hover:border-white/30'
+                      ? 'bg-accent/10 border-accent shadow-md '
+                      : 'bg-card border-rule hover:border-rule'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-2xl">🌱</span>
-                    <p className={`font-semibold ${!advancedMode ? 'text-white' : 'text-gray-200'}`}>Simple</p>
-                    {!advancedMode && <span className="text-[10px] uppercase tracking-wider text-pink-300/80 font-bold">· Active</span>}
+                    <p className={`font-semibold ${!advancedMode ? 'text-ink' : 'text-ink-mute'}`}>Simple</p>
+                    {!advancedMode && <span className="text-[10px] uppercase tracking-wider text-ink-mute font-bold">· Active</span>}
                   </div>
-                  <p className="text-xs text-gray-400">Pick your morning and night steps from a guided checklist. We keep two routines and the order matches how you'd apply them. Good for getting going.</p>
+                  <p className="text-xs text-ink-mute">Pick your morning and night steps from a guided checklist. We keep two routines and the order matches how you'd apply them. Good for getting going.</p>
                 </button>
                 <button
                   onClick={() => setMode(true)}
-                  className={`text-left p-5 rounded-2xl border transition ${
+                  className={`text-left p-5 rounded-card border transition ${
                     advancedMode
-                      ? 'bg-pink-500/10 border-pink-500/50 shadow-md shadow-pink-500/10'
-                      : 'bg-white/5 border-white/10 hover:border-white/30'
+                      ? 'bg-accent/10 border-accent shadow-md '
+                      : 'bg-card border-rule hover:border-rule'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-2xl">🧪</span>
-                    <p className={`font-semibold ${advancedMode ? 'text-white' : 'text-gray-200'}`}>Advanced</p>
-                    {advancedMode && <span className="text-[10px] uppercase tracking-wider text-pink-300/80 font-bold">· Active</span>}
+                    <p className={`font-semibold ${advancedMode ? 'text-ink' : 'text-ink-mute'}`}>Advanced</p>
+                    {advancedMode && <span className="text-[10px] uppercase tracking-wider text-ink-mute font-bold">· Active</span>}
                   </div>
-                  <p className="text-xs text-gray-400">Full editor — unlimited routines, drag-to-reorder, rename steps, add custom ones. Best if you've been doing skincare a while.</p>
+                  <p className="text-xs text-ink-mute">Full editor — unlimited routines, drag-to-reorder, rename steps, add custom ones. Best if you've been doing skincare a while.</p>
                 </button>
               </div>
 
-              <p className="text-xs text-gray-600 mt-4">
+              <p className="text-xs text-ink-mute mt-4">
                 You can switch any time, including from inside the Routine tab. Your saved routines are kept either way.
               </p>
             </div>
 
             {/* Profile visibility */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
-              <p className="text-sm font-semibold text-pink-300 mb-1">Profile visibility</p>
-              <p className="text-xs text-gray-500 mb-5">Who can see your routines and product shelf.</p>
+            <div className="bg-card border border-rule rounded-card p-6 mb-6">
+              <p className="text-sm font-semibold text-accent mb-1">Profile visibility</p>
+              <p className="text-xs text-ink-mute mb-5">Who can see your routines and product shelf.</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   onClick={() => setVisibility(true)}
-                  className={`text-left p-5 rounded-2xl border transition ${
+                  className={`text-left p-5 rounded-card border transition ${
                     publicProfile
-                      ? 'bg-pink-500/10 border-pink-500/50 shadow-md shadow-pink-500/10'
-                      : 'bg-white/5 border-white/10 hover:border-white/30'
+                      ? 'bg-accent/10 border-accent shadow-md '
+                      : 'bg-card border-rule hover:border-rule'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-2xl">🌐</span>
-                    <p className={`font-semibold ${publicProfile ? 'text-white' : 'text-gray-200'}`}>Public</p>
-                    {publicProfile && <span className="text-[10px] uppercase tracking-wider text-pink-300/80 font-bold">· Active</span>}
+                    <p className={`font-semibold ${publicProfile ? 'text-ink' : 'text-ink-mute'}`}>Public</p>
+                    {publicProfile && <span className="text-[10px] uppercase tracking-wider text-ink-mute font-bold">· Active</span>}
                   </div>
-                  <p className="text-xs text-gray-400">Anyone signed in can find your profile, see your routines and product shelf, and follow you. Default.</p>
+                  <p className="text-xs text-ink-mute">Anyone signed in can find your profile, see your routines and product shelf, and follow you. Default.</p>
                 </button>
                 <button
                   onClick={() => setVisibility(false)}
-                  className={`text-left p-5 rounded-2xl border transition ${
+                  className={`text-left p-5 rounded-card border transition ${
                     !publicProfile
-                      ? 'bg-pink-500/10 border-pink-500/50 shadow-md shadow-pink-500/10'
-                      : 'bg-white/5 border-white/10 hover:border-white/30'
+                      ? 'bg-accent/10 border-accent shadow-md '
+                      : 'bg-card border-rule hover:border-rule'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-2xl">🔒</span>
-                    <p className={`font-semibold ${!publicProfile ? 'text-white' : 'text-gray-200'}`}>Private</p>
-                    {!publicProfile && <span className="text-[10px] uppercase tracking-wider text-pink-300/80 font-bold">· Active</span>}
+                    <p className={`font-semibold ${!publicProfile ? 'text-ink' : 'text-ink-mute'}`}>Private</p>
+                    {!publicProfile && <span className="text-[10px] uppercase tracking-wider text-ink-mute font-bold">· Active</span>}
                   </div>
-                  <p className="text-xs text-gray-400">Your name, avatar, and follower counts stay visible so people can still find + follow you. Routines, products, bio, and concerns are hidden.</p>
+                  <p className="text-xs text-ink-mute">Your name, avatar, and follower counts stay visible so people can still find + follow you. Routines, products, bio, and concerns are hidden.</p>
                 </button>
               </div>
 
-              <p className="text-xs text-gray-600 mt-4">
+              <p className="text-xs text-ink-mute mt-4">
                 Changing this takes effect immediately for anyone viewing your profile. Your existing followers are not removed.
               </p>
             </div>
 
-            {saving && <p className="text-[10px] text-gray-500 mb-4">Saving...</p>}
+            {saving && <p className="text-[10px] text-ink-mute mb-4">Saving...</p>}
 
             <DangerZone />
 
-            <a href="/dashboard" className="text-sm text-gray-400 hover:text-white transition">
+            <a href="/dashboard" className="text-sm text-ink-mute hover:text-ink transition">
               ← Back to dashboard
             </a>
 
-            <div className="mt-12 pt-6 border-t border-white/5 flex gap-5 text-xs text-gray-600">
-              <a href="/privacy" className="hover:text-white transition">Privacy</a>
-              <a href="/terms" className="hover:text-white transition">Terms</a>
-              <a href="/about" className="hover:text-white transition">About</a>
+            <div className="mt-12 pt-6 border-t border-rule flex gap-5 text-xs text-ink-mute">
+              <a href="/privacy" className="hover:text-ink transition">Privacy</a>
+              <a href="/terms" className="hover:text-ink transition">Terms</a>
+              <a href="/about" className="hover:text-ink transition">About</a>
             </div>
           </>
         )}
@@ -222,46 +222,46 @@ function DangerZone() {
   }
 
   return (
-    <div className="bg-rose-500/5 border border-rose-500/20 rounded-2xl p-6 mb-6">
-      <p className="text-sm font-semibold text-rose-300 mb-1">Danger zone</p>
-      <p className="text-xs text-gray-500 mb-4">Permanently delete your account, your routines, your product catalog, your skin logs, your photos, and your follows. This cannot be undone.</p>
+    <div className="bg-warn/10 border border-warn rounded-card p-6 mb-6">
+      <p className="text-sm font-semibold text-warn mb-1">Danger zone</p>
+      <p className="text-xs text-ink-mute mb-4">Permanently delete your account, your routines, your product catalog, your skin logs, your photos, and your follows. This cannot be undone.</p>
 
       {!open ? (
         <button
           onClick={() => setOpen(true)}
-          className="text-sm bg-rose-500/10 border border-rose-500/30 text-rose-200 px-5 py-2.5 rounded-full hover:bg-rose-500/15 hover:border-rose-500/50 transition"
+          className="text-sm bg-warn/10 border border-warn text-warn px-5 py-2.5 rounded-full hover:bg-warn/10 hover:border-warn transition"
         >
           Delete account
         </button>
       ) : (
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-rose-200">
-            This is permanent. Type <span className="font-mono bg-rose-500/10 px-2 py-0.5 rounded">DELETE</span> below to confirm.
+          <p className="text-sm text-warn">
+            This is permanent. Type <span className="font-mono bg-warn/10 px-2 py-0.5 rounded">DELETE</span> below to confirm.
           </p>
           <input
             value={confirmText}
             onChange={e => setConfirmText(e.target.value)}
             placeholder="Type DELETE"
-            className="bg-white/5 border border-rose-500/30 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-rose-500/60 transition tracking-wider"
+            className="bg-card border border-warn rounded-xl px-4 py-2.5 text-ink placeholder-ink-mute text-sm focus:outline-none focus:border-warn transition tracking-wider"
             autoFocus
           />
           <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={handleDelete}
               disabled={busy || confirmText.trim().toUpperCase() !== 'DELETE'}
-              className="text-sm bg-rose-500/80 border border-rose-500/50 text-white font-semibold px-5 py-2.5 rounded-full hover:bg-rose-500 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              className="text-sm bg-warn/10 border border-warn text-ink font-semibold px-5 py-2.5 rounded-full hover:bg-warn/10 transition disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {busy ? 'Deleting...' : 'Yes, delete my account'}
             </button>
             <button
               onClick={() => { setOpen(false); setConfirmText(''); setError('') }}
               disabled={busy}
-              className="text-sm text-gray-400 hover:text-white transition disabled:opacity-50"
+              className="text-sm text-ink-mute hover:text-ink transition disabled:opacity-50"
             >
               Cancel
             </button>
           </div>
-          {error && <p className="text-xs text-rose-300 bg-rose-500/5 border border-rose-500/20 rounded-xl p-3">{error}</p>}
+          {error && <p className="text-xs text-warn bg-warn/10 border border-warn rounded-xl p-3">{error}</p>}
         </div>
       )}
     </div>

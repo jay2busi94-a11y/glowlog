@@ -177,24 +177,24 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#080808] text-white px-4 app-page-pad-bottom overflow-hidden">
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-pink-500/10 rounded-full blur-[120px] pointer-events-none" />
+    <main className="min-h-screen bg-paper text-ink px-4 app-page-pad-bottom overflow-hidden">
+      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
       <AppNavbar />
 
       <div className="relative z-10 max-w-3xl mx-auto app-page-pad-top">
 
         <div className="mb-10">
           <h1 className="text-4xl font-bold mb-2">Your Profile ✨</h1>
-          <p className="text-gray-400">Make GlowLog yours. Your concerns help the AI tailor advice to you.</p>
+          <p className="text-ink-mute">Make GlowLog yours. Your concerns help the AI tailor advice to you.</p>
         </div>
 
         {loading ? (
-          <p className="text-gray-500">Loading your profile...</p>
+          <p className="text-ink-mute">Loading your profile...</p>
         ) : (
           <>
             {/* Identity card */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6 flex items-center gap-5">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 border border-white/10 flex items-center justify-center text-4xl shadow-lg shadow-pink-500/10 overflow-hidden">
+            <div className="bg-card border border-rule rounded-card p-6 mb-6 flex items-center gap-5">
+              <div className="w-20 h-20 rounded-full bg-accent/10 border border-rule flex items-center justify-center text-4xl shadow-lg overflow-hidden">
                 {avatarMode === 'photo' && avatarUrl ? (
                   <img src={ikAvatar(avatarUrl, 80)} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -203,15 +203,15 @@ export default function ProfilePage() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-xs uppercase tracking-wide text-pink-300/80">Signed in as</p>
+                  <p className="text-xs uppercase tracking-wide text-ink-mute">Signed in as</p>
                   {isPremium(profile) && (
-                    <span className="text-[10px] uppercase tracking-wider bg-gradient-to-r from-amber-400/30 to-pink-400/30 border border-amber-300/40 text-amber-200 px-2 py-0.5 rounded-full font-semibold">
+                    <span className="text-[10px] uppercase tracking-wider bg-accent/10 border border-rule text-ink px-2 py-0.5 rounded-full font-semibold">
                       ✦ Premium
                     </span>
                   )}
                 </div>
                 <p className="text-lg font-semibold truncate">{displayNameFor({ display_name: displayName }, user)}</p>
-                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                <p className="text-xs text-ink-mute truncate">{user.email}</p>
               </div>
             </div>
 
@@ -229,95 +229,95 @@ export default function ProfilePage() {
             )}
 
             {/* Username */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+            <div className="bg-card border border-rule rounded-card p-6 mb-6">
               <label className="block">
-                <span className="text-sm font-semibold text-pink-300">Username</span>
-                <p className="text-xs text-gray-500 mb-3">Your public handle — used in your profile URL. Letters, numbers, and underscores only. {MIN_USERNAME_LENGTH}–{MAX_USERNAME_LENGTH} characters.</p>
-                <div className={`flex items-center gap-2 bg-white/5 border rounded-xl px-4 py-2.5 transition ${
+                <span className="text-sm font-semibold text-accent">Username</span>
+                <p className="text-xs text-ink-mute mb-3">Your public handle — used in your profile URL. Letters, numbers, and underscores only. {MIN_USERNAME_LENGTH}–{MAX_USERNAME_LENGTH} characters.</p>
+                <div className={`flex items-center gap-2 bg-card border rounded-xl px-4 py-2.5 transition ${
                   usernameStatus === 'taken' || usernameStatus === 'reserved' || usernameStatus === 'too_short'
-                    ? 'border-rose-500/40 focus-within:border-rose-500/60'
+                    ? 'border-warn focus-within:border-warn'
                     : usernameStatus === 'available' && username
-                      ? 'border-emerald-500/40 focus-within:border-emerald-500/60'
-                      : 'border-white/10 focus-within:border-pink-500/30'
+                      ? 'border-ok focus-within:border-ok'
+                      : 'border-rule focus-within:border-accent'
                 }`}>
-                  <span className="text-gray-500 text-sm">@</span>
+                  <span className="text-ink-mute text-sm">@</span>
                   <input
                     value={username}
                     onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                     placeholder="e.g. jayflare"
                     maxLength={MAX_USERNAME_LENGTH}
-                    className="flex-1 bg-transparent text-white placeholder-gray-600 text-sm focus:outline-none"
+                    className="flex-1 bg-transparent text-ink placeholder-ink-mute text-sm focus:outline-none"
                   />
                   {/* Live status indicator */}
                   {username && (
                     <span className="text-xs flex-shrink-0">
-                      {usernameStatus === 'checking' && <span className="text-gray-500">…</span>}
-                      {usernameStatus === 'available' && <span className="text-emerald-300">✓</span>}
+                      {usernameStatus === 'checking' && <span className="text-ink-mute">…</span>}
+                      {usernameStatus === 'available' && <span className="text-ok">✓</span>}
                       {(usernameStatus === 'taken' || usernameStatus === 'reserved' || usernameStatus === 'too_short') && (
-                        <span className="text-rose-300">✗</span>
+                        <span className="text-warn">✗</span>
                       )}
                     </span>
                   )}
                 </div>
                 {usernameMessage && (
                   <p className={`text-xs mt-2 ${
-                    usernameStatus === 'available' ? 'text-emerald-300/80' : 'text-rose-300'
+                    usernameStatus === 'available' ? 'text-ok' : 'text-warn'
                   }`}>
                     {usernameMessage}
                   </p>
                 )}
                 {username && usernameStatus !== 'taken' && usernameStatus !== 'reserved' && usernameStatus !== 'too_short' && (
-                  <p className="text-xs text-gray-600 mt-2">Your profile: glowlog-neon.vercel.app/u/{username}</p>
+                  <p className="text-xs text-ink-mute mt-2">Your profile: glowlog-neon.vercel.app/u/{username}</p>
                 )}
               </label>
             </div>
 
             {/* Display name */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+            <div className="bg-card border border-rule rounded-card p-6 mb-6">
               <label className="block">
-                <span className="text-sm font-semibold text-pink-300">Display name</span>
-                <p className="text-xs text-gray-500 mb-3">What you're called in the app. Leave blank to use your email handle.</p>
+                <span className="text-sm font-semibold text-accent">Display name</span>
+                <p className="text-xs text-ink-mute mb-3">What you're called in the app. Leave blank to use your email handle.</p>
                 <input
                   value={displayName}
                   onChange={e => setDisplayName(e.target.value)}
                   placeholder="e.g. Jay"
                   maxLength={40}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition"
+                  className="w-full bg-card border border-rule rounded-xl px-4 py-2.5 text-ink placeholder-ink-mute text-sm focus:outline-none focus:border-accent transition"
                 />
               </label>
             </div>
 
             {/* Bio */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+            <div className="bg-card border border-rule rounded-card p-6 mb-6">
               <label className="block">
-                <span className="text-sm font-semibold text-pink-300">Bio</span>
-                <p className="text-xs text-gray-500 mb-3">A short line about you. Shows on your public profile.</p>
+                <span className="text-sm font-semibold text-accent">Bio</span>
+                <p className="text-xs text-ink-mute mb-3">A short line about you. Shows on your public profile.</p>
                 <textarea
                   value={bio}
                   onChange={e => setBio(e.target.value)}
                   placeholder="Skin type, current goals, the basics..."
                   rows={3}
                   maxLength={280}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition resize-none"
+                  className="w-full bg-card border border-rule rounded-xl px-4 py-2.5 text-ink placeholder-ink-mute text-sm focus:outline-none focus:border-accent transition resize-none"
                 />
-                <p className="text-[10px] text-gray-600 text-right mt-1">{bio.length}/280</p>
+                <p className="text-[10px] text-ink-mute text-right mt-1">{bio.length}/280</p>
               </label>
             </div>
 
             {/* Avatar */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
+            <div className="bg-card border border-rule rounded-card p-6 mb-6">
               <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
                 <div>
-                  <p className="text-sm font-semibold text-pink-300">Avatar</p>
-                  <p className="text-xs text-gray-500">Upload your own photo or pick an emoji.</p>
+                  <p className="text-sm font-semibold text-accent">Avatar</p>
+                  <p className="text-xs text-ink-mute">Upload your own photo or pick an emoji.</p>
                 </div>
-                <div className="flex gap-1 bg-white/5 border border-white/10 rounded-full p-1">
+                <div className="flex gap-1 bg-card border border-rule rounded-full p-1">
                   <button
                     onClick={() => setAvatarMode('photo')}
                     className={`text-xs px-3 py-1 rounded-full transition ${
                       avatarMode === 'photo'
-                        ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md shadow-pink-500/20'
-                        : 'text-gray-400 hover:text-white'
+                        ? 'bg-accent text-paper shadow-md '
+                        : 'text-ink-mute hover:text-ink'
                     }`}
                   >
                     📷 Photo
@@ -326,8 +326,8 @@ export default function ProfilePage() {
                     onClick={() => setAvatarMode('emoji')}
                     className={`text-xs px-3 py-1 rounded-full transition ${
                       avatarMode === 'emoji'
-                        ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md shadow-pink-500/20'
-                        : 'text-gray-400 hover:text-white'
+                        ? 'bg-accent text-paper shadow-md '
+                        : 'text-ink-mute hover:text-ink'
                     }`}
                   >
                     ✨ Emoji
@@ -349,8 +349,8 @@ export default function ProfilePage() {
                       onClick={() => setAvatar(e)}
                       className={`aspect-square rounded-xl text-2xl flex items-center justify-center border transition ${
                         avatar === e
-                          ? 'bg-pink-500/15 border-pink-500/50 shadow-md shadow-pink-500/20 scale-105'
-                          : 'bg-white/5 border-white/10 hover:border-white/30 hover:scale-105'
+                          ? 'bg-accent/10 border-accent shadow-md  scale-105'
+                          : 'bg-card border-rule hover:border-rule hover:scale-105'
                       }`}
                       aria-label={`Pick ${e}`}
                     >
@@ -362,9 +362,9 @@ export default function ProfilePage() {
             </div>
 
             {/* Concerns */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
-              <p className="text-sm font-semibold text-pink-300">Top skin concerns</p>
-              <p className="text-xs text-gray-500 mb-4">Pick anything that applies. The Fix My Skin AI uses these to give you better advice.</p>
+            <div className="bg-card border border-rule rounded-card p-6 mb-6">
+              <p className="text-sm font-semibold text-accent">Top skin concerns</p>
+              <p className="text-xs text-ink-mute mb-4">Pick anything that applies. The Fix My Skin AI uses these to give you better advice.</p>
               <div className="flex flex-wrap gap-2">
                 {PROFILE_CONCERNS.map(c => {
                   const active = concerns.includes(c)
@@ -374,8 +374,8 @@ export default function ProfilePage() {
                       onClick={() => toggleConcern(c)}
                       className={`text-xs px-4 py-2 rounded-full border transition ${
                         active
-                          ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 border-pink-500/40 text-white'
-                          : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'
+                          ? 'bg-accent/10 border-accent text-ink'
+                          : 'bg-card border-rule text-ink-mute hover:text-ink hover:border-rule'
                       }`}
                     >
                       {active ? '✓ ' : ''}{c}
@@ -391,16 +391,16 @@ export default function ProfilePage() {
                 <button
                   onClick={handleSave}
                   disabled={saving || usernameStatus === 'taken' || usernameStatus === 'too_short' || usernameStatus === 'reserved' || usernameStatus === 'checking'}
-                  className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg shadow-pink-500/20"
+                  className="bg-accent text-paper font-semibold px-6 py-2.5 rounded-full text-sm hover:opacity-90 transition disabled:opacity-40 shadow-lg"
                 >
                   {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save Profile'}
                 </button>
-                <a href="/dashboard" className="text-sm text-gray-400 hover:text-white transition">
+                <a href="/dashboard" className="text-sm text-ink-mute hover:text-ink transition">
                   Back to dashboard
                 </a>
               </div>
               {saveError && (
-                <p className="text-xs text-rose-300 mt-3 bg-rose-500/5 border border-rose-500/20 rounded-xl p-3">
+                <p className="text-xs text-warn mt-3 bg-warn/10 border border-warn rounded-xl p-3">
                   {saveError}
                 </p>
               )}
@@ -431,22 +431,22 @@ function PremiumStatusCard({ profile, onDowngraded }) {
   }
 
   return (
-    <div className="relative bg-gradient-to-br from-amber-400/10 via-pink-500/10 to-purple-500/10 border border-amber-300/30 rounded-2xl p-5 mb-6 overflow-hidden">
-      <div className="absolute -top-12 -right-12 w-40 h-40 bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative bg-accent/10 border border-rule rounded-card p-5 mb-6 overflow-hidden">
+      <div className="absolute -top-12 -right-12 w-40 h-40 bg-card rounded-full blur-3xl pointer-events-none" />
       <div className="relative flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <span className="text-2xl">✦</span>
           <div>
-            <p className="text-sm font-semibold bg-gradient-to-r from-amber-200 via-pink-200 to-purple-200 bg-clip-text text-transparent">
+            <p className="text-sm font-semibold text-ink">
               Premium active
             </p>
-            <p className="text-xs text-gray-400">Unlimited AI, full progress history, early access.</p>
+            <p className="text-xs text-ink-mute">Unlimited AI, full progress history, early access.</p>
           </div>
         </div>
         <button
           onClick={downgrade}
           disabled={downgrading}
-          className="text-xs text-gray-500 hover:text-rose-300 transition disabled:opacity-50"
+          className="text-xs text-ink-mute hover:text-warn transition disabled:opacity-50"
         >
           {downgrading ? 'Downgrading...' : 'Downgrade to Free (testing)'}
         </button>
@@ -485,26 +485,26 @@ function UpgradeCard({ profile, onUpgraded }) {
   }
 
   return (
-    <div className="relative bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-amber-400/5 border border-pink-500/30 rounded-2xl p-6 mb-6 overflow-hidden">
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-pink-500/20 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative bg-accent/10 border border-accent rounded-card p-6 mb-6 overflow-hidden">
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
       <div className="relative">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] uppercase tracking-wider bg-gradient-to-r from-amber-400/30 to-pink-400/30 border border-amber-300/40 text-amber-200 px-2 py-0.5 rounded-full font-semibold">
+          <span className="text-[10px] uppercase tracking-wider bg-accent/10 border border-rule text-ink px-2 py-0.5 rounded-full font-semibold">
             ✦ Premium
           </span>
-          <span className="text-xs text-gray-400">Free plan</span>
+          <span className="text-xs text-ink-mute">Free plan</span>
         </div>
-        <h2 className="text-2xl font-bold mb-1 bg-gradient-to-r from-white via-pink-200 to-purple-300 bg-clip-text text-transparent">
+        <h2 className="text-2xl font-bold mb-1 text-ink">
           Upgrade GlowLog
         </h2>
-        <p className="text-sm text-gray-400 mb-5">Unlock the deeper tools and the AI without limits.</p>
+        <p className="text-sm text-ink-mute mb-5">Unlock the deeper tools and the AI without limits.</p>
 
         <ul className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
           {PREMIUM_PERKS.map(perk => (
-            <li key={perk.title} className="bg-white/5 border border-white/10 rounded-xl p-3">
+            <li key={perk.title} className="bg-card border border-rule rounded-xl p-3">
               <p className="text-lg mb-1">{perk.emoji}</p>
-              <p className="text-sm font-semibold text-white">{perk.title}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{perk.body}</p>
+              <p className="text-sm font-semibold text-ink">{perk.title}</p>
+              <p className="text-xs text-ink-mute mt-0.5">{perk.body}</p>
             </li>
           ))}
         </ul>
@@ -512,12 +512,12 @@ function UpgradeCard({ profile, onUpgraded }) {
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <button
             disabled
-            className="bg-gradient-to-r from-pink-500 to-purple-500 text-white font-semibold px-5 py-2.5 rounded-full text-sm shadow-lg shadow-pink-500/20 opacity-90 cursor-not-allowed"
+            className="bg-accent text-paper font-semibold px-5 py-2.5 rounded-full text-sm shadow-lg opacity-90 cursor-not-allowed"
             title="Payments coming soon"
           >
             ✦ Upgrade — coming soon
           </button>
-          <p className="text-xs text-gray-500">Stripe checkout is on the way. Have a code? Use it below.</p>
+          <p className="text-xs text-ink-mute">Stripe checkout is on the way. Have a code? Use it below.</p>
         </div>
 
         <form onSubmit={tryRedeem} className="flex flex-wrap items-center gap-2">
@@ -525,17 +525,17 @@ function UpgradeCard({ profile, onUpgraded }) {
             value={code}
             onChange={e => setCode(e.target.value)}
             placeholder="Enter unlock code"
-            className="flex-1 min-w-[180px] bg-white/5 border border-white/10 rounded-full px-4 py-2 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-pink-500/30 transition tracking-wider"
+            className="flex-1 min-w-[180px] bg-card border border-rule rounded-full px-4 py-2 text-ink placeholder-ink-mute text-sm focus:outline-none focus:border-accent transition tracking-wider"
           />
           <button
             type="submit"
             disabled={redeeming || !code.trim()}
-            className="border border-white/15 text-gray-200 text-sm px-5 py-2 rounded-full hover:bg-white/10 transition disabled:opacity-40"
+            className="border border-rule text-ink text-sm px-5 py-2 rounded-full hover:bg-card transition disabled:opacity-40"
           >
             {redeeming ? 'Redeeming...' : 'Apply code'}
           </button>
         </form>
-        {error && <p className="text-xs text-rose-300 mt-2">{error}</p>}
+        {error && <p className="text-xs text-warn mt-2">{error}</p>}
       </div>
     </div>
   )
@@ -574,22 +574,22 @@ function AvatarPhotoPicker({ photoUrl, onChange, userId }) {
     <div>
       {photoUrl ? (
         <div className="flex items-start gap-4">
-          <div className="w-28 h-28 rounded-2xl overflow-hidden border border-white/10 bg-white/5 flex-shrink-0">
+          <div className="w-28 h-28 rounded-card overflow-hidden border border-rule bg-card flex-shrink-0">
             <img src={photoUrl} alt="Your avatar" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col gap-2 mt-1 min-w-0">
-            <label className="cursor-pointer text-xs text-pink-300 hover:text-pink-200 transition">
+            <label className="cursor-pointer text-xs text-accent hover:text-accent transition">
               {uploading ? 'Uploading...' : 'Replace photo'}
               <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
             </label>
-            <label className="cursor-pointer text-xs text-pink-300 hover:text-pink-200 transition">
+            <label className="cursor-pointer text-xs text-accent hover:text-accent transition">
               {uploading ? '...' : '📷 Take new photo'}
               <input type="file" accept="image/*" capture="user" onChange={handleFile} className="hidden" disabled={uploading} />
             </label>
             <button
               type="button"
               onClick={() => onChange('')}
-              className="text-xs text-gray-500 hover:text-rose-300 transition text-left"
+              className="text-xs text-ink-mute hover:text-warn transition text-left"
               disabled={uploading}
             >
               Remove photo
@@ -598,15 +598,15 @@ function AvatarPhotoPicker({ photoUrl, onChange, userId }) {
         </div>
       ) : (
         <div className="flex flex-wrap gap-3">
-          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-2xl py-6 text-sm transition ${
-            uploading ? 'border-white/10 text-gray-500' : 'border-white/20 text-gray-400 hover:border-pink-500/40 hover:text-white'
+          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-card py-6 text-sm transition ${
+            uploading ? 'border-rule text-ink-mute' : 'border-rule text-ink-mute hover:border-accent hover:text-ink'
           }`}>
             <span className="text-lg">🖼️</span>
             <span>{uploading ? 'Uploading...' : 'Choose photo'}</span>
             <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
           </label>
-          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-2xl py-6 text-sm transition ${
-            uploading ? 'border-white/10 text-gray-500' : 'border-white/20 text-gray-400 hover:border-pink-500/40 hover:text-white'
+          <label className={`cursor-pointer flex-1 min-w-[140px] flex items-center justify-center gap-2 border border-dashed rounded-card py-6 text-sm transition ${
+            uploading ? 'border-rule text-ink-mute' : 'border-rule text-ink-mute hover:border-accent hover:text-ink'
           }`}>
             <span className="text-lg">📷</span>
             <span>{uploading ? 'Uploading...' : 'Take selfie'}</span>
@@ -614,7 +614,7 @@ function AvatarPhotoPicker({ photoUrl, onChange, userId }) {
           </label>
         </div>
       )}
-      {error && <p className="text-xs text-rose-300 mt-3">{error}</p>}
+      {error && <p className="text-xs text-warn mt-3">{error}</p>}
     </div>
   )
 }
