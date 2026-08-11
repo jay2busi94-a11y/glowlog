@@ -1,0 +1,179 @@
+/* Landing-page styles.
+ *
+ * Only the marketing page loads this. Everything here is scroll-driven
+ * animation, sticky scenes, and the hero scan — none of which is
+ * expressible in utility classes.
+ *
+ * Motion budget (CLAUDE.md): this is the "seen once" surface, so it gets
+ * the generous end. Do NOT copy these patterns onto the dashboard.
+ *
+ * Everything animated is transform or opacity only, and every animation
+ * sits inside `prefers-reduced-motion: no-preference`, so switching motion
+ * off yields a fully static, correct page with no JS involved.
+ */
+
+/* ---------- shell ---------- */
+.lp-shell { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+@media (max-width: 560px) { .lp-shell { padding: 0 18px; } }
+
+/* ---------- hero label: the back of a bottle ---------- */
+.lp-label { position: relative; overflow: hidden; }
+
+/* The one glow on the site, and it's the product's name. A scan line
+   reads the label once on load; the two actives bloom as it passes.
+   It's a box-shadow bloom on a 1.5px line, not a gradient behind the
+   hero — the thing we deleted from the old design stays deleted. */
+.lp-scan { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+.lp-scan::before {
+  content: "";
+  position: absolute; left: 0; right: 0; top: 0; height: 1.5px;
+  background: var(--accent);
+  box-shadow: 0 0 14px 2px var(--accent);
+}
+
+/* ---------- headline lines rise out of their own clipped box ---------- */
+.lp-line { display: block; overflow: hidden; padding-bottom: 0.09em; margin-bottom: -0.09em; }
+.lp-line > span { display: block; }
+
+/* ---------- sticky scroll scenes ---------- */
+/* 200svh, trimmed from 300 so the page lands around six screens.
+   The sticky child is pinned between roughly cover 33% and cover 67%;
+   every animation range below sits inside that window, or the cards
+   would animate while still sliding into view. */
+.lp-scene { position: relative; height: 200svh; }
+.lp-sticky {
+  position: sticky; top: 0; min-height: 100svh;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 28px; padding: 72px 0;
+}
+@media (max-width: 560px) { .lp-sticky { padding: 40px 0; gap: 18px; } }
+
+.lp-caption { position: relative; min-height: 3.2em; }
+.lp-cap-before { display: none; }
+
+/* ---------- ingredient tape ---------- */
+.lp-viewport {
+  position: relative; height: min(420px, 52svh); overflow: hidden;
+  border-radius: 22px; background: var(--card); box-shadow: var(--lift-2);
+  padding: 22px;
+}
+.lp-viewport::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  box-shadow: inset 0 34px 26px -26px var(--card), inset 0 -34px 26px -26px var(--card);
+}
+.lp-scanline { position: absolute; left: 0; right: 0; top: 50%; height: 1.5px; background: var(--accent); opacity: 0.5; }
+
+/* ---------- keyframes: transform + opacity only ---------- */
+@keyframes lp-rise   { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+@keyframes lp-unmask { from { transform: translateY(105%); }             to { transform: none; } }
+@keyframes lp-fade   { from { opacity: 0; }                              to { opacity: 1; } }
+@keyframes lp-out    { from { opacity: 1; }                              to { opacity: 0; } }
+@keyframes lp-bloom  { from { opacity: 0.28; }                           to { opacity: 1; } }
+@keyframes lp-pop    { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes lp-sort {
+  from { opacity: 0.5; transform: translate(var(--fx, 0), var(--fy, 0)) rotate(var(--fr, 0deg)) scale(0.97); }
+  to   { opacity: 1;   transform: none; }
+}
+@keyframes lp-tape   { from { transform: translateY(6%); } to { transform: translateY(-70%); } }
+@keyframes lp-grow   { from { transform: scaleX(0); }      to { transform: scaleX(1); } }
+@keyframes lp-scan {
+  0%   { opacity: 0;   transform: translateY(0); }
+  10%  { opacity: 0.9; }
+  84%  { opacity: 0.9; }
+  100% { opacity: 0;   transform: translateY(100%); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* --- page-load orchestration, hero only --- */
+  .lp-in            { animation: lp-rise 0.72s var(--ease-glow) both; }
+  .lp-in-1          { animation-delay: 0.05s; }
+  .lp-in-2          { animation-delay: 0.34s; }
+  .lp-in-3          { animation-delay: 0.44s; }
+  .lp-line > span   { animation: lp-unmask 0.82s var(--ease-glow) both; }
+  .lp-line:nth-child(1) > span { animation-delay: 0.05s; }
+  .lp-line:nth-child(2) > span { animation-delay: 0.14s; }
+  .lp-line:nth-child(3) > span { animation-delay: 0.23s; }
+  .lp-label         { animation: lp-rise 0.9s var(--ease-glow) 0.3s both; }
+  .lp-inci li       { animation: lp-fade 0.5s var(--ease-glow) both; }
+  .lp-inci li:nth-child(1) { animation-delay: 0.62s; }
+  .lp-inci li:nth-child(2) { animation-delay: 0.70s; }
+  .lp-inci li:nth-child(3) { animation-delay: 0.78s; }
+  .lp-inci li:nth-child(4) { animation-delay: 0.86s; }
+  .lp-inci li:nth-child(5) { animation-delay: 0.94s; }
+  .lp-inci li:nth-child(6) { animation-delay: 1.02s; }
+  .lp-inci li:nth-child(7) { animation-delay: 1.10s; }
+
+  /* The scan, timed so each bloom lands as the line crosses it. */
+  .lp-scan { animation: lp-scan 1.15s linear 1.5s both; }
+  .lp-inci li.is-active b { animation: lp-bloom 0.45s var(--ease-glow) both; }
+  .lp-inci li:nth-child(2).is-active b { animation-delay: 1.85s; }
+  .lp-inci li:nth-child(4).is-active b { animation-delay: 2.04s; }
+  .lp-finding { animation: lp-rise 0.6s var(--ease-glow) 2.5s both; }
+
+  /* --- scroll-driven: off the main thread, no listener, no observer --- */
+  @supports (animation-timeline: view()) {
+    .lp-progress { animation: lp-grow linear both; animation-timeline: scroll(root block); }
+
+    .lp-reveal { animation: lp-rise linear both; animation-timeline: view(); animation-range: entry 5% entry 55%; }
+
+    .lp-sort-scene { view-timeline-name: --sort; }
+    .lp-caption > span { position: absolute; inset: 0; }
+    .lp-cap-before { display: block; }
+    .lp-card { animation: lp-sort linear both; animation-timeline: --sort; }
+    .lp-card:nth-child(1) { animation-range: cover 36% cover 52%; }
+    .lp-card:nth-child(2) { animation-range: cover 38% cover 54%; }
+    .lp-card:nth-child(3) { animation-range: cover 40% cover 56%; }
+    .lp-card:nth-child(4) { animation-range: cover 42% cover 58%; }
+    .lp-card:nth-child(5) { animation-range: cover 44% cover 60%; }
+    .lp-idx        { animation: lp-fade linear both; animation-timeline: --sort; animation-range: cover 58% cover 64%; }
+    .lp-cap-before { animation: lp-out  linear both; animation-timeline: --sort; animation-range: cover 54% cover 60%; }
+    .lp-cap-after  { animation: lp-fade linear both; animation-timeline: --sort; animation-range: cover 56% cover 62%; }
+
+    .lp-scan-scene { view-timeline-name: --scan; }
+    .lp-tape { animation: lp-tape linear both; animation-timeline: --scan; animation-range: cover 30% cover 70%; }
+    .lp-found-chip { animation: lp-pop linear both; animation-timeline: --scan; }
+    .lp-found-chip:nth-child(1) { animation-range: cover 38% cover 44%; }
+    .lp-found-chip:nth-child(2) { animation-range: cover 48% cover 54%; }
+    .lp-found-chip:nth-child(3) { animation-range: cover 58% cover 64%; }
+  }
+}
+
+/* Scroll progress: one scaleX, GPU only. Static (invisible) without support. */
+.lp-progress {
+  position: fixed; inset: 0 0 auto 0; height: 2px; z-index: 60;
+  background: var(--accent); transform: scaleX(0); transform-origin: 0 50%;
+}
+
+/* ---------- the sachet tear on the closing CTA ---------- */
+/* A mask clips everything the element paints, box-shadow included, so the
+   lift lives on the wrapper as a filter — which also curves it around
+   the bite. */
+.lp-cta-wrap { filter: drop-shadow(0 3px 6px #00000059) drop-shadow(0 20px 34px #00000047); }
+.lp-cta {
+  -webkit-mask: radial-gradient(circle 30px at calc(100% - 44px) 0, #0000 99%, #000 100%);
+          mask: radial-gradient(circle 30px at calc(100% - 44px) 0, #0000 99%, #000 100%);
+}
+
+/* ---------- the lift, done cheaply ---------- */
+/* The raised shadow is pre-painted and only its opacity moves — a
+   compositor-only change. Transitioning box-shadow repaints every frame. */
+.lp-lift { position: relative; transition: transform 0.24s var(--ease-glow); }
+.lp-lift::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  box-shadow: var(--lift-2); opacity: 0; pointer-events: none;
+  transition: opacity 0.24s var(--ease-glow);
+}
+.lp-lift:hover { transform: translateY(-2px); }
+.lp-lift:hover::after { opacity: 1; }
+
+/* ---------- skip link ---------- */
+.lp-skip {
+  position: absolute; left: 12px; top: -60px; z-index: 70;
+  background: var(--accent); color: var(--paper);
+  padding: 12px 20px; border-radius: 10px;
+  font-weight: 700; text-decoration: none;
+  transition: top 0.24s var(--ease-glow);
+}
+.lp-skip:focus { top: 12px; }
+
+:where(.lp) :focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; border-radius: 10px; }
