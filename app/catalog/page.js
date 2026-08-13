@@ -313,7 +313,7 @@ export default function Catalog() {
               <p className="text-xs text-ink-mute">Owned</p>
             </button>
             <div className="bg-card border border-rule rounded-card p-4">
-              <p className="text-2xl font-bold text-ok">{inUseCount}</p>
+              <p className="text-2xl font-bold text-ink">{inUseCount}</p>
               <p className="text-xs text-ink-mute">In active use</p>
             </div>
             <button

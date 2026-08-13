@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import AppNavbar from '../components/AppNavbar'
 import { createClient } from '../../lib/supabase'
 import { toLocalDateString } from '../../lib/dates'
-import { isPremium } from '../../lib/profile'
 import { computeRoutineStreak, computeBestRoutineStreak } from '../../lib/streaks'
 
 // A five-step diverging scale: bad reads as warning, good reads as clear,
@@ -31,13 +30,17 @@ function formatDate(dateStr) {
   })
 }
 
+// Deliberately not gated. These are the user's own logs — putting their
+// history behind a paywall means someone who stopped logging for a month
+// opens Progress to an empty chart and no way to reach their own data.
+// Premium still gates the AI features, which have a real per-call cost.
 const RANGES = [
-  { key: 5, label: '5 days', premium: false },
-  { key: 10, label: '10 days', premium: false },
-  { key: 30, label: '1 month', premium: false },
-  { key: 90, label: '3 months', premium: true },
-  { key: 180, label: '6 months', premium: true },
-  { key: 365, label: '1 year', premium: true },
+  { key: 5, label: '5 days' },
+  { key: 10, label: '10 days' },
+  { key: 30, label: '1 month' },
+  { key: 90, label: '3 months' },
+  { key: 180, label: '6 months' },
+  { key: 365, label: '1 year' },
 ]
 
 // Build the last N calendar days ending today, each paired with its log (or null).
@@ -61,7 +64,6 @@ export default function Progress() {
   const [logs, setLogs] = useState([])
   const [profile, setProfile] = useState(null)
   const [range, setRange] = useState(30)
-  const [showUpgrade, setShowUpgrade] = useState(false)
   const [lightboxIdx, setLightboxIdx] = useState(null)
 
   useEffect(() => {
@@ -81,14 +83,6 @@ export default function Progress() {
     })
   }, [])
 
-  const premium = isPremium(profile)
-  function pickRange(r) {
-    if (r.premium && !premium) {
-      setShowUpgrade(true)
-      return
-    }
-    setRange(r.key)
-  }
 
   const rated = logs.filter(l => l.skin_rating)
   const avg = rated.length ? rated.reduce((s, l) => s + l.skin_rating, 0) / rated.length : 0
@@ -97,6 +91,20 @@ export default function Progress() {
   const streak = computeRoutineStreak(logs)
   const bestStreak = computeBestRoutineStreak(logs)
   const chartDays = buildChartDays(logs, range)
+
+  // An empty grid doesn't say whether you have no logs at all or just none
+  // lately. Work out which, and if there is older data, offer the smallest
+  // range that actually reaches it.
+  const ratedInWindow = chartDays.filter(d => d.log?.skin_rating).length
+  const latestRated = rated.length
+    ? rated.reduce((a, b) => (a.date > b.date ? a : b))
+    : null
+  const daysSinceLatest = latestRated
+    ? Math.floor((new Date(`${toLocalDateString()}T00:00:00`) - new Date(`${latestRated.date}T00:00:00`)) / 86400000)
+    : null
+  const suggestedRange = daysSinceLatest === null
+    ? null
+    : RANGES.find(r => r.key > daysSinceLatest) || null
   const recent = [...logs].reverse()
   // Photo timeline: newest first, only logs with a photo. Indexed so the
   // lightbox can prev/next without recomputing.
@@ -131,11 +139,11 @@ export default function Progress() {
             {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               <div className="bg-card border border-rule rounded-card p-5 text-center">
-                <p className="text-3xl font-bold text-accent">{logs.length}</p>
+                <p className="text-3xl font-bold text-ink">{logs.length}</p>
                 <p className="text-xs text-ink-mute mt-1">Days logged</p>
               </div>
               <div className="bg-card border border-rule rounded-card p-5 text-center">
-                <p className="text-3xl font-bold text-accent">{avg ? avg.toFixed(1) : '—'}</p>
+                <p className="text-3xl font-bold text-ink">{avg ? avg.toFixed(1) : '—'}</p>
                 <p className="text-xs text-ink-mute mt-1">Avg rating</p>
               </div>
               <div className={`rounded-card p-5 text-center border ${
@@ -143,7 +151,7 @@ export default function Progress() {
                   ? 'bg-accent/10 border-rule shadow-md'
                   : 'bg-card border-rule'
               }`}>
-                <p className="text-3xl font-bold text-warn">{streak}🔥</p>
+                <p className="text-3xl font-bold text-ink">{streak}🔥</p>
                 <p className="text-xs text-ink-mute mt-1">Current streak</p>
               </div>
               <div className="bg-card border border-rule rounded-card p-5 text-center">
@@ -161,21 +169,16 @@ export default function Progress() {
                 </div>
                 <div className="flex flex-wrap gap-1 bg-card border border-rule rounded-full p-1">
                   {RANGES.map(r => {
-                    const locked = r.premium && !premium
                     const active = range === r.key
                     return (
                       <button
                         key={r.key}
-                        onClick={() => pickRange(r)}
-                        className={`text-xs px-3 py-1 rounded-full transition flex items-center gap-1 ${
-                          active
-                            ? 'bg-accent text-paper shadow-md'
-                            : locked
-                              ? 'text-ink hover:text-ink'
-                              : 'text-ink-mute hover:text-ink'
+                        onClick={() => setRange(r.key)}
+                        aria-pressed={active}
+                        className={`text-xs px-3 py-1 rounded-full transition cursor-pointer ${
+                          active ? 'bg-accent text-paper' : 'text-ink-mute hover:text-ink'
                         }`}
                       >
-                        {locked && <span className="text-[10px]">✦</span>}
                         {r.label}
                       </button>
                     )
@@ -203,6 +206,34 @@ export default function Progress() {
                 <span>{formatDate(chartDays[0].date)}</span>
                 <span>{formatDate(chartDays[chartDays.length - 1].date)}</span>
               </div>
+
+              {ratedInWindow === 0 && (
+                <div className="mt-4 pt-4 border-t border-rule">
+                  {latestRated ? (
+                    <p className="text-sm text-ink-mute">
+                      No ratings in the last {range} days. Your most recent was{' '}
+                      <span className="text-ink font-semibold">{formatDate(latestRated.date)}</span>
+                      {suggestedRange && (
+                        <>
+                          {' — '}
+                          <button
+                            onClick={() => setRange(suggestedRange.key)}
+                            className="text-accent font-semibold hover:brightness-110 cursor-pointer underline underline-offset-2"
+                          >
+                            show {suggestedRange.label}
+                          </button>
+                        </>
+                      )}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-ink-mute">
+                      No skin ratings yet. Rate how your skin feels on the{' '}
+                      <a href="/dashboard" className="text-accent font-semibold hover:brightness-110 underline underline-offset-2">dashboard</a>
+                      {' '}and it&apos;ll chart here.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Photo timeline */}
@@ -277,7 +308,6 @@ export default function Progress() {
 
       </div>
 
-      {showUpgrade && <UpgradeNudge onClose={() => setShowUpgrade(false)} />}
 
       {lightboxIdx !== null && photoLogs[lightboxIdx] && (
         <PhotoLightbox
@@ -288,37 +318,6 @@ export default function Progress() {
         />
       )}
     </main>
-  )
-}
-
-function UpgradeNudge({ onClose }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="relative bg-card border border-accent rounded-card w-full max-w-sm p-6 shadow-2xl"
-      >
-        <span className="text-[10px] uppercase tracking-wider bg-accent/10 border border-rule text-ink px-2 py-0.5 rounded-full font-semibold">
-          ✦ Premium
-        </span>
-        <h3 className="text-xl font-bold mt-3 mb-2 text-ink">
-          See longer trends with Premium
-        </h3>
-        <p className="text-sm text-ink-mute mb-5">3-month, 6-month, and yearly views are part of Premium. Free is capped at the last 30 days.</p>
-        <div className="flex items-center gap-3">
-          <a
-            href="/profile"
-            className="bg-accent text-paper font-semibold px-5 py-2 rounded-full text-sm hover:opacity-90 transition shadow-lg"
-          >
-            Upgrade
-          </a>
-          <button onClick={onClose} className="text-sm text-ink-mute hover:text-ink transition">
-            Maybe later
-          </button>
-        </div>
-      </div>
-    </div>
   )
 }
 
