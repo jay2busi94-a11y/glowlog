@@ -105,8 +105,6 @@ export default function Onboarding() {
 
   return (
     <main className="min-h-screen bg-paper text-ink px-4 py-12 safe-pad-top overflow-hidden" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 3rem)' }}>
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-150px] right-[-100px] w-[400px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
 
       <div className="relative z-10 max-w-2xl mx-auto">
 
@@ -141,8 +139,8 @@ export default function Onboarding() {
                   onClick={() => setSkinType(t.key)}
                   className={`flex items-center gap-3 text-left p-4 rounded-card border transition ${
                     active
-                      ? 'bg-accent/10 border-accent shadow-md '
-                      : 'bg-card border-rule hover:border-rule'
+                      ? 'bg-accent/10 border-accent shadow-md'
+                      : 'bg-card border-rule hover:border-ink-mute'
                   }`}
                 >
                   <span className="text-3xl flex-shrink-0">{t.emoji}</span>
@@ -187,7 +185,7 @@ export default function Onboarding() {
                   onClick={() => setAgeRange(r.key)}
                   className={`p-4 rounded-card border transition text-sm font-semibold ${
                     active
-                      ? 'bg-accent/10 border-accent text-ink shadow-md '
+                      ? 'bg-accent/10 border-accent text-ink shadow-md'
                       : 'bg-card border-rule text-ink hover:border-rule'
                   }`}
                 >
@@ -208,8 +206,8 @@ export default function Onboarding() {
                   onClick={() => setExperience(e.key)}
                   className={`flex items-center gap-4 text-left p-4 rounded-card border transition ${
                     active
-                      ? 'bg-accent/10 border-accent shadow-md '
-                      : 'bg-card border-rule hover:border-rule'
+                      ? 'bg-accent/10 border-accent shadow-md'
+                      : 'bg-card border-rule hover:border-ink-mute'
                   }`}
                 >
                   <span className="text-3xl flex-shrink-0">{e.emoji}</span>

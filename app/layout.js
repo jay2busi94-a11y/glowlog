@@ -30,14 +30,30 @@ export const metadata = {
 };
 
 export const viewport = {
-  // Must match --paper, or iOS paints a different colour behind the
-  // status bar than the page itself.
-  themeColor: "#12161C",
+  // Must match --paper, or iOS paints a different colour behind the status
+  // bar than the page itself. Two entries so it tracks the device the same
+  // way the palette does.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F4F6FA" },
+    { media: "(prefers-color-scheme: dark)", color: "#12161C" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
 };
+
+// Runs before the browser paints anything. A saved theme has to be stamped
+// on <html> synchronously — do it in an effect and the page renders in the
+// device theme first, then snaps, which is the flash every themed site has.
+// "system" (or nothing saved) leaves the attribute off so the CSS media
+// query decides.
+const APPLY_THEME = `
+try {
+  var t = localStorage.getItem('glowlog-theme');
+  if (t && t !== 'system') document.documentElement.setAttribute('data-theme', t);
+} catch (e) {}
+`;
 
 export default function RootLayout({ children }) {
   return (
@@ -45,6 +61,9 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${manrope.variable} ${dmMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: APPLY_THEME }} />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

@@ -13,6 +13,20 @@ export default function SettingsPage() {
   const [publicProfile, setPublicProfile] = useState(true)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  // Theme lives in localStorage, not the profile: it has to apply on the
+  // landing and login pages too, where there's no profile to read.
+  const [theme, setTheme] = useState('system')
+
+  useEffect(() => {
+    try { setTheme(localStorage.getItem('glowlog-theme') || 'system') } catch {}
+  }, [])
+
+  function chooseTheme(next) {
+    setTheme(next)
+    try { localStorage.setItem('glowlog-theme', next) } catch {}
+    if (next === 'system') document.documentElement.removeAttribute('data-theme')
+    else document.documentElement.setAttribute('data-theme', next)
+  }
 
   useEffect(() => {
     const supabase = createClient()
@@ -65,7 +79,6 @@ export default function SettingsPage() {
 
   return (
     <main className="min-h-screen bg-paper text-ink px-4 app-page-pad-bottom overflow-hidden">
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
       <AppNavbar />
 
       <div className="relative z-10 max-w-3xl mx-auto app-page-pad-top">
@@ -79,6 +92,41 @@ export default function SettingsPage() {
           <p className="text-ink-mute">Loading...</p>
         ) : (
           <>
+            {/* Appearance */}
+            <div className="bg-card border border-rule rounded-card p-6 mb-6">
+              <p className="text-sm font-semibold text-ink mb-1">Appearance</p>
+              <p className="text-xs text-ink-mute mb-5">Changes apply straight away and are remembered on this device.</p>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { id: 'system',   name: 'Match device', note: 'Follows your light or dark setting', swatch: ['#F4F6FA', '#12161C'] },
+                  { id: 'clinic',   name: 'Clinic',       note: 'Cool paper, ultramarine',            swatch: ['#F4F6FA', '#4256D9'] },
+                  { id: 'darkroom', name: 'Darkroom',     note: 'Slate black, periwinkle',            swatch: ['#12161C', '#8E9EFF'] },
+                  { id: 'sachet',   name: 'Sachet',       note: 'Warm putty, petrol teal',            swatch: ['#F3F1ED', '#16656B'] },
+                ].map(opt => {
+                  const active = theme === opt.id
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() => chooseTheme(opt.id)}
+                      aria-pressed={active}
+                      className={`text-left p-4 rounded-card border transition cursor-pointer ${
+                        active ? 'bg-accent/10 border-accent' : 'bg-card border-rule hover:border-ink-mute'
+                      }`}
+                    >
+                      <span className="flex items-center gap-1.5 mb-2" aria-hidden="true">
+                        {opt.swatch.map(c => (
+                          <span key={c} className="w-4 h-4 rounded-full border border-rule" style={{ background: c }} />
+                        ))}
+                      </span>
+                      <p className={`text-sm font-semibold ${active ? 'text-ink' : 'text-ink-mute'}`}>{opt.name}</p>
+                      <p className="text-xs text-ink-mute mt-0.5 leading-snug">{opt.note}</p>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
             {/* Routine builder mode */}
             <div className="bg-card border border-rule rounded-card p-6 mb-6">
               <p className="text-sm font-semibold text-accent mb-1">Routine builder mode</p>
@@ -89,8 +137,8 @@ export default function SettingsPage() {
                   onClick={() => setMode(false)}
                   className={`text-left p-5 rounded-card border transition ${
                     !advancedMode
-                      ? 'bg-accent/10 border-accent shadow-md '
-                      : 'bg-card border-rule hover:border-rule'
+                      ? 'bg-accent/10 border-accent shadow-md'
+                      : 'bg-card border-rule hover:border-ink-mute'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
@@ -104,8 +152,8 @@ export default function SettingsPage() {
                   onClick={() => setMode(true)}
                   className={`text-left p-5 rounded-card border transition ${
                     advancedMode
-                      ? 'bg-accent/10 border-accent shadow-md '
-                      : 'bg-card border-rule hover:border-rule'
+                      ? 'bg-accent/10 border-accent shadow-md'
+                      : 'bg-card border-rule hover:border-ink-mute'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
@@ -132,8 +180,8 @@ export default function SettingsPage() {
                   onClick={() => setVisibility(true)}
                   className={`text-left p-5 rounded-card border transition ${
                     publicProfile
-                      ? 'bg-accent/10 border-accent shadow-md '
-                      : 'bg-card border-rule hover:border-rule'
+                      ? 'bg-accent/10 border-accent shadow-md'
+                      : 'bg-card border-rule hover:border-ink-mute'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
@@ -147,8 +195,8 @@ export default function SettingsPage() {
                   onClick={() => setVisibility(false)}
                   className={`text-left p-5 rounded-card border transition ${
                     !publicProfile
-                      ? 'bg-accent/10 border-accent shadow-md '
-                      : 'bg-card border-rule hover:border-rule'
+                      ? 'bg-accent/10 border-accent shadow-md'
+                      : 'bg-card border-rule hover:border-ink-mute'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">

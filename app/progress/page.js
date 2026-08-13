@@ -98,7 +98,6 @@ export default function Progress() {
 
   return (
     <main className="min-h-screen bg-paper text-ink px-4 app-page-pad-bottom overflow-hidden">
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
       <AppNavbar />
 
       <div className="relative z-10 max-w-4xl mx-auto app-page-pad-top">
@@ -135,7 +134,7 @@ export default function Progress() {
               </div>
               <div className={`rounded-card p-5 text-center border ${
                 streak >= 7
-                  ? 'bg-accent/10 border-rule shadow-md '
+                  ? 'bg-accent/10 border-rule shadow-md'
                   : 'bg-card border-rule'
               }`}>
                 <p className="text-3xl font-bold text-warn">{streak}🔥</p>
@@ -164,7 +163,7 @@ export default function Progress() {
                         onClick={() => pickRange(r)}
                         className={`text-xs px-3 py-1 rounded-full transition flex items-center gap-1 ${
                           active
-                            ? 'bg-accent text-paper shadow-md '
+                            ? 'bg-accent text-paper shadow-md'
                             : locked
                               ? 'text-ink hover:text-ink'
                               : 'text-ink-mute hover:text-ink'

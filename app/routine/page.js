@@ -289,7 +289,6 @@ export default function RoutineBuilder() {
 
   return (
     <main className="min-h-screen bg-paper text-ink px-4 app-page-pad-bottom overflow-hidden">
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
       <AppNavbar />
 
       <div className="relative z-10 max-w-4xl mx-auto app-page-pad-top">
@@ -310,7 +309,7 @@ export default function RoutineBuilder() {
                 disabled={savingMode}
                 className={`text-xs px-3 py-1 rounded-full transition ${
                   !advanced
-                    ? 'bg-accent text-paper shadow-md '
+                    ? 'bg-accent text-paper shadow-md'
                     : 'text-ink-mute hover:text-ink'
                 }`}
               >
@@ -321,7 +320,7 @@ export default function RoutineBuilder() {
                 disabled={savingMode}
                 className={`text-xs px-3 py-1 rounded-full transition ${
                   advanced
-                    ? 'bg-accent text-paper shadow-md '
+                    ? 'bg-accent text-paper shadow-md'
                     : 'text-ink-mute hover:text-ink'
                 }`}
               >

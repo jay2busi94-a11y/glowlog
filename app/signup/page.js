@@ -50,7 +50,6 @@ export default function SignUp() {
   return (
     <main className="min-h-screen bg-paper text-ink flex flex-col items-center justify-center px-4 overflow-hidden">
 
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
 
       <Navbar />
 

@@ -59,6 +59,26 @@
   --lift-2: 0 2px 6px #2227240c, 0 16px 40px -12px #22272424;
 }
 
+/* With no explicit choice saved, follow the device. Scoped to
+   :not([data-theme]) so an explicit pick always wins — in both directions,
+   including choosing Darkroom on a light phone. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --paper:     #F4F6FA;
+    --card:      #FFFFFF;
+    --rule:      #E7EBF2;
+    --ink:       #1B2230;
+    --ink-mute:  #5F6A79;
+    --accent:    #4256D9;
+    --slab:      #1B2230;
+    --on-slab:   #F4F6FA;
+    --warn:      #A8362B;
+    --ok:        #16704C;
+    --lift-1: 0 1px 2px #1b223008, 0 2px 10px #1b223010;
+    --lift-2: 0 2px 6px #1b22300a, 0 16px 40px -12px #1b223021;
+  }
+}
+
 /* Expose the tokens as Tailwind utilities: bg-paper, text-ink,
    border-rule, text-accent, rounded-card, font-mono, ... */
 @theme inline {

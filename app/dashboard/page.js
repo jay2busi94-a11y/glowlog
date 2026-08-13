@@ -582,7 +582,6 @@ ${closer}`
 
   return (
     <main className="min-h-screen bg-paper text-ink px-4 app-page-pad-bottom overflow-hidden">
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
       <AppNavbar />
 
       <div className="relative z-10 max-w-4xl mx-auto app-page-pad-top">

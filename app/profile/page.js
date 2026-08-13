@@ -178,7 +178,6 @@ export default function ProfilePage() {
 
   return (
     <main className="min-h-screen bg-paper text-ink px-4 app-page-pad-bottom overflow-hidden">
-      <div className="absolute top-[-100px] left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent/10 rounded-full blur-[120px] pointer-events-none" />
       <AppNavbar />
 
       <div className="relative z-10 max-w-3xl mx-auto app-page-pad-top">
@@ -316,7 +315,7 @@ export default function ProfilePage() {
                     onClick={() => setAvatarMode('photo')}
                     className={`text-xs px-3 py-1 rounded-full transition ${
                       avatarMode === 'photo'
-                        ? 'bg-accent text-paper shadow-md '
+                        ? 'bg-accent text-paper shadow-md'
                         : 'text-ink-mute hover:text-ink'
                     }`}
                   >
@@ -326,7 +325,7 @@ export default function ProfilePage() {
                     onClick={() => setAvatarMode('emoji')}
                     className={`text-xs px-3 py-1 rounded-full transition ${
                       avatarMode === 'emoji'
-                        ? 'bg-accent text-paper shadow-md '
+                        ? 'bg-accent text-paper shadow-md'
                         : 'text-ink-mute hover:text-ink'
                     }`}
                   >
@@ -350,7 +349,7 @@ export default function ProfilePage() {
                       className={`aspect-square rounded-xl text-2xl flex items-center justify-center border transition ${
                         avatar === e
                           ? 'bg-accent/10 border-accent shadow-md  scale-105'
-                          : 'bg-card border-rule hover:border-rule hover:scale-105'
+                          : 'bg-card border-rule hover:border-ink-mute hover:scale-105'
                       }`}
                       aria-label={`Pick ${e}`}
                     >
