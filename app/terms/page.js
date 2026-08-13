@@ -126,7 +126,21 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-ink mb-2">10. Contact</h2>
+            <h2 className="text-xl font-semibold text-ink mb-2">10. Where these terms apply</h2>
+            <p className="text-sm">
+              GlowLog is operated from the United States and intended for use there. These terms are
+              governed by the laws of the State of{' '}
+              {/* TODO: replace with the state you actually live in / would file in.
+                  Leaving this unfilled is worse than picking one — an unnamed
+                  governing law just means a dispute gets argued about twice. */}
+              <strong className="text-ink">[YOUR STATE]</strong>, without regard to its conflict of
+              law rules, and any dispute will be brought in the state or federal courts located
+              there. If any part of these terms is found unenforceable, the rest still applies.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-ink mb-2">11. Contact</h2>
             <p className="text-sm">
               Reach us at <span className="text-accent">jayflare94@gmail.com</span>.
             </p>

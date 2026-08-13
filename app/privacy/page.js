@@ -98,12 +98,70 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-xl font-semibold text-ink mb-2">Your rights</h2>
+            <p className="text-sm mb-3">Most of these you can do yourself, right now, without asking us:</p>
             <ul className="flex flex-col gap-2 text-sm pl-5 list-disc marker:text-accent">
               <li><strong className="text-ink">See your data</strong> — everything we store is visible somewhere in the app (your profile, catalog, log history).</li>
-              <li><strong className="text-ink">Edit your data</strong> — change or remove anything via the relevant page.</li>
+              <li><strong className="text-ink">Correct your data</strong> — change or remove anything via the relevant page.</li>
               <li><strong className="text-ink">Delete your account</strong> — Settings → Danger zone → Delete account. Permanently removes your profile, routines, products, skin logs, follows, and all photos.</li>
               <li><strong className="text-ink">Stay signed out</strong> — sign out from the avatar dropdown.</li>
             </ul>
+
+            <p className="text-sm mt-4 mb-3">
+              Depending on where you live in the US, state privacy laws may also give you the right to:
+            </p>
+            <ul className="flex flex-col gap-2 text-sm pl-5 list-disc marker:text-accent">
+              <li><strong className="text-ink">Know</strong> what personal information we collect, why, and who we share it with — the sections above are our answer, and we&apos;ll confirm it for your specific account on request.</li>
+              <li><strong className="text-ink">Get a copy</strong> of your data in a portable format.</li>
+              <li><strong className="text-ink">Delete</strong> your personal information.</li>
+              <li><strong className="text-ink">Correct</strong> inaccurate personal information.</li>
+              <li><strong className="text-ink">Not be discriminated against</strong> for exercising any of these — we won&apos;t degrade or price the app differently because you asked.</li>
+            </ul>
+
+            <p className="text-sm mt-4">
+              <strong className="text-ink">We do not sell your personal information, and we do not
+              share it for targeted advertising.</strong> We never have. There is no opt-out to
+              offer you because there is nothing to opt out of — no analytics, no ad networks, no
+              data brokers, no tracking pixels.
+            </p>
+            <p className="text-sm mt-3">
+              To exercise any of these, email{' '}
+              <a href="mailto:jayflare94@gmail.com" className="text-accent hover:brightness-110">jayflare94@gmail.com</a>{' '}
+              from the address on your account. We&apos;ll respond within 45 days, and tell you if we
+              need longer. We may need to confirm you are who you say you are before handing over or
+              deleting data — that protects you, not us.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-ink mb-2">Where we operate</h2>
+            <p className="text-sm">
+              GlowLog is run from the United States and intended for people in the United States.
+              We don&apos;t market it in the EU or UK, and it isn&apos;t built to meet those regions&apos;
+              privacy rules. If you use it from outside the US, your data is processed in the US.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-ink mb-2">Cookies and local storage</h2>
+            <p className="text-sm">
+              We use no tracking cookies, no analytics and no advertising pixels — so there&apos;s no
+              consent banner to click through. Two things are stored in your browser, both of which
+              the app can&apos;t work without: your <strong className="text-ink">sign-in session</strong>,
+              so you stay logged in, and your <strong className="text-ink">theme choice</strong>, so
+              the app doesn&apos;t change appearance every time you open it. Clearing your browser
+              data removes both and signs you out.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-ink mb-2">Found a security problem?</h2>
+            <p className="text-sm">
+              Email{' '}
+              <a href="mailto:jayflare94@gmail.com" className="text-accent hover:brightness-110">jayflare94@gmail.com</a>{' '}
+              with what you found and how to reproduce it. We&apos;d rather hear about it from you
+              than find out the hard way, and we won&apos;t pursue anyone who reports a genuine issue
+              in good faith and doesn&apos;t access other people&apos;s data.
+            </p>
           </section>
 
           <section>
