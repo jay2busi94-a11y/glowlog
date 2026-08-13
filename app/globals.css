@@ -132,14 +132,21 @@ select {
   }
 }
 
-/* Re-style autofilled inputs so Chrome/Safari don't paint them yellow
-   when our dark UI is behind them. */
+/* Re-style autofilled inputs so Chrome/Safari don't paint them yellow.
+   These MUST come from tokens. They were hardcoded white for the old
+   always-dark UI, which made autofilled text invisible the moment the
+   palette started following the device — white on near-white.
+   -webkit-text-fill-color beats `color` on an autofilled input, so it has
+   to be set explicitly; the huge inset shadow is the only way to override
+   the browser's own autofill background. */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #ffffff;
-  -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset;
-  caret-color: #ffffff;
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--ink);
+  -webkit-box-shadow: 0 0 0 1000px var(--card) inset;
+  caret-color: var(--ink);
   transition: background-color 5000s ease-in-out 0s;
 }
 
