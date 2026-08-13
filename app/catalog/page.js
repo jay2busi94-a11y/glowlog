@@ -1083,6 +1083,12 @@ function IngredientCheckPanel({ user, profile, premium, visionCount, atLimit, on
             {neutrals.length > 0 && (
               <IngredientGroup title="Other ingredients of note" color="slate" items={neutrals} />
             )}
+            {/* The disclaimer belongs next to the advice, not in section 2 of
+                the terms. This is the most advice-shaped output in the app. */}
+            <p className="text-xs text-ink-mute mt-1">
+              General guidance, not medical advice. If a product stings, burns, or causes a reaction, stop
+              using it and speak to a pharmacist or dermatologist.
+            </p>
           </div>
         )}
       </div>
@@ -1598,6 +1604,7 @@ function ProductDetailModal({
             {tip ? (
               <div className="bg-accent/10 border border-accent rounded-xl p-4">
                 <p className="text-sm text-ink leading-relaxed whitespace-pre-wrap">{tip}</p>
+                <p className="mt-2 text-[11px] text-ink-mute">Written by Claude — general guidance, not medical advice.</p>
                 <button
                   onClick={generateTip}
                   disabled={tipLoading}

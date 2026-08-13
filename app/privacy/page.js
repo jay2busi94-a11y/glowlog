@@ -54,20 +54,37 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="text-xl font-semibold text-ink mb-2">Who we share it with</h2>
-            <p className="text-sm mb-3">We don't sell your data. We share it only with these three vendors, who are required to use it solely to help us run GlowLog:</p>
+            {/* A dated list, not a sentence with a count in it. "These three
+                vendors" becomes untrue the moment a fourth is added — which is
+                exactly what happened when ImageKit shipped. */}
+            <p className="text-sm mb-3">
+              We don&apos;t sell your data, and we don&apos;t share it for advertising. These are every
+              company that processes any part of it on our behalf. They may only use it to run GlowLog.
+            </p>
             <ul className="flex flex-col gap-2 text-sm pl-5 list-disc marker:text-accent">
-              <li><strong className="text-ink">Supabase</strong> — our database + authentication + photo storage host.</li>
-              <li><strong className="text-ink">Anthropic</strong> — when you use Fix My Skin, AI suggestions, or a scanner, we send the relevant inputs (your concerns, a photo URL, your question) to Anthropic's Claude API so it can respond. Anthropic processes the request and does not train models on your data per their API terms.</li>
-              <li><strong className="text-ink">Vercel</strong> — hosts the GlowLog web app and serves the pages to you.</li>
+              <li><strong className="text-ink">Supabase</strong> — our database, sign-in, and photo storage host. Every photo you upload is stored here.</li>
+              <li><strong className="text-ink">Anthropic</strong> — when you use Fix My Skin, AI suggestions, or a scanner, we send the relevant inputs (your concerns, a photo, your question) to Anthropic&apos;s Claude API so it can respond. Anthropic processes the request and does not train models on your data under their API terms.</li>
+              <li><strong className="text-ink">Vercel</strong> — hosts the GlowLog app and serves the pages to you.</li>
+              <li>
+                <strong className="text-ink">ImageKit</strong> — resizes and compresses images so pages load
+                quickly. It receives your <strong className="text-ink">profile picture</strong> and your{' '}
+                <strong className="text-ink">product photos</strong> only.{' '}
+                <strong className="text-ink">Your skin photos are never sent to ImageKit</strong> — see below.
+              </li>
             </ul>
+            <p className="text-xs text-ink-mute mt-3">Last updated 11 August 2026. If this list changes, we update it here and note the date.</p>
           </section>
 
           <section>
             <h2 className="text-xl font-semibold text-ink mb-2">Your photos and visibility</h2>
             <p className="text-sm">
-              Photos are stored in private storage buckets, scoped to your user ID. Anyone with the
-              direct URL of a photo can view it (URLs use random UUIDs and aren't enumerable), but the
-              storage itself can't be listed.
+              Photos are stored in folders scoped to your user ID, and the storage can&apos;t be
+              listed or browsed. Be aware that <strong className="text-ink">anyone holding the direct
+              URL of a photo can open it without signing in</strong> — the URLs contain random
+              identifiers and can&apos;t be guessed, but they aren&apos;t individually access-checked.
+              Don&apos;t share a photo URL you wouldn&apos;t want seen. We&apos;re in the process of
+              moving skin photos to expiring links that can&apos;t be reused; this note will change
+              when that ships.
             </p>
             <p className="text-sm mt-2">
               Your profile is <strong className="text-ink">public by default</strong>: your display
@@ -101,8 +118,13 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-xl font-semibold text-ink mb-2">Children</h2>
             <p className="text-sm">
-              GlowLog is not directed at children under 13. We do not knowingly collect data from
-              users under 13. If you believe we have, contact us and we'll remove it.
+              GlowLog is not for under-13s. We ask you to confirm you&apos;re 13 or over when you
+              create an account, and we don&apos;t knowingly collect data from anyone younger. If
+              you believe a child under 13 has an account, contact us and we&apos;ll delete it and
+              their data.
+              {' '}If you&apos;re between 13 and 18, we&apos;d suggest keeping your profile private
+              — you can do that on Settings — so your photos and routines aren&apos;t visible to
+              people you don&apos;t know.
             </p>
           </section>
 

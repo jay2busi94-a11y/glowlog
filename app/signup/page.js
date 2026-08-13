@@ -14,10 +14,21 @@ export default function SignUp() {
   const [loading, setLoading] = useState(false)
   const [confirmationPending, setConfirmationPending] = useState(false)
   const [resendStatus, setResendStatus] = useState('')
+  // Age gate. COPPA attaches under 13 in the US and GDPR sets 13-16 in the
+  // EU, and a skincare app skews young — so this is asked, not assumed.
+  // Deliberately a self-declared checkbox rather than a date of birth: we
+  // don't want to store a birthday we have no other use for.
+  const [ageConfirmed, setAgeConfirmed] = useState(false)
 
   async function handleSignUp(e) {
     e.preventDefault()
     setError('')
+
+    if (!ageConfirmed) {
+      setError('Please confirm you are 13 or over to create an account.')
+      return
+    }
+
     setLoading(true)
 
     const supabase = createClient()
@@ -123,11 +134,21 @@ export default function SignUp() {
             />
           </div>
 
+          <label className="flex items-start gap-3 text-sm text-ink-mute cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={ageConfirmed}
+              onChange={(e) => setAgeConfirmed(e.target.checked)}
+              className="accent-accent w-4 h-4 mt-0.5 flex-shrink-0 cursor-pointer"
+            />
+            <span>I&apos;m 13 or over.</span>
+          </label>
+
           {error && <p className="text-warn text-sm text-center">{error}</p>}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !ageConfirmed}
             className="w-full bg-accent text-paper font-semibold py-3 rounded-full hover:opacity-90 transition shadow-lg mt-2 disabled:opacity-50"
           >
             {loading ? 'Creating account...' : 'Create Account'}
