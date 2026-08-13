@@ -8,12 +8,18 @@ import { toLocalDateString } from '../../lib/dates'
 import { isPremium } from '../../lib/profile'
 import { computeRoutineStreak, computeBestRoutineStreak } from '../../lib/streaks'
 
+// A five-step diverging scale: bad reads as warning, good reads as clear,
+// neutral sits in the middle. Every step is visually distinct — the colour
+// migration had collapsed these into three near-invisible tints, two of
+// which matched each other and a third that matched an unlogged day.
+// Bar height also encodes the rating, so colour is reinforcement here, not
+// the only channel carrying the value.
 const RATINGS = {
-  1: { emoji: '😣', label: 'Bad', color: 'bg-warn/10' },
-  2: { emoji: '😐', label: 'Meh', color: 'bg-card' },
-  3: { emoji: '🙂', label: 'Okay', color: 'bg-card' },
-  4: { emoji: '😊', label: 'Good', color: 'bg-accent/10' },
-  5: { emoji: '✨', label: 'Glowing', color: 'bg-accent/10' },
+  1: { emoji: '😣', label: 'Bad', color: 'bg-warn' },
+  2: { emoji: '😐', label: 'Meh', color: 'bg-warn/55' },
+  3: { emoji: '🙂', label: 'Okay', color: 'bg-ink-mute' },
+  4: { emoji: '😊', label: 'Good', color: 'bg-ok/55' },
+  5: { emoji: '✨', label: 'Glowing', color: 'bg-ok' },
 }
 
 function formatDate(dateStr) {
@@ -186,7 +192,7 @@ export default function Progress() {
                       title={`${formatDate(d.date)} — ${rating ? RATINGS[rating].label : 'no log'}`}
                     >
                       <div
-                        className={`w-full rounded-t-md transition-all ${rating ? RATINGS[rating].color : 'bg-card'}`}
+                        className={`w-full rounded-t-md transition-all ${rating ? RATINGS[rating].color : 'bg-rule'}`}
                         style={{ height: rating ? `${(rating / 5) * 100}%` : '4px' }}
                       />
                     </div>

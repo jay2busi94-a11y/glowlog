@@ -431,7 +431,6 @@ function PremiumStatusCard({ profile, onDowngraded }) {
 
   return (
     <div className="relative bg-accent/10 border border-rule rounded-card p-5 mb-6 overflow-hidden">
-      <div className="absolute -top-12 -right-12 w-40 h-40 bg-card rounded-full blur-3xl pointer-events-none" />
       <div className="relative flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <span className="text-2xl">✦</span>
@@ -485,7 +484,6 @@ function UpgradeCard({ profile, onUpgraded }) {
 
   return (
     <div className="relative bg-accent/10 border border-accent rounded-card p-6 mb-6 overflow-hidden">
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
       <div className="relative">
         <div className="flex items-center gap-2 mb-2">
           <span className="text-[10px] uppercase tracking-wider bg-accent/10 border border-rule text-ink px-2 py-0.5 rounded-full font-semibold">

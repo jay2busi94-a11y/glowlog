@@ -689,7 +689,6 @@ function BatchScanPanel({ user, premium, visionCount, atLimit, onClose, onInsert
 
   return (
     <div className="relative bg-accent/10 border border-accent rounded-card p-6 mb-8 overflow-hidden">
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
       <div className="relative">
         <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
           <div>
@@ -901,7 +900,6 @@ function ShelfScanPanel({ user, premium, visionCount, atLimit, existingProducts,
 
   return (
     <div className="relative bg-accent/10 border border-accent rounded-card p-6 mb-8 overflow-hidden">
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
       <div className="relative">
         <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
           <div>
@@ -1025,7 +1023,6 @@ function IngredientCheckPanel({ user, profile, premium, visionCount, atLimit, on
 
   return (
     <div className="relative bg-accent/10 border border-rule rounded-card p-6 mb-8 overflow-hidden">
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-card rounded-full blur-3xl pointer-events-none" />
       <div className="relative">
         <div className="flex items-start justify-between gap-3 mb-2 flex-wrap">
           <div>
@@ -1099,10 +1096,13 @@ function IngredientGroup({ title, color, items }) {
     rose: 'border-warn bg-warn/10',
     slate: 'border-rule bg-card',
   }[color]
+  // Solid, not a wash — these are small status dots against a tinted panel.
+  // The blanket colour migration mapped every bg-<colour> to a 10% tint,
+  // which is right for a panel background and invisible on a 6px dot.
   const dot = {
-    emerald: 'bg-ok/10',
-    rose: 'bg-warn/10',
-    slate: 'bg-gray-400',
+    emerald: 'bg-ok',
+    rose: 'bg-warn',
+    slate: 'bg-ink-mute',
   }[color]
   return (
     <div className={`border rounded-card p-4 ${styles}`}>
@@ -1343,7 +1343,6 @@ function SuggestPanel({ profile, premium, suggestCount, atLimit, existingProduct
 
   return (
     <div className="relative bg-accent/10 border border-accent rounded-card p-6 mb-8 overflow-hidden">
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
       <div className="relative">
         <div className="flex items-start justify-between gap-3 mb-1 flex-wrap">
           <div>
