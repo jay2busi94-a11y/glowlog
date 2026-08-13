@@ -374,7 +374,7 @@ export default function ProfilePage() {
                       className={`text-xs px-4 py-2 rounded-full border transition ${
                         active
                           ? 'bg-accent/10 border-accent text-ink'
-                          : 'bg-card border-rule text-ink-mute hover:text-ink hover:border-rule'
+                          : 'bg-card border-rule text-ink-mute hover:text-ink hover:border-ink-mute'
                       }`}
                     >
                       {active ? '✓ ' : ''}{c}
@@ -575,11 +575,11 @@ function AvatarPhotoPicker({ photoUrl, onChange, userId }) {
             <img src={photoUrl} alt="Your avatar" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col gap-2 mt-1 min-w-0">
-            <label className="cursor-pointer text-xs text-accent hover:text-accent transition">
+            <label className="cursor-pointer text-xs text-accent hover:underline transition">
               {uploading ? 'Uploading...' : 'Replace photo'}
               <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
             </label>
-            <label className="cursor-pointer text-xs text-accent hover:text-accent transition">
+            <label className="cursor-pointer text-xs text-accent hover:underline transition">
               {uploading ? '...' : '📷 Take new photo'}
               <input type="file" accept="image/*" capture="user" onChange={handleFile} className="hidden" disabled={uploading} />
             </label>

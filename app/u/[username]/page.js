@@ -121,7 +121,7 @@ export default function PublicProfile() {
         <p className="text-4xl">😶</p>
         <p className="text-ink font-semibold text-lg">User not found</p>
         <p className="text-ink-mute text-sm">@{username} doesn't exist or hasn't set a username yet.</p>
-        <a href="/friends" className="text-accent text-sm hover:text-accent transition mt-2">Browse friends →</a>
+        <a href="/friends" className="text-accent text-sm hover:underline transition mt-2">Browse friends →</a>
       </div>
     </main>
   )
@@ -158,7 +158,7 @@ export default function PublicProfile() {
             </div>
 
             {isOwnProfile ? (
-              <a href="/profile" className="px-5 py-2 rounded-full text-sm font-semibold bg-card border border-rule text-ink hover:bg-card transition">
+              <a href="/profile" className="px-5 py-2 rounded-full text-sm font-semibold bg-card border border-rule text-ink hover:bg-paper transition">
                 Edit profile
               </a>
             ) : (
@@ -168,7 +168,7 @@ export default function PublicProfile() {
                 className={`px-5 py-2 rounded-full text-sm font-semibold transition disabled:opacity-50 ${
                   isFollowing
                     ? 'bg-card border border-rule text-ink hover:bg-warn/10 hover:border-warn hover:text-warn'
-                    : 'bg-accent text-paper shadow-lg  hover:opacity-90'
+                    : 'bg-accent text-paper shadow-lg hover:opacity-90'
                 }`}
               >
                 {followLoading ? '...' : isFollowing ? 'Following' : '+ Follow'}

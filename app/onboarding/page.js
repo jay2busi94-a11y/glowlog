@@ -165,7 +165,7 @@ export default function Onboarding() {
                   className={`text-sm px-4 py-2.5 rounded-full border transition ${
                     active
                       ? 'bg-accent/10 border-accent text-ink'
-                      : 'bg-card border-rule text-ink-mute hover:text-ink hover:border-rule'
+                      : 'bg-card border-rule text-ink-mute hover:text-ink hover:border-ink-mute'
                   }`}
                 >
                   {active ? '✓ ' : ''}{c}
@@ -186,7 +186,7 @@ export default function Onboarding() {
                   className={`p-4 rounded-card border transition text-sm font-semibold ${
                     active
                       ? 'bg-accent/10 border-accent text-ink shadow-md'
-                      : 'bg-card border-rule text-ink hover:border-rule'
+                      : 'bg-card border-rule text-ink hover:border-ink-mute'
                   }`}
                 >
                   {r.label}

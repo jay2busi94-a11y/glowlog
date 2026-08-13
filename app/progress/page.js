@@ -258,7 +258,7 @@ export default function Progress() {
               {photoLogs.length === 0 ? (
                 <a
                   href="/dashboard"
-                  className="inline-block text-sm text-accent hover:text-accent transition"
+                  className="inline-block text-sm text-accent hover:underline transition"
                 >
                   Add a photo to today's log →
                 </a>

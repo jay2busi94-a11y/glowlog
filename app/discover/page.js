@@ -80,7 +80,7 @@ export default function Discover() {
               className={`text-xs px-3 py-1.5 rounded-full border transition flex items-center gap-2 ${
                 filterByConcerns
                   ? 'bg-accent/10 border-accent text-ink'
-                  : 'bg-card border-rule text-ink-mute hover:border-rule hover:text-ink'
+                  : 'bg-card border-rule text-ink-mute hover:border-ink-mute hover:text-ink'
               }`}
             >
               <span>{filterByConcerns ? '✓' : '○'}</span>
@@ -159,7 +159,7 @@ export default function Discover() {
                                 ) : (
                                   <button
                                     onClick={() => addProduct(b.id, p)}
-                                    className="text-[10px] text-accent hover:text-accent transition flex-shrink-0 mt-0.5 whitespace-nowrap"
+                                    className="text-[10px] text-accent hover:underline transition flex-shrink-0 mt-0.5 whitespace-nowrap"
                                   >
                                     + Add
                                   </button>
@@ -174,7 +174,7 @@ export default function Discover() {
                     {!isOpen && (
                       <button
                         onClick={() => setOpenBrand(b.id)}
-                        className="text-xs text-accent hover:text-accent transition"
+                        className="text-xs text-accent hover:underline transition"
                       >
                         See popular products →
                       </button>

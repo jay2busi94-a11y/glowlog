@@ -90,7 +90,7 @@ export default function Login() {
               />
               <span className="text-sm text-ink">Remember me</span>
             </label>
-            <a href="/forgot-password" className="text-sm text-accent hover:text-accent transition">Forgot password?</a>
+            <a href="/forgot-password" className="text-sm text-accent hover:underline transition">Forgot password?</a>
           </div>
 
           {error && <p className="text-warn text-sm text-center">{error}</p>}
@@ -107,7 +107,7 @@ export default function Login() {
 
         <p className="text-center text-ink-mute text-sm mt-6">
           Don't have an account?{" "}
-          <a href="/signup" className="text-accent hover:text-accent transition">Sign up</a>
+          <a href="/signup" className="text-accent hover:underline transition">Sign up</a>
         </p>
 
         <div className="flex justify-center gap-5 mt-6 text-xs text-ink-mute">

@@ -88,7 +88,7 @@ export default function SignUp() {
 
           <p className="text-center text-ink-mute text-sm mt-6">
             Already confirmed?{" "}
-            <a href="/login" className="text-accent hover:text-accent transition">Log in</a>
+            <a href="/login" className="text-accent hover:underline transition">Log in</a>
           </p>
         </div>
       ) : (
@@ -155,14 +155,14 @@ export default function SignUp() {
           </button>
 
           <p className="text-[10px] text-ink-mute text-center mt-1">
-            By signing up you agree to our <a href="/terms" className="text-accent hover:text-accent transition">Terms</a> and <a href="/privacy" className="text-accent hover:text-accent transition">Privacy Policy</a>.
+            By signing up you agree to our <a href="/terms" className="text-accent hover:underline transition">Terms</a> and <a href="/privacy" className="text-accent hover:underline transition">Privacy Policy</a>.
           </p>
 
         </form>
 
         <p className="text-center text-ink-mute text-sm mt-6">
           Already have an account?{" "}
-          <a href="/login" className="text-accent hover:text-accent transition">Log in</a>
+          <a href="/login" className="text-accent hover:underline transition">Log in</a>
         </p>
 
         <div className="flex justify-center gap-5 mt-6 text-xs text-ink-mute">

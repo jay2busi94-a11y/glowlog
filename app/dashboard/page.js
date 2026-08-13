@@ -138,7 +138,7 @@ function RoutineCard({ routine, accent, products, done, onToggle, onPickProduct,
                           className={`flex-shrink-0 w-5 h-5 rounded-full border text-[10px] font-semibold transition ${
                             infoOpen
                               ? 'bg-card border-rule text-ink'
-                              : 'border-rule text-ink-mute hover:text-ink hover:border-rule'
+                              : 'border-rule text-ink-mute hover:text-ink hover:border-ink-mute'
                           }`}
                           aria-label={`Info about ${step.name}`}
                           title={`What is ${step.name}?`}
@@ -244,7 +244,7 @@ function StepProductPicker({ open, step, products, onPick, onClose }) {
           {currentId ? (
             <button
               onClick={() => onPick(null)}
-              className="text-xs text-warn hover:text-warn transition px-3 py-2"
+              className="text-xs text-warn hover:underline transition px-3 py-2"
             >
               Remove product
             </button>
@@ -647,7 +647,7 @@ ${closer}`
               <button
                 key={r.value}
                 onClick={() => setSkinRating(skinRating === r.value ? null : r.value)}
-                className={`flex flex-col items-center gap-1 px-4 py-3 rounded-xl border transition ${skinRating === r.value ? 'border-accent bg-accent/10 text-accent' : 'border-rule text-ink-mute hover:border-rule'}`}
+                className={`flex flex-col items-center gap-1 px-4 py-3 rounded-xl border transition ${skinRating === r.value ? 'border-accent bg-accent/10 text-accent' : 'border-rule text-ink-mute hover:border-ink-mute'}`}
               >
                 <span className="text-2xl">{r.emoji}</span>
                 <span className="text-xs">{r.label}</span>
@@ -693,7 +693,7 @@ ${closer}`
                 onClick={() => atLimit && setShowAiUpgrade(true)}
                 className={`text-[11px] px-2.5 py-1 rounded-full border transition ${
                   atLimit
-                    ? 'bg-card border-rule text-ink hover:bg-card'
+                    ? 'bg-card border-rule text-ink hover:bg-paper'
                     : 'bg-card border-rule text-ink-mute cursor-default'
                 }`}
                 title={atLimit ? 'Daily limit reached — tap to upgrade' : `${aiCount}/${FREE_AI_LIMIT} AI replies used today`}
@@ -946,11 +946,11 @@ function SkinPhotoPicker({ photoUrl, onChange, userId }) {
             <img src={photoUrl} alt="Today's skin photo" className="w-full h-full object-cover" />
           </div>
           <div className="flex flex-col gap-2 mt-1 min-w-0">
-            <label className="cursor-pointer text-xs text-accent hover:text-accent transition">
+            <label className="cursor-pointer text-xs text-accent hover:underline transition">
               {uploading ? 'Uploading...' : 'Replace photo'}
               <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
             </label>
-            <label className="cursor-pointer text-xs text-accent hover:text-accent transition">
+            <label className="cursor-pointer text-xs text-accent hover:underline transition">
               {uploading ? '...' : '📷 Take new selfie'}
               <input type="file" accept="image/*" capture="user" onChange={handleFile} className="hidden" disabled={uploading} />
             </label>

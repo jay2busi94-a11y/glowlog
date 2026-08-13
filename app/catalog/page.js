@@ -251,7 +251,7 @@ export default function Catalog() {
                 className={`border text-sm px-4 py-2.5 rounded-full transition flex items-center gap-2 ${
                   batchOpen
                     ? 'bg-card border-rule text-ink'
-                    : 'border-accent text-accent hover:bg-accent/10 hover:border-accent'
+                    : 'border-accent text-accent hover:bg-accent/10'
                 }`}
               >
                 <span>📦</span>
@@ -262,7 +262,7 @@ export default function Catalog() {
                 className={`border text-sm px-4 py-2.5 rounded-full transition flex items-center gap-2 ${
                   shelfOpen
                     ? 'bg-card border-rule text-ink'
-                    : 'border-accent text-accent hover:bg-accent/10 hover:border-accent'
+                    : 'border-accent text-accent hover:bg-accent/10'
                 }`}
               >
                 <span>📸</span>
@@ -273,7 +273,7 @@ export default function Catalog() {
                 className={`border text-sm px-4 py-2.5 rounded-full transition flex items-center gap-2 ${
                   ingredientsOpen
                     ? 'bg-card border-rule text-ink'
-                    : 'border-rule text-ink hover:bg-card hover:border-rule'
+                    : 'border-accent text-accent hover:bg-accent/10'
                 }`}
               >
                 <span>🔍</span>
@@ -284,7 +284,7 @@ export default function Catalog() {
                 className={`border text-sm px-4 py-2.5 rounded-full transition flex items-center gap-2 ${
                   suggestOpen
                     ? 'bg-card border-rule text-ink'
-                    : 'border-accent text-accent hover:bg-accent/10 hover:border-accent'
+                    : 'border-accent text-accent hover:bg-accent/10'
                 }`}
               >
                 <span>✨</span>
@@ -445,7 +445,7 @@ export default function Catalog() {
                     className={`text-xs px-3 py-1.5 rounded-full transition border ${
                       filter === c
                         ? 'bg-card border-rule text-ink'
-                        : 'border-rule text-ink-mute hover:text-ink hover:border-rule'
+                        : 'border-rule text-ink-mute hover:text-ink hover:border-ink-mute'
                     }`}
                   >
                     {c}
@@ -478,12 +478,12 @@ export default function Catalog() {
                       {p.notes && <p className="text-sm text-ink-mute break-words whitespace-pre-wrap line-clamp-2">{p.notes}</p>}
                       <button
                         onClick={() => setOpenProductId(p.id)}
-                        className="self-start mt-1 text-xs bg-card border border-rule text-ink hover:border-accent hover:text-ink px-3 py-1.5 rounded-full transition"
+                        className="self-start mt-1 text-xs bg-card border border-rule text-ink hover:border-accent hover:text-accent px-3 py-1.5 rounded-full transition"
                       >
                         How to use →
                       </button>
                       <div className="flex gap-3 mt-auto pt-3 border-t border-rule text-xs">
-                        <button onClick={() => startEdit(p)} className="text-accent hover:text-accent transition">
+                        <button onClick={() => startEdit(p)} className="text-accent hover:underline transition">
                           Edit
                         </button>
                         <button onClick={() => remove(p.id)} className="text-ink-mute hover:text-warn transition">
@@ -705,7 +705,7 @@ function BatchScanPanel({ user, premium, visionCount, atLimit, onClose, onInsert
         {/* Primary action — keeps the camera button big and obvious */}
         <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className={`cursor-pointer flex items-center justify-center gap-2 border rounded-card py-5 text-sm font-semibold transition ${
-            busy || atLimit ? 'border-rule text-ink-mute' : 'border-accent bg-accent/10 text-accent hover:bg-accent/10 hover:border-accent'
+            busy || atLimit ? 'border-rule text-ink-mute' : 'border-accent bg-accent/10 text-accent hover:bg-accent/20'
           }`}>
             <span className="text-2xl">📷</span>
             <span>{busy ? 'Scanning...' : atLimit ? '✦ Limit hit' : 'Snap next product'}</span>
@@ -1253,11 +1253,11 @@ function PhotoPicker({ photoUrl, onChange, userId, scanEnabled, onScan, atLimit,
                 {scanning ? 'Reading label...' : atLimit ? '✦ Daily limit — Upgrade' : '✨ Scan label with AI'}
               </button>
             )}
-            <label className="cursor-pointer text-xs text-accent hover:text-accent transition">
+            <label className="cursor-pointer text-xs text-accent hover:underline transition">
               {uploading ? 'Uploading...' : 'Replace photo'}
               <input type="file" accept="image/*" onChange={handleFile} className="hidden" disabled={uploading} />
             </label>
-            <label className="cursor-pointer text-xs text-accent hover:text-accent transition">
+            <label className="cursor-pointer text-xs text-accent hover:underline transition">
               {uploading ? '...' : '📷 Take new photo'}
               <input type="file" accept="image/*" capture="environment" onChange={handleFile} className="hidden" disabled={uploading} />
             </label>
@@ -1379,7 +1379,7 @@ function SuggestPanel({ profile, premium, suggestCount, atLimit, existingProduct
                 className={`text-left px-4 py-2 rounded-card border transition ${
                   budget === b.key
                     ? 'bg-accent/10 border-accent text-ink'
-                    : 'bg-card border-rule text-ink-mute hover:text-ink hover:border-rule'
+                    : 'bg-card border-rule text-ink-mute hover:text-ink hover:border-ink-mute'
                 }`}
               >
                 <p className="text-sm font-semibold">{b.label}</p>
@@ -1443,7 +1443,7 @@ function SuggestPanel({ profile, premium, suggestCount, atLimit, existingProduct
                     ) : (
                       <button
                         onClick={() => add(i, s)}
-                        className="text-xs text-accent hover:text-accent transition"
+                        className="text-xs text-accent hover:underline transition"
                       >
                         + Add to my catalog
                       </button>
@@ -1574,7 +1574,7 @@ function ProductDetailModal({
                 className={`text-xs px-3 py-1.5 rounded-full border transition ${
                   inMorning
                     ? 'border-rule text-ink-mute cursor-default'
-                    : 'border-accent text-accent hover:bg-accent/10 hover:border-accent'
+                    : 'border-accent text-accent hover:bg-accent/10'
                 }`}
               >
                 {inMorning ? '✓ In Morning' : '+ Add to Morning'}
@@ -1585,7 +1585,7 @@ function ProductDetailModal({
                 className={`text-xs px-3 py-1.5 rounded-full border transition ${
                   inNight
                     ? 'border-rule text-ink-mute cursor-default'
-                    : 'border-accent text-accent hover:bg-accent/10 hover:border-accent'
+                    : 'border-accent text-accent hover:bg-accent/10'
                 }`}
               >
                 {inNight ? '✓ In Night' : '+ Add to Night'}

@@ -123,7 +123,7 @@ function RoutineEditor({ routine, accent, products, onChange, onDelete }) {
                     className={`flex-shrink-0 w-5 h-5 rounded-full border text-[10px] font-semibold transition mr-1 ${
                       infoOpen
                         ? 'bg-card border-rule text-ink'
-                        : 'border-rule text-ink-mute hover:text-ink hover:border-rule'
+                        : 'border-rule text-ink-mute hover:text-ink hover:border-ink-mute'
                     }`}
                     aria-label={`What is ${step.name}?`}
                     title={`What is ${step.name}?`}
@@ -190,7 +190,7 @@ function RoutineEditor({ routine, accent, products, onChange, onDelete }) {
               <button
                 key={s}
                 onClick={() => addStep(s)}
-                className="border border-rule text-ink text-xs px-3 py-1.5 rounded-full hover:border-rule hover:text-ink transition"
+                className="border border-rule text-ink text-xs px-3 py-1.5 rounded-full hover:border-ink-mute hover:text-accent transition"
               >
                 + {s}
               </button>
@@ -358,7 +358,7 @@ export default function RoutineBuilder() {
 
             <button
               onClick={addRoutine}
-              className="w-full border border-dashed border-rule text-ink-mute hover:text-ink hover:border-rule rounded-card py-4 text-sm transition mb-8"
+              className="w-full border border-dashed border-rule text-ink-mute hover:text-ink hover:border-ink-mute rounded-card py-4 text-sm transition mb-8"
             >
               + Add a routine
             </button>

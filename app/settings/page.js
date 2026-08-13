@@ -277,7 +277,7 @@ function DangerZone() {
       {!open ? (
         <button
           onClick={() => setOpen(true)}
-          className="text-sm bg-warn/10 border border-warn text-warn px-5 py-2.5 rounded-full hover:bg-warn/10 hover:border-warn transition"
+          className="text-sm bg-warn/10 border border-warn text-warn px-5 py-2.5 rounded-full hover:bg-warn/20 transition"
         >
           Delete account
         </button>
@@ -297,7 +297,7 @@ function DangerZone() {
             <button
               onClick={handleDelete}
               disabled={busy || confirmText.trim().toUpperCase() !== 'DELETE'}
-              className="text-sm bg-warn/10 border border-warn text-ink font-semibold px-5 py-2.5 rounded-full hover:bg-warn/10 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              className="text-sm bg-warn/10 border border-warn text-ink font-semibold px-5 py-2.5 rounded-full hover:bg-warn/20 transition disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {busy ? 'Deleting...' : 'Yes, delete my account'}
             </button>
