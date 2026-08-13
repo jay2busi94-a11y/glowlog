@@ -6,6 +6,7 @@ import AppNavbar from '../components/AppNavbar'
 import { createClient } from '../../lib/supabase'
 import { toLocalDateString } from '../../lib/dates'
 import { computeRoutineStreak, computeBestRoutineStreak } from '../../lib/streaks'
+import { signSkinPhotos } from '../../lib/photos'
 
 // A five-step diverging scale: bad reads as warning, good reads as clear,
 // neutral sits in the middle. Every step is visually distinct — the colour
@@ -65,6 +66,9 @@ export default function Progress() {
   const [profile, setProfile] = useState(null)
   const [range, setRange] = useState(30)
   const [lightboxIdx, setLightboxIdx] = useState(null)
+  // stored value -> signed URL. Signed in one batch; a timeline can hold
+  // hundreds of photos and one request beats one per image.
+  const [signed, setSigned] = useState(new Map())
 
   useEffect(() => {
     const supabase = createClient()
@@ -77,9 +81,12 @@ export default function Progress() {
         supabase.from('skin_logs').select('*').eq('user_id', user.id).order('date', { ascending: true }),
         supabase.from('profiles').select('tier').eq('user_id', user.id).maybeSingle(),
       ])
-      setLogs(logsRes.data || [])
+      const rows = logsRes.data || []
+      setLogs(rows)
       setProfile(profileRes.data)
       setLoading(false)
+      const withPhotos = rows.filter(l => l.photo_url).map(l => l.photo_url)
+      if (withPhotos.length) signSkinPhotos(supabase, withPhotos).then(setSigned)
     })
   }, [])
 
@@ -265,7 +272,7 @@ export default function Progress() {
                         onClick={() => setLightboxIdx(i)}
                         className="group relative aspect-square rounded-xl overflow-hidden border border-rule hover:border-accent transition"
                       >
-                        <img src={l.photo_url} alt={`Skin on ${l.date}`} className="w-full h-full object-cover" loading="lazy" />
+                        <img src={signed.get(l.photo_url) || l.photo_url} alt={`Skin on ${l.date}`} className="w-full h-full object-cover" loading="lazy" />
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-2 py-2 flex items-end justify-between gap-1">
                           <span className="text-[10px] text-ink font-medium leading-tight">
                             {new Date(l.date + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
@@ -312,6 +319,7 @@ export default function Progress() {
       {lightboxIdx !== null && photoLogs[lightboxIdx] && (
         <PhotoLightbox
           logs={photoLogs}
+          signed={signed}
           index={lightboxIdx}
           onIndex={setLightboxIdx}
           onClose={() => setLightboxIdx(null)}
@@ -321,7 +329,7 @@ export default function Progress() {
   )
 }
 
-function PhotoLightbox({ logs, index, onIndex, onClose }) {
+function PhotoLightbox({ logs, index, onIndex, onClose, signed }) {
   const log = logs[index]
   const r = RATINGS[log.skin_rating]
   const hasPrev = index > 0
@@ -342,7 +350,7 @@ function PhotoLightbox({ logs, index, onIndex, onClose }) {
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
       <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-2xl flex flex-col gap-3">
         <div className="relative bg-black rounded-card overflow-hidden border border-rule">
-          <img src={log.photo_url} alt={`Skin on ${log.date}`} className="w-full h-auto max-h-[70vh] object-contain bg-black" />
+          <img src={signed?.get(log.photo_url) || log.photo_url} alt={`Skin on ${log.date}`} className="w-full h-auto max-h-[70vh] object-contain bg-black" />
 
           {hasPrev && (
             <button

@@ -12,9 +12,12 @@ import { getStepInfo } from '../../lib/step_info'
 import { computeRoutineStreak, streakMilestoneLabel, hasAnyRoutineStep } from '../../lib/streaks'
 // Skin photos are deliberately NOT routed through ImageKit — see lib/imagekit.js
 import { ikProductThumb } from '../../lib/imagekit'
+import { signSkinPhoto } from '../../lib/photos'
 
-// Upload a skin progress photo to the user's folder in skin-photos and
-// return its public URL. Same pattern as catalog product photos.
+// Upload a skin progress photo to the user's folder and return its storage
+// PATH, not a URL. The bucket is private, so a stored URL would either
+// expire or — worse, as it used to — be permanently readable by anyone who
+// got hold of it. Display URLs are signed at read time instead.
 async function uploadSkinPhoto(file, userId) {
   const supabase = createClient()
   const ext = (file.name?.split('.').pop() || 'jpg').toLowerCase()
@@ -23,8 +26,7 @@ async function uploadSkinPhoto(file, userId) {
     .from('skin-photos')
     .upload(path, file, { upsert: false, cacheControl: '31536000', contentType: file.type || 'image/jpeg' })
   if (error) throw error
-  const { data: { publicUrl } } = supabase.storage.from('skin-photos').getPublicUrl(path)
-  return publicUrl
+  return path
 }
 
 const SKIN_RATINGS = [
@@ -305,7 +307,11 @@ export default function Dashboard() {
   const [picking, setPicking] = useState(null)     // { routineId, stepIdx } when the product picker is open
   const [skinRating, setSkinRating] = useState(null)
   const [note, setNote] = useState('')
+  // What gets saved on the row (a storage path, or a legacy public URL on
+  // older rows) is kept separate from what the <img> renders. Conflating
+  // them would write an expiring signed URL back into the database.
   const [skinPhotoUrl, setSkinPhotoUrl] = useState('')
+  const [skinPhotoPreview, setSkinPhotoPreview] = useState('')
   const [recentLogs, setRecentLogs] = useState([])  // last ~60 days for streak math
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -405,6 +411,9 @@ export default function Dashboard() {
         setSkinRating(data.skin_rating)
         setNote(data.note || '')
         setSkinPhotoUrl(data.photo_url || '')
+        if (data.photo_url) {
+          signSkinPhoto(createClient(), data.photo_url).then(url => setSkinPhotoPreview(url || ''))
+        }
         setTodayLogged(true)
       }
     }
@@ -654,9 +663,15 @@ ${closer}`
             className="w-full bg-card border border-rule rounded-xl px-4 py-3 text-ink placeholder-ink-mute text-sm focus:outline-none focus:border-accent transition resize-none mb-4"
           />
 
+          {/* The picker shows the signed URL but reports back the storage
+              path, which is what gets saved. */}
           <SkinPhotoPicker
-            photoUrl={skinPhotoUrl}
-            onChange={setSkinPhotoUrl}
+            photoUrl={skinPhotoPreview}
+            onChange={(path) => {
+              setSkinPhotoUrl(path || '')
+              if (!path) return setSkinPhotoPreview('')
+              signSkinPhoto(createClient(), path).then(url => setSkinPhotoPreview(url || ''))
+            }}
             userId={user?.id}
           />
 
