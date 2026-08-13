@@ -929,7 +929,17 @@ function SkinPhotoPicker({ photoUrl, onChange, userId }) {
 
   return (
     <div className="mb-4">
-      <p className="text-xs text-ink-mute mb-2">Today's photo <span className="text-ink-mute">(optional)</span></p>
+      <p className="text-xs text-ink-mute mb-2">Today&apos;s photo <span className="text-ink-mute">(optional)</span></p>
+      {/* Stated at the point of collection, not buried in a policy. Face
+          photos are the most sensitive thing we hold, and several US states
+          treat consent around facial images as its own category. */}
+      {!photoUrl && (
+        <p className="text-[11px] text-ink-mute mb-2 leading-snug">
+          Private to you. Stored in your own folder, shown through links that expire after an hour,
+          and never sent to any AI or image service. Deleted with your account.
+          {' '}<a href="/privacy" className="text-accent hover:brightness-110 underline underline-offset-2">How we handle photos</a>
+        </p>
+      )}
       {photoUrl ? (
         <div className="flex items-start gap-4">
           <div className="w-28 h-28 rounded-card overflow-hidden border border-rule bg-card flex-shrink-0">

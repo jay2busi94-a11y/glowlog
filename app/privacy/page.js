@@ -78,13 +78,14 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-xl font-semibold text-ink mb-2">Your photos and visibility</h2>
             <p className="text-sm">
-              Photos are stored in folders scoped to your user ID, and the storage can&apos;t be
-              listed or browsed. Be aware that <strong className="text-ink">anyone holding the direct
-              URL of a photo can open it without signing in</strong> — the URLs contain random
-              identifiers and can&apos;t be guessed, but they aren&apos;t individually access-checked.
-              Don&apos;t share a photo URL you wouldn&apos;t want seen. We&apos;re in the process of
-              moving skin photos to expiring links that can&apos;t be reused; this note will change
-              when that ships.
+              <strong className="text-ink">Your skin photos are private.</strong> They&apos;re stored
+              in a private bucket in a folder only your account can read, and they&apos;re served to
+              you through links that expire after an hour. Someone who gets hold of one of those
+              links can&apos;t reuse it later, and there is no permanent public address for any skin
+              photo. They are never sent to ImageKit and never sent to Anthropic.
+              {' '}Profile pictures and product photos work differently: those are served from
+              ordinary public links, because they&apos;re already shown to other users. Don&apos;t use
+              a photo as your avatar that you wouldn&apos;t want seen.
             </p>
             <p className="text-sm mt-2">
               Your profile is <strong className="text-ink">public by default</strong>: your display
@@ -112,6 +113,11 @@ export default function PrivacyPage() {
               permanently delete the rows in our database (within seconds) and the photos in storage
               (within minutes). We do not maintain backups beyond what Supabase keeps as part of its
               standard service.
+              {' '}<strong className="text-ink">Photos specifically:</strong> a skin photo is kept
+              until you replace it, delete that day&apos;s log, or delete your account — whichever
+              comes first. We never run face recognition on it, never use it to identify you, and
+              never use your photos to train anything. Deleting the log deletes the file, not just
+              the reference to it.
             </p>
           </section>
 
