@@ -97,8 +97,11 @@ export default function ProfilePage() {
     setUsernameMessage('')
     const t = setTimeout(async () => {
       const supabase = createClient()
+      // profile_cards, not profiles: RLS hides private rows, and a username
+      // taken by a private account would otherwise look free. username is
+      // UNIQUE, so that becomes a failed save at the end of the form.
       const { data, error } = await supabase
-        .from('profiles')
+        .from('profile_cards')
         .select('user_id')
         .eq('username', candidate)
         .neq('user_id', user.id)

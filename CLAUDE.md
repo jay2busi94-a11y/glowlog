@@ -59,6 +59,34 @@ yet. It must be created in the ImageKit dashboard (Settings → Origins) with ba
 do this — only the account owner can. Do not set the flag to `1` before that exists or every
 product image breaks.
 
+## Profile privacy — read this before touching `profiles`
+
+`profiles` RLS is `owner OR public_profile = true`. It used to be
+`USING (true)`, which meant anyone holding the anon key — public by design —
+could read every user's `skin_type`, `concerns`, `age_range` and `bio`,
+including for accounts set to Private. `/privacy` promises the opposite.
+
+The privacy policy also promises that name and avatar stay visible when
+private, "so people can still find and follow you". RLS is row-level and
+can't do that, so `public.profile_cards` is a view exposing exactly five
+non-sensitive columns for every row. Follower lists, search and the
+`/u/[username]` lookup read from it; everything else reads `profiles`.
+
+**Never add a column to `profile_cards`.** It runs `security_invoker = false`
+so it can see rows RLS would hide — that is the whole point, and it is also
+why adding `concerns` or `skin_type` to it would silently undo the fix.
+Supabase's linter flags it as `security_definer_view`; that is a known,
+accepted trade-off, not an oversight.
+
+Two consequences to remember:
+- **Username availability must query `profile_cards`, not `profiles`.**
+  `username` is UNIQUE, so checking against RLS-filtered rows reports a name
+  held by a private account as free, and the save then fails.
+- **`/u/[username]` does a two-step lookup** — card first, then the full row.
+  Falling back to the card means RLS refused, which can only mean private and
+  not ours, so it sets `public_profile: false` explicitly. `isPublicProfile()`
+  reads a missing flag as *public*, so the explicit value matters.
+
 ## Design system
 
 Designed but **not yet wired into the app** — the app still uses the old dark pink/purple

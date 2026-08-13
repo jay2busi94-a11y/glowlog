@@ -33,12 +33,24 @@ export default function PublicProfile() {
     // here so users without a username set (the column is nullable) can still
     // be viewed — /friends links to user_id when username is missing.
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(username)
-    const query = supabase.from('profiles').select('*')
-    const { data: profileData } = isUuid
-      ? await query.eq('user_id', username).maybeSingle()
-      : await query.eq('username', username).maybeSingle()
+    // Two-step: the card resolves anyone (it only carries non-sensitive
+    // fields), then we try for the full row. RLS returns that only if the
+    // profile is public or ours, so a private profile still renders as a
+    // name + avatar + follower counts rather than a 404.
+    const cardQuery = supabase.from('profile_cards').select('*')
+    const { data: card } = isUuid
+      ? await cardQuery.eq('user_id', username).maybeSingle()
+      : await cardQuery.eq('username', username).maybeSingle()
 
-    if (!profileData) { setNotFound(true); setLoading(false); return }
+    if (!card) { setNotFound(true); setLoading(false); return }
+
+    const { data: full } = await supabase
+      .from('profiles').select('*').eq('user_id', card.user_id).maybeSingle()
+
+    // Falling back to the card means RLS refused the full row, which can only
+    // mean it's private and not ours. isPublicProfile() reads a missing flag
+    // as public, so say so explicitly rather than letting it default.
+    const profileData = full || { ...card, public_profile: false }
     setProfile(profileData)
 
     const viewerIsOwner = user?.id === profileData.user_id

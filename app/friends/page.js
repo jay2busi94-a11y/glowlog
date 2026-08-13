@@ -49,7 +49,7 @@ export default function FriendsPage() {
       let profilesById = new Map()
       if (allIds.length > 0) {
         const { data: profs } = await supabase
-          .from('profiles')
+          .from('profile_cards')
           .select('user_id, username, display_name, avatar, avatar_url')
           .in('user_id', allIds)
         for (const p of (profs || [])) profilesById.set(p.user_id, p)
@@ -72,8 +72,8 @@ export default function FriendsPage() {
       setSearching(true)
       const supabase = createClient()
       let req = supabase
-        .from('profiles')
-        .select('user_id, username, display_name, avatar, avatar_url, concerns')
+        .from('profile_cards')
+        .select('user_id, username, display_name, avatar, avatar_url')
         .neq('user_id', me.id)
         .limit(20)
       if (q) {
@@ -187,13 +187,10 @@ export default function FriendsPage() {
                             {p.display_name || (p.username ? `@${p.username}` : 'GlowLog User')}
                           </p>
                           {p.username && <p className="text-[11px] text-ink-mute truncate">@{p.username}</p>}
-                          {p.concerns?.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {p.concerns.slice(0, 3).map(c => (
-                                <span key={c} className="text-[10px] text-ink-mute bg-card border border-rule px-1.5 py-0.5 rounded-full">{c}</span>
-                              ))}
-                            </div>
-                          )}
+                          {/* Skin concerns used to be shown here. They're health
+                              data, and search reaches every account including
+                              private ones — so they're no longer fetched. Open a
+                              public profile to see them. */}
                         </div>
                       </a>
                       {isAlreadyFollowing ? (
