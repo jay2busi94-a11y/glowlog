@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { requireUser } from '../../../lib/api-auth'
 
 const MODEL = 'claude-opus-4-7'
 const MAX_CONCERNS = 8
@@ -37,6 +38,10 @@ function clean(str, max = MAX_CHARS) {
 }
 
 export async function POST(request) {
+  // Costs money per call, so verify the session before doing anything.
+  const { response: unauthorized } = await requireUser()
+  if (unauthorized) return unauthorized
+
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json(
       { error: 'AI suggestions are not configured yet (missing ANTHROPIC_API_KEY).' },

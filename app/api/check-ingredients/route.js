@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { requireUser } from '../../../lib/api-auth'
 
 const MODEL = 'claude-opus-4-7'
 const ALLOWED_URL_PREFIX = `${process.env.NEXT_PUBLIC_SUPABASE_URL || ''}/storage/v1/object/public/product-photos/`
@@ -39,6 +40,10 @@ function clamp(s, max) {
 }
 
 export async function POST(request) {
+  // Costs money per call, so verify the session before doing anything.
+  const { response: unauthorized } = await requireUser()
+  if (unauthorized) return unauthorized
+
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json({ error: 'AI ingredient checker is not configured.' }, { status: 500 })
   }

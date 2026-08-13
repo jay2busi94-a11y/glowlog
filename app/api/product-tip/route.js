@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
+import { requireUser } from '../../../lib/api-auth'
 
 const MODEL = 'claude-opus-4-7'
 
@@ -25,6 +26,10 @@ function clamp(s, max) {
 }
 
 export async function POST(request) {
+  // Costs money per call, so verify the session before doing anything.
+  const { response: unauthorized } = await requireUser()
+  if (unauthorized) return unauthorized
+
   if (!process.env.ANTHROPIC_API_KEY) {
     return Response.json({ error: 'AI tips are not configured.' }, { status: 500 })
   }
